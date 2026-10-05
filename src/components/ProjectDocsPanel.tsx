@@ -151,7 +151,7 @@ export const ProjectDocsPanel: React.FC<ProjectDocsPanelProps> = ({ projectId })
                   {doc.type}
                 </span>
                 {doc.aiGenerated && (
-                  <span className="flex items-center space-x-0.5 text-[10px] text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/40">
+                  <span className="flex items-center space-x-0.5 text-[11px] text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/40">
                     <Sparkles className="w-2.5 h-2.5" />
                     <span>AI</span>
                   </span>
@@ -175,7 +175,7 @@ export const ProjectDocsPanel: React.FC<ProjectDocsPanelProps> = ({ projectId })
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div>
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-800/60 rounded text-[10px] font-bold">
+                  <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-800/60 rounded text-[11px] font-bold">
                     {selectedDoc.type}
                   </span>
                   <span className="text-xs text-slate-500">v{selectedDoc.version || 1}</span>

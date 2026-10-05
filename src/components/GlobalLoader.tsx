@@ -11,7 +11,7 @@ const GlobalLoader: React.FC<GlobalLoaderProps> = ({ message }) => {
       <div className="flex flex-col items-center gap-4">
         <Loader size="lg" />
         {message && (
-          <span className="text-[10px] font-bold tracking-[0.3em] text-olive-400  uppercase font-sans animate-pulse">
+          <span className="text-[11px] font-bold tracking-[0.3em] text-olive-400  uppercase font-sans animate-pulse">
             {message}
           </span>
         )}

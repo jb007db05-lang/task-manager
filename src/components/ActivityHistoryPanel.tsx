@@ -274,7 +274,7 @@ export default function ActivityHistoryPanel({
                 {/* Date separator */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex-1 h-px bg-olive-200 " />
-                  <span className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-olive-400  select-none whitespace-nowrap">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-olive-400  select-none whitespace-nowrap">
                     {group.label}
                   </span>
                   <div className="flex-1 h-px bg-olive-200 " />
@@ -354,7 +354,7 @@ export default function ActivityHistoryPanel({
                                 </div>
                               ))}
                               {activity.changes.length > 3 && (
-                                <span className="text-[0.65rem] text-olive-400 italic pl-3">
+                                <span className="text-[11px] text-olive-400 italic pl-3">
                                   +{activity.changes.length - 3} more changes
                                 </span>
                               )}

@@ -218,7 +218,7 @@ export default function LandingPage(): JSX.Element {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-neutral-200/50 border border-neutral-300/40 rounded-full">
             <Sparkles size={11} className="text-emerald-700" />
-            <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest">Version 1.2 Enterprise Active</span>
+            <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-widest">Version 1.2 Enterprise Active</span>
           </div>
 
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-neutral-900 max-w-4xl mx-auto leading-tight">
@@ -233,15 +233,15 @@ export default function LandingPage(): JSX.Element {
           {/* Clean Key Metrics Widgets */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto pt-6">
             <div className="bg-white border border-neutral-200 p-5 rounded-2xl text-center hover:border-neutral-300 transition-all">
-              <span className="text-[9px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">LEDGER INTEGRITY</span>
+              <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">LEDGER INTEGRITY</span>
               <div className="text-xl font-bold text-emerald-700">100% Secure</div>
             </div>
             <div className="bg-white border border-neutral-200 p-5 rounded-2xl text-center hover:border-neutral-300 transition-all">
-              <span className="text-[9px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">CALCULATION TIMING</span>
+              <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">CALCULATION TIMING</span>
               <div className="text-xl font-bold text-neutral-800">&lt; 0.1ms</div>
             </div>
             <div className="bg-white border border-neutral-200 p-5 rounded-2xl text-center hover:border-neutral-300 transition-all">
-              <span className="text-[9px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">MICRO-SLA COMPLIANCE</span>
+              <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">MICRO-SLA COMPLIANCE</span>
               <div className="text-xl font-bold text-neutral-800">99.98% Met</div>
             </div>
           </div>
@@ -276,7 +276,7 @@ export default function LandingPage(): JSX.Element {
           {/* Left panel: Controls */}
           <div className="space-y-6">
             <div className="space-y-1">
-              <span className="bg-neutral-100 border border-neutral-200 text-neutral-700 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1">
+              <span className="bg-neutral-100 border border-neutral-200 text-neutral-700 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1">
                 <Calculator className="w-3 h-3 text-emerald-600" /> Evaluation Simulator
               </span>
               <h3 className="text-lg font-bold text-neutral-900">
@@ -286,7 +286,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* Base Priority */}
             <div className="space-y-2">
-              <label className="text-[9px] font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1">
+              <label className="text-[11px] font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1">
                 <Zap className="w-3 h-3 text-amber-500" /> Base Priority
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -301,7 +301,7 @@ export default function LandingPage(): JSX.Element {
                     <button
                       key={p}
                       onClick={() => setBasePriority(p)}
-                      className={`py-2 text-[9px] font-mono border rounded-lg transition-all cursor-pointer ${activeStyles[p]}`}
+                      className={`py-2 text-[11px] font-mono border rounded-lg transition-all cursor-pointer ${activeStyles[p]}`}
                     >
                       {p}
                     </button>
@@ -312,7 +312,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* SLA Urgency */}
             <div className="space-y-2">
-              <label className="text-[9px] font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1">
+              <label className="text-[11px] font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1">
                 <Clock className="w-3 h-3 text-rose-500" /> SLA Urgency
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -326,7 +326,7 @@ export default function LandingPage(): JSX.Element {
                     <button
                       key={u}
                       onClick={() => setSlaUrgency(u)}
-                      className={`py-2 text-[9px] font-mono border rounded-lg transition-all cursor-pointer ${activeStyles[u]}`}
+                      className={`py-2 text-[11px] font-mono border rounded-lg transition-all cursor-pointer ${activeStyles[u]}`}
                     >
                       {u.replace('_', ' ')}
                     </button>
@@ -337,7 +337,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* Impact */}
             <div className="space-y-2">
-              <label className="text-[9px] font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1">
+              <label className="text-[11px] font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1">
                 <Users className="w-3 h-3 text-sky-500" /> Impact
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -351,7 +351,7 @@ export default function LandingPage(): JSX.Element {
                     <button
                       key={i}
                       onClick={() => setImpact(i)}
-                      className={`py-2 text-[9px] font-mono border rounded-lg transition-all cursor-pointer ${activeStyles[i]}`}
+                      className={`py-2 text-[11px] font-mono border rounded-lg transition-all cursor-pointer ${activeStyles[i]}`}
                     >
                       {i}
                     </button>
@@ -362,7 +362,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* Downstream Slider */}
             <div className="space-y-3">
-              <div className="flex justify-between items-center text-[9px] font-mono font-bold text-neutral-400 uppercase tracking-widest">
+              <div className="flex justify-between items-center text-[11px] font-mono font-bold text-neutral-400 uppercase tracking-widest">
                 <span>Blocked Downstream</span>
                 <span className="text-neutral-800 font-bold">{downstreamTasks} Tasks</span>
               </div>
@@ -383,8 +383,8 @@ export default function LandingPage(): JSX.Element {
           <div className="flex flex-col justify-between p-6 bg-neutral-900 text-white rounded-xl border border-neutral-800 min-h-[350px]">
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                <span className="text-[9px] font-mono text-neutral-500 tracking-wider">CALCULATION_RESULT</span>
-                <span className="text-[9px] text-amber-400 font-bold font-mono tracking-wider flex items-center gap-1">
+                <span className="text-[11px] font-mono text-neutral-500 tracking-wider">CALCULATION_RESULT</span>
+                <span className="text-[11px] text-amber-400 font-bold font-mono tracking-wider flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" /> ENGINE RUNNING
                 </span>
               </div>
@@ -395,10 +395,10 @@ export default function LandingPage(): JSX.Element {
                     {score}
                     <span className="text-xs text-neutral-500 ml-1">/ 200</span>
                   </div>
-                  <p className="text-[9px] font-mono text-neutral-500">Cumulative priority rating</p>
+                  <p className="text-[11px] font-mono text-neutral-500">Cumulative priority rating</p>
                 </div>
 
-                <div className={`text-[9px] px-2 py-1 border rounded-lg font-mono font-bold uppercase flex items-center gap-1.5 ${priorityResult.darkColor}`}>
+                <div className={`text-[11px] px-2 py-1 border rounded-lg font-mono font-bold uppercase flex items-center gap-1.5 ${priorityResult.darkColor}`}>
                   <span className={`w-1 h-1 rounded-full ${priorityResult.led}`} />
                   {priorityResult.label}
                 </div>
@@ -413,7 +413,7 @@ export default function LandingPage(): JSX.Element {
               </div>
 
               {/* Terminal Logs */}
-              <div className="bg-neutral-950 rounded-lg border border-white/5 p-4 font-mono text-[9px] leading-relaxed">
+              <div className="bg-neutral-950 rounded-lg border border-white/5 p-4 font-mono text-[11px] leading-relaxed">
                 <div className="flex items-center gap-1 border-b border-white/5 pb-2 mb-2 text-neutral-600 font-mono">
                   <Terminal className="w-3 h-3 text-emerald-500" />
                   <span>CONSOLE_V4.2</span>
@@ -431,7 +431,7 @@ export default function LandingPage(): JSX.Element {
 
             <button
               onClick={() => navigate('/register')}
-              className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-mono text-[10px] font-bold tracking-widest uppercase rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-mono text-[11px] font-bold tracking-widest uppercase rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               Deploy Engine Now <ArrowRight className="w-3 h-3" />
             </button>
@@ -534,7 +534,7 @@ export default function LandingPage(): JSX.Element {
           <div className="lg:col-span-2 space-y-4 pl-2">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-xs text-neutral-900 uppercase tracking-wider">Matched Tasks</h4>
-              <span className="text-[9px] font-mono text-neutral-400">THRESHOLD: &gt;0.80</span>
+              <span className="text-[11px] font-mono text-neutral-400">THRESHOLD: &gt;0.80</span>
             </div>
 
             {isSearching ? (
@@ -552,7 +552,7 @@ export default function LandingPage(): JSX.Element {
                       <h5 className="text-xs font-bold text-neutral-900">{m.title}</h5>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-[9px] font-mono text-emerald-800 font-bold bg-emerald-50 border border-emerald-150 px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-mono text-emerald-800 font-bold bg-emerald-50 border border-emerald-150 px-2 py-0.5 rounded">
                         {(m.score * 100).toFixed(0)}% Match
                       </span>
                       <span className="text-[8px] font-mono text-rose-700 bg-rose-50 border border-rose-150 px-2 py-0.5 rounded">
@@ -584,7 +584,7 @@ export default function LandingPage(): JSX.Element {
         <div className="overflow-x-auto rounded-2xl border border-neutral-200 shadow-sm bg-white p-2">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-neutral-900 text-white font-mono text-[10px] uppercase tracking-wider">
+              <tr className="bg-neutral-900 text-white font-mono text-[11px] uppercase tracking-wider">
                 <th className="p-4 font-bold rounded-l-xl">Advanced Capabilities</th>
                 <th className="p-4 font-bold">Standard Task Tool</th>
                 <th className="p-4 font-bold text-emerald-400 bg-neutral-950 rounded-r-xl">Pristine Enterprise</th>
@@ -640,7 +640,7 @@ export default function LandingPage(): JSX.Element {
           {/* Clean Cryptographic Ledger Visualizer */}
           <div className="w-full flex flex-col gap-4 p-6 bg-neutral-950 border border-white/5 rounded-2xl shadow-sm">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-400">
+              <span className="text-[11px] font-mono font-bold tracking-widest text-emerald-400">
                 {isScanning ? 'VALIDATING BLOCKCHAIN...' : 'LEDGER INTEGRITY SIGNED'}
               </span>
               <button 
@@ -656,9 +656,9 @@ export default function LandingPage(): JSX.Element {
             <div className="flex items-center justify-between p-4 bg-neutral-900 border border-white/5 rounded-xl">
               <div className="space-y-1">
                 <div className="text-[8px] font-mono text-emerald-500 uppercase tracking-widest">Genesis Block #001</div>
-                <div className="text-[10px] font-mono text-white">SEQ_NO: 1 | ACTION: CREATE_PROJECT</div>
+                <div className="text-[11px] font-mono text-white">SEQ_NO: 1 | ACTION: CREATE_PROJECT</div>
               </div>
-              <div className="text-[9px] font-mono text-neutral-400">
+              <div className="text-[11px] font-mono text-neutral-400">
                 8a7f...d49e
               </div>
             </div>
@@ -667,9 +667,9 @@ export default function LandingPage(): JSX.Element {
             <div className="flex items-center justify-between p-4 bg-neutral-900 border border-white/5 rounded-xl">
               <div className="space-y-1">
                 <div className="text-[8px] font-mono text-teal-400 uppercase tracking-widest">Block #002</div>
-                <div className="text-[10px] font-mono text-white">SEQ_NO: 2 | ACTION: EVALUATE_PRIORITY</div>
+                <div className="text-[11px] font-mono text-white">SEQ_NO: 2 | ACTION: EVALUATE_PRIORITY</div>
               </div>
-              <div className="text-[9px] font-mono text-neutral-400">
+              <div className="text-[11px] font-mono text-neutral-400">
                 3c9b...81ea
               </div>
             </div>
@@ -679,10 +679,10 @@ export default function LandingPage(): JSX.Element {
               <div className="absolute inset-0 bg-emerald-950/95 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center space-y-3 p-6 text-center border border-emerald-500/30">
                 <CheckCircle2 className="w-12 h-12 text-emerald-400" />
                 <h3 className="text-sm font-bold text-white">Integrity Verification OK</h3>
-                <p className="text-[10px] text-neutral-400 max-w-sm">SHA-256 hashes verified. Zero alterations detected in database ledger.</p>
+                <p className="text-[11px] text-neutral-400 max-w-sm">SHA-256 hashes verified. Zero alterations detected in database ledger.</p>
                 <button 
                   onClick={() => setScanComplete(false)}
-                  className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-400 cursor-pointer"
+                  className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-[11px] font-bold hover:bg-emerald-400 cursor-pointer"
                 >
                   Close
                 </button>
@@ -789,7 +789,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* Column 2 */}
             <div className="space-y-2">
-              <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">Operational Engine</h4>
+              <h4 className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-400">Operational Engine</h4>
               <ul className="text-xs text-neutral-400 space-y-1.5 font-normal">
                 <li><a href="#features" className="hover:text-white transition-colors">Dynamic Priority Matrix</a></li>
                 <li><a href="#features" className="hover:text-white transition-colors">Microsecond Resolution SLA</a></li>
@@ -798,7 +798,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* Column 3 */}
             <div className="space-y-2">
-              <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">Security & Ledger</h4>
+              <h4 className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400">Security & Ledger</h4>
               <ul className="text-xs text-neutral-400 space-y-1.5 font-normal">
                 <li><a href="#features" className="hover:text-white transition-colors">SHA-256 Log Hash Chain</a></li>
                 <li><a href="#features" className="hover:text-white transition-colors">Legal Retention Holds</a></li>
@@ -807,7 +807,7 @@ export default function LandingPage(): JSX.Element {
 
             {/* Column 4 */}
             <div className="space-y-2">
-              <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400">Resources</h4>
+              <h4 className="text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-400">Resources</h4>
               <ul className="text-xs text-neutral-400 space-y-1.5 font-normal">
                 <li><a href="/sdk-docs" className="hover:text-white transition-colors flex items-center gap-1 font-mono">Developer SDK Docs <ArrowUpRight className="w-3 h-3 text-neutral-500" /></a></li>
                 <li><a href="#matrix" className="hover:text-white transition-colors">Capability Matrix</a></li>
@@ -816,7 +816,7 @@ export default function LandingPage(): JSX.Element {
 
           </div>
 
-          <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono text-neutral-500">
+          <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] font-mono text-neutral-500">
             <div>
               &copy; {new Date().getFullYear()} Pristine Inc. All rights reserved.
             </div>

@@ -180,9 +180,11 @@ interface EventTrackingPageProps {
   onOpenDocs?: () => void;
   sdkIntegrationId?: string;
   hideHeader?: boolean;
+  /** Live or sandbox data of the integration (integration view only). */
+  environment?: 'live' | 'sandbox';
 }
 
-const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIntegrationId, hideHeader = false }) => {
+const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIntegrationId, hideHeader = false, environment = 'live' }) => {
   const confirm = useConfirm();
   const [keys, setKeys] = useState<AnalyticsKey[]>([]);
   const [selectedKeyId, setSelectedKeyId] = useState<string>('');
@@ -248,6 +250,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
       };
       if (sdkIntegrationId) {
         queryParams.sdkIntegrationId = sdkIntegrationId;
+        queryParams.environment = environment;
       } else {
         queryParams.apiKeyId = keyId;
       }
@@ -266,7 +269,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
     try {
       const data = await getTrackedEvents(
         sdkIntegrationId || keyId,
-        {},
+        sdkIntegrationId ? { environment } : {},
         !!sdkIntegrationId
       );
       setAvailableEvents(data);
@@ -282,10 +285,12 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
   useEffect(() => {
     if (sdkIntegrationId || selectedKeyId) {
       setCurrentPage(1);
+      setExpanded({});
+      setLogDetails({});
       void loadAvailableEvents(selectedKeyId);
       loadLogs(selectedKeyId, 1);
     }
-  }, [selectedKeyId, sdkIntegrationId, appliedFilters]);
+  }, [selectedKeyId, sdkIntegrationId, appliedFilters, environment]);
 
   useEffect(() => {
     if (sdkIntegrationId || selectedKeyId) {
@@ -368,7 +373,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
     if (isExpanding && !logDetails[event._id] && (sdkIntegrationId || selectedKeyId)) {
       setFetchingPayloadId(event._id);
       try {
-        const logs = await getEventLogs(event._id, sdkIntegrationId || selectedKeyId, !!sdkIntegrationId);
+        const logs = await getEventLogs(event._id, sdkIntegrationId || selectedKeyId, !!sdkIntegrationId, environment);
         if (logs && logs.length > 0) {
           setLogDetails(prev => ({ ...prev, [event._id]: logs[0] }));
         }
@@ -454,7 +459,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
             <Filter size={14} />
             <span>Filters</span>
             {appliedFilters.eventNames.length > 0 || appliedFilters.startDate || appliedFilters.endDate ? (
-              <span className="rounded-full bg-olive-900 px-1.5 py-0.5 text-[0.65rem] font-medium text-white ">
+              <span className="rounded-full bg-olive-900 px-1.5 py-0.5 text-[11px] font-medium text-white ">
                 {appliedFilters.eventNames.length + (appliedFilters.startDate ? 1 : 0) + (appliedFilters.endDate ? 1 : 0)}
               </span>
             ) : null}
@@ -526,7 +531,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                     {isFetching ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 text-olive-500/40">
                         <Loader2 size={24} className="animate-spin" />
-                        <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em]">Syncing Payload...</span>
+                        <span className="text-[11px] font-medium uppercase tracking-[0.2em]">Syncing Payload...</span>
                       </div>
                     ) : (
                       <div className="rounded-xl bg-olive-950 shadow-2xl shadow-olive-900/20 p-6 relative overflow-hidden group border border-olive-900">
@@ -667,7 +672,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <strong className="text-[0.9rem] text-olive-800  truncate">{key.name}</strong>
-                      <span className="text-[0.6rem] px-1 bg-emerald-50 text-emerald-600 rounded font-semibold uppercase tracking-wide">Active</span>
+                      <span className="text-[11px] px-1 bg-emerald-50 text-emerald-600 rounded font-semibold uppercase tracking-wide">Active</span>
                     </div>
                     <code className="text-[0.7rem] text-olive-400 font-mono block mt-0.5">{key.maskedKey}</code>
                   </div>
@@ -730,7 +735,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
         >
           <div className="space-y-6 pt-2">
             <div className="p-5 bg-olive-900 rounded border border-olive-800 space-y-3">
-              <span className="text-[0.65rem] font-semibold text-olive-400 uppercase tracking-widest block text-center">Secret API Key</span>
+              <span className="text-[11px] font-semibold text-olive-400 uppercase tracking-widest block text-center">Secret API Key</span>
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded border border-white/5">
                 <code className="text-[0.95rem] font-semibold font-mono text-olive-100 break-all flex-1 text-center">{newlyCreatedKey.key}</code>
                 <button

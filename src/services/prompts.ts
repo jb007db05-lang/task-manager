@@ -23,6 +23,61 @@ export interface PromptFolder {
   createdAt?: string;
 }
 
+export interface PromptCanary {
+  version: number;
+  percentage: number;
+  startedAt: string;
+}
+
+/** What a prompt serves to the AI feature it is bound to. */
+export interface PromptDeploymentSummary {
+  featureKey: string | null;
+  productionVersion: number;
+  stagingVersion: number | null;
+  canary: PromptCanary | null;
+}
+
+export type DeployStrategy = "direct" | "canary";
+
+export interface PromptDeploymentEvent {
+  action:
+    | "set-production"
+    | "start-canary"
+    | "update-canary"
+    | "promote-canary"
+    | "abort-canary"
+    | "rollback"
+    | "bind-feature"
+    | "unbind-feature";
+  version?: number | null;
+  previousVersion?: number | null;
+  percentage?: number | null;
+  featureKey?: string | null;
+  actor?: { _id: string; name?: string; email?: string } | string;
+  at: string;
+}
+
+export interface PromptDeployment extends PromptDeploymentSummary {
+  promptId: string;
+  latestVersion: number;
+  history: PromptDeploymentEvent[];
+}
+
+export interface PromptFeature {
+  key: string;
+  label: string;
+  description: string;
+  variables: { name: string; description: string }[];
+  defaultTemplate: string;
+  binding: {
+    promptId: string;
+    promptName: string;
+    productionVersion: number;
+    stagingVersion: number | null;
+    canary: PromptCanary | null;
+  } | null;
+}
+
 export interface PromptItem {
   _id: string;
   workspaceId: string;
@@ -51,12 +106,16 @@ export interface PromptItem {
   isArchived: boolean;
   isTemplate: boolean;
   usageCount: number;
+  deployment?: PromptDeploymentSummary | null;
   createdAt: string;
   updatedAt: string;
 }
 
+export type PromptVersionStatus = "production" | "canary" | "staging" | "draft";
+
 export interface PromptVersion {
   _id: string;
+  status?: PromptVersionStatus;
   promptId: string;
   version: number;
   hash?: string;
@@ -224,6 +283,103 @@ export const promptService = {
       status: string;
       data: { success: boolean };
     }>(`/workspaces/${workspaceId}/prompts/${promptId}`);
+    return res.data.data;
+  },
+
+  // Deployments: feature binding, production version, canary rollout
+  async listFeatures(workspaceId: string): Promise<PromptFeature[]> {
+    const res = await api.get<{ status: string; data: PromptFeature[] }>(
+      `/workspaces/${workspaceId}/prompts/features`,
+    );
+    return res.data.data;
+  },
+
+  async getDeployment(
+    workspaceId: string,
+    promptId: string,
+  ): Promise<PromptDeployment> {
+    const res = await api.get<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment`,
+    );
+    return res.data.data;
+  },
+
+  async deployVersion(
+    workspaceId: string,
+    promptId: string,
+    payload: { version: number; strategy: DeployStrategy; percentage?: number },
+  ): Promise<PromptDeployment> {
+    const res = await api.post<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/deploy`,
+      payload,
+    );
+    return res.data.data;
+  },
+
+  async rollbackProduction(
+    workspaceId: string,
+    promptId: string,
+  ): Promise<PromptDeployment> {
+    const res = await api.post<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/rollback`,
+    );
+    return res.data.data;
+  },
+
+  async setProductionVersion(
+    workspaceId: string,
+    promptId: string,
+    version: number,
+  ): Promise<PromptDeployment> {
+    const res = await api.put<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/production`,
+      { version },
+    );
+    return res.data.data;
+  },
+
+  async startCanary(
+    workspaceId: string,
+    promptId: string,
+    version: number,
+    percentage: number,
+  ): Promise<PromptDeployment> {
+    const res = await api.put<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/canary`,
+      { version, percentage },
+    );
+    return res.data.data;
+  },
+
+  async promoteCanary(
+    workspaceId: string,
+    promptId: string,
+  ): Promise<PromptDeployment> {
+    const res = await api.post<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/canary/promote`,
+    );
+    return res.data.data;
+  },
+
+  async abortCanary(
+    workspaceId: string,
+    promptId: string,
+  ): Promise<PromptDeployment> {
+    const res = await api.delete<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/canary`,
+    );
+    return res.data.data;
+  },
+
+  async bindFeature(
+    workspaceId: string,
+    promptId: string,
+    featureKey: string | null,
+  ): Promise<PromptDeployment> {
+    const res = await api.put<{ status: string; data: PromptDeployment }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/deployment/feature`,
+      { featureKey },
+    );
     return res.data.data;
   },
 

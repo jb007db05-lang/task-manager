@@ -2,6 +2,22 @@ import api from '@/services/api';
 
 export type SdkIntegrationStatus = 'pending' | 'connected' | 'disabled' | 'revoked';
 export type SdkEnvironment = 'development' | 'staging' | 'production';
+/** Which data an SDK key reads and writes: the live key or the sandbox key. */
+export type DataEnvironment = 'live' | 'sandbox';
+
+export interface SdkSandbox {
+  enabled: boolean;
+  keyMasked?: string;
+  createdAt?: string | null;
+  lastRequestAt?: string | null;
+}
+
+export interface SandboxPurgeResult {
+  events: number;
+  exposures: number;
+  surveyResponses: number;
+  users: number;
+}
 
 export interface SdkIntegration {
   id: string;
@@ -12,6 +28,7 @@ export interface SdkIntegration {
   description?: string;
   status: SdkIntegrationStatus;
   sdkKeyMasked: string;
+  sandbox: SdkSandbox;
   sdkVersion?: string | null;
   firstConnectedAt?: string | null;
   lastConnectedAt?: string | null;
@@ -66,6 +83,31 @@ export const updateIntegration = async (
 export const regenerateKey = async (id: string): Promise<CreateResponse> => {
   const res = await api.post<ApiEnvelope<CreateResponse>>(`/sdk-integrations/${id}/regenerate-key`);
   return res.data.data;
+};
+
+interface SandboxKeyResponse { integration: SdkIntegration; sandboxKey: string }
+
+/** Creates the sandbox key; the raw key is only returned once. */
+export const createSandbox = async (id: string): Promise<SandboxKeyResponse> => {
+  const res = await api.post<ApiEnvelope<SandboxKeyResponse>>(`/sdk-integrations/${id}/sandbox`);
+  return res.data.data;
+};
+
+export const regenerateSandboxKey = async (id: string): Promise<SandboxKeyResponse> => {
+  const res = await api.post<ApiEnvelope<SandboxKeyResponse>>(`/sdk-integrations/${id}/sandbox/regenerate-key`);
+  return res.data.data;
+};
+
+/** Deletes sandbox events, exposures, survey responses and users; keeps the key. */
+export const resetSandbox = async (id: string): Promise<SandboxPurgeResult> => {
+  const res = await api.post<ApiEnvelope<{ purged: SandboxPurgeResult }>>(`/sdk-integrations/${id}/sandbox/reset`);
+  return res.data.data.purged;
+};
+
+/** Removes the sandbox key and all sandbox data. */
+export const deleteSandbox = async (id: string): Promise<SandboxPurgeResult> => {
+  const res = await api.delete<ApiEnvelope<{ purged: SandboxPurgeResult }>>(`/sdk-integrations/${id}/sandbox`);
+  return res.data.data.purged;
 };
 
 export const disableIntegration = async (id: string): Promise<SdkIntegration> => {

@@ -216,19 +216,19 @@ const EventExplorer: React.FC<EventExplorerProps> = ({ selectedKeyId }) => {
                 </p>
                 <div className="bg-white  rounded-lg p-5 border border-olive-200  font-medium space-y-3 shadow-sm">
                   <div className="flex justify-between border-b border-olive-100  pb-2">
-                    <span className="text-[0.65rem] text-olive-500 uppercase tracking-wider">Library</span>
+                    <span className="text-[11px] text-olive-500 uppercase tracking-wider">Library</span>
                     <span className="text-[0.75rem] font-bold text-olive-950 ">{event.context?.library?.name} v{event.context?.library?.version}</span>
                   </div>
                   <div className="flex justify-between border-b border-olive-100  pb-2">
-                    <span className="text-[0.65rem] text-olive-500 uppercase tracking-wider">Screen</span>
+                    <span className="text-[11px] text-olive-500 uppercase tracking-wider">Screen</span>
                     <span className="text-[0.75rem] font-bold text-olive-950 ">{event.context?.device?.screen || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between border-b border-olive-100  pb-2">
-                    <span className="text-[0.65rem] text-olive-500 uppercase tracking-wider">Language</span>
+                    <span className="text-[11px] text-olive-500 uppercase tracking-wider">Language</span>
                     <span className="text-[0.75rem] font-bold text-olive-950 ">{event.context?.device?.language || 'N/A'}</span>
                   </div>
                   <div className="pt-2">
-                    <span className="text-[0.65rem] text-olive-500 uppercase tracking-wider block mb-1">Page URL</span>
+                    <span className="text-[11px] text-olive-500 uppercase tracking-wider block mb-1">Page URL</span>
                     <span className="text-[0.72rem] font-bold text-olive-600  break-all">{event.context?.page?.url || 'N/A'}</span>
                   </div>
                 </div>

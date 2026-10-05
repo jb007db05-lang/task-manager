@@ -382,7 +382,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">Account</span>
+            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Account</span>
             <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Profile Information</h2>
             <p className="text-olive-500 m-0 text-xs">Update your personal details used across the workspace.</p>
           </div>
@@ -423,7 +423,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
               readOnly
               className="w-full px-3 py-2 bg-olive-50 border border-olive-200 rounded text-xs text-olive-500 cursor-not-allowed"
             />
-            <p className="text-[0.65rem] text-olive-400 m-0 mt-0.5">Email cannot be changed directly. Contact support for help.</p>
+            <p className="text-[11px] text-olive-400 m-0 mt-0.5">Email cannot be changed directly. Contact support for help.</p>
           </div>
 
           <div className="flex justify-end pt-1">
@@ -447,7 +447,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">Account Security</span>
+            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Account Security</span>
             <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Global AI Credentials</h2>
             <p className="text-olive-500 m-0 text-xs">Configure API keys for your AI providers. These are encrypted and shared across all your projects.</p>
           </div>
@@ -543,7 +543,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">Operations</span>
+            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Operations</span>
             <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">SLA Configuration</h2>
             <p className="text-olive-500 m-0 text-xs">Set response and resolution targets by task priority.</p>
           </div>
@@ -601,7 +601,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">Security</span>
+            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Security</span>
             <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Two-Factor Authentication (2FA)</h2>
             <p className="text-olive-500 m-0 text-xs">Add an extra layer of security to your account by requiring a verification code sent via email upon login.</p>
           </div>
@@ -645,7 +645,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
         <SectionCard>
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">Security</span>
+              <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Security</span>
               <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Sync API Key</h2>
               <p className="text-olive-500 m-0 text-xs">Your unique key for connecting external task tools.</p>
             </div>
@@ -685,7 +685,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
         <SectionCard>
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">Devices</span>
+              <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Devices</span>
               <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Companion Access</h2>
               <p className="text-olive-500 m-0 text-xs">Manage secure keys for mobile, desktop, or voice apps.</p>
             </div>
@@ -702,7 +702,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
                     <Smartphone size={14} />
                   </div>
                   <div>
-                    <p className="text-[0.6rem] font-bold text-olive-400 uppercase tracking-widest m-0 mb-0.5">Registry</p>
+                    <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest m-0 mb-0.5">Registry</p>
                     <p className="text-xs font-semibold text-olive-950 m-0">
                       {devices.length} registered {devices.length === 1 ? 'device' : 'devices'}
                     </p>
@@ -719,7 +719,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
               </div>
 
               <div className="flex flex-col gap-1.5 pt-2 border-t border-olive-100">
-                <p className="text-[0.6rem] font-bold text-olive-400 uppercase tracking-widest mb-1.5">New Device Key</p>
+                <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest mb-1.5">New Device Key</p>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     className="bg-white border border-olive-200 rounded px-3 py-2 text-xs text-olive-950 transition-all focus:outline-none focus:border-olive-500"
@@ -770,7 +770,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[0.65rem] tracking-[0.12em] uppercase font-bold">A.I.</span>
+            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">A.I.</span>
             <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">ChatGPT Integration</h2>
             <p className="text-olive-500 m-0 text-xs">Configure a custom GPT to manage your tasks via voice or chat.</p>
           </div>
@@ -832,7 +832,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
                     {step.code && (
                       <div className="relative mt-1">
                         <button
-                          className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 text-[10px] bg-white border border-olive-200 rounded text-olive-750 hover:bg-olive-50 transition-colors shadow-xs"
+                          className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 text-[11px] bg-white border border-olive-200 rounded text-olive-750 hover:bg-olive-50 transition-colors shadow-xs"
                           onClick={() => handleCopy(step.code!, index)}
                           type="button"
                         >

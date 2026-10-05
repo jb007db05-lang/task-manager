@@ -327,7 +327,7 @@ export const AiProjectPlanModal: React.FC<AiProjectPlanModalProps> = ({
                 >
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="truncate font-medium text-slate-200">{sess.title}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{sess.createdAt}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">{sess.createdAt}</div>
                   </div>
                   <button
                     type="button"
@@ -488,7 +488,7 @@ export const AiProjectPlanModal: React.FC<AiProjectPlanModalProps> = ({
                           <span>Estimating engineering effort, risk mitigations & milestone roadmap</span>
                         </div>
                       </div>
-                      <div className="text-[10px] text-slate-400 italic">
+                      <div className="text-[11px] text-slate-400 italic">
                         Detailed production engineering blueprints take ~30–60 seconds to synthesize.
                       </div>
                     </div>
@@ -566,7 +566,7 @@ export const AiProjectPlanModal: React.FC<AiProjectPlanModalProps> = ({
                           <div key={i} className="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl text-xs space-y-1.5">
                             <div className="flex items-center justify-between font-bold text-white">
                               <span>{actor.name}</span>
-                              <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-mono">{actor.type}</span>
+                              <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[11px] font-mono">{actor.type}</span>
                             </div>
                             <div className="text-slate-400 text-[11px] leading-relaxed">{actor.responsibilities?.join(" • ")}</div>
                           </div>
@@ -612,15 +612,15 @@ export const AiProjectPlanModal: React.FC<AiProjectPlanModalProps> = ({
                     <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 text-xs space-y-2">
                       <div className="grid grid-cols-3 gap-3 text-center">
                         <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl">
-                          <span className="text-slate-400 block text-[10px] uppercase font-semibold">Total Hours</span>
+                          <span className="text-slate-400 block text-[11px] uppercase font-semibold">Total Hours</span>
                           <span className="font-bold text-white text-base mt-1 block">{generatedPlan.timeline.totalEngineeringHours}h</span>
                         </div>
                         <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl">
-                          <span className="text-slate-400 block text-[10px] uppercase font-semibold">Dev Days</span>
+                          <span className="text-slate-400 block text-[11px] uppercase font-semibold">Dev Days</span>
                           <span className="font-bold text-white text-base mt-1 block">{generatedPlan.timeline.totalEngineeringDays}d</span>
                         </div>
                         <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl">
-                          <span className="text-slate-400 block text-[10px] uppercase font-semibold">Calendar Duration</span>
+                          <span className="text-slate-400 block text-[11px] uppercase font-semibold">Calendar Duration</span>
                           <span className="font-bold text-white text-base mt-1 block">~{generatedPlan.timeline.estimatedCalendarWeeks}w</span>
                         </div>
                       </div>

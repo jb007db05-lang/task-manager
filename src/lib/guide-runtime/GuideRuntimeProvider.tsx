@@ -703,7 +703,7 @@ function SurveyQuestionField({
             );
           })}
         </div>
-        <div className="flex justify-between text-[10px] text-olive-400 font-bold px-1">
+        <div className="flex justify-between text-[11px] text-olive-400 font-bold px-1">
           <span>Not likely at all</span>
           <span>Extremely likely</span>
         </div>
@@ -743,7 +743,7 @@ function SurveyQuestionField({
           })}
         </div>
         {question.type === 'CSAT' && (
-          <div className="flex justify-between text-[10px] text-olive-400 font-bold px-4">
+          <div className="flex justify-between text-[11px] text-olive-400 font-bold px-4">
             <span>Very Unsatisfied</span>
             <span>Very Satisfied</span>
           </div>
@@ -812,7 +812,7 @@ function SurveyQuestionField({
           })}
         </div>
         {question.type === 'CES' && (
-          <div className="flex justify-between text-[10px] text-olive-400 font-bold px-1">
+          <div className="flex justify-between text-[11px] text-olive-400 font-bold px-1">
             <span>Very Difficult</span>
             <span>Very Easy</span>
           </div>
@@ -931,7 +931,7 @@ function SurveyQuestionField({
           />
           <CloudUpload size={40} className="text-olive-400 mb-2" />
           <p className="text-xs font-semibold text-olive-700 m-0">Click or drag file here to upload</p>
-          <span className="text-[10px] text-olive-400">PDF, PNG, JPG up to 10MB</span>
+          <span className="text-[11px] text-olive-400">PDF, PNG, JPG up to 10MB</span>
         </div>
 
         {fileProgress !== null && (
@@ -947,7 +947,7 @@ function SurveyQuestionField({
               />
             </div>
             {fileProgress === 100 && (
-              <span className="text-[10px] text-emerald-600 font-bold mt-1.5 block">✓ Upload complete</span>
+              <span className="text-[11px] text-emerald-600 font-bold mt-1.5 block">✓ Upload complete</span>
             )}
           </div>
         )}

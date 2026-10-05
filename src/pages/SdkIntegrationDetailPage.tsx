@@ -8,10 +8,12 @@ import {
   enableIntegration,
   deleteIntegration,
   type SdkIntegration,
-  type SdkEnvironment
+  type SdkEnvironment,
+  type DataEnvironment
 } from '@/lib/sdk-integrations/api';
 import EngagementPage from './EngagementPage';
 import EventTrackingPage from './EventTrackingPage';
+import SandboxPanel from '@/components/SandboxPanel';
 import {
   Activity,
   Check,
@@ -48,6 +50,10 @@ const SdkIntegrationDetailPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
 
   const activeTab = tab || 'overview';
+  // Which data the Guides/Surveys/Events tabs show; sandbox only when it exists.
+  const [dataEnvironment, setDataEnvironment] = useState<DataEnvironment>('live');
+  const effectiveEnvironment: DataEnvironment =
+    integration?.sandbox?.enabled ? dataEnvironment : 'live';
 
   const loadData = async () => {
     if (!integrationId) return;
@@ -235,12 +241,39 @@ const SdkIntegrationDetailPage: React.FC = () => {
                 Target: <span className="font-mono text-slate-600 text-xs">{integration.domain}</span>
               </p>
             </div>
-            <button
-              onClick={() => navigate('/sdk-integrations')}
-              className="rounded bg-slate-100 px-4 py-2 text-sm text-slate-600 hover:bg-slate-200 transition-colors shrink-0"
-            >
-              ← Back to Integrations
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              {activeTab !== 'overview' && integration.sandbox?.enabled && (
+                <div
+                  role="radiogroup"
+                  aria-label="Data environment"
+                  className="flex rounded-full bg-slate-100 p-1 text-xs font-semibold"
+                >
+                  {(['live', 'sandbox'] as const).map((env) => (
+                    <button
+                      key={env}
+                      role="radio"
+                      aria-checked={effectiveEnvironment === env}
+                      onClick={() => setDataEnvironment(env)}
+                      className={`rounded-full px-3 py-1 capitalize transition-colors ${
+                        effectiveEnvironment === env
+                          ? env === 'sandbox'
+                            ? 'bg-amber-500 text-white shadow-sm'
+                            : 'bg-slate-900 text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {env}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => navigate('/sdk-integrations')}
+                className="rounded bg-slate-100 px-4 py-2 text-sm text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                ← Back to Integrations
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -311,6 +344,8 @@ const SdkIntegrationDetailPage: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              <SandboxPanel integration={integration} onChange={setIntegration} />
 
               {/* Edit Details Form */}
               <div className="rounded bg-white p-5 shadow-sm border-l-4 border-violet-500">
@@ -541,19 +576,19 @@ const SdkIntegrationDetailPage: React.FC = () => {
 
         {activeTab === 'guides' && (
           <div className="rounded-md bg-white  shadow-sm overflow-hidden">
-            <EngagementPage sdkIntegrationId={integrationId} defaultTab="guides" hideHeader={true} />
+            <EngagementPage sdkIntegrationId={integrationId} defaultTab="guides" hideHeader={true} environment={effectiveEnvironment} />
           </div>
         )}
 
         {activeTab === 'surveys' && (
           <div className="rounded-md bg-white  shadow-sm overflow-hidden">
-            <EngagementPage sdkIntegrationId={integrationId} defaultTab="surveys" hideHeader={true} />
+            <EngagementPage sdkIntegrationId={integrationId} defaultTab="surveys" hideHeader={true} environment={effectiveEnvironment} />
           </div>
         )}
 
         {activeTab === 'events' && (
           <div className="rounded-md bg-white  shadow-sm overflow-hidden">
-            <EventTrackingPage sdkIntegrationId={integrationId} hideHeader={true} onOpenDocs={() => navigate('/sdk-docs')} />
+            <EventTrackingPage sdkIntegrationId={integrationId} hideHeader={true} environment={effectiveEnvironment} onOpenDocs={() => navigate('/sdk-docs')} />
           </div>
         )}
       </div>

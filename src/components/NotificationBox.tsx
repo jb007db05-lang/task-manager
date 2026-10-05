@@ -42,7 +42,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({
             Notifications
           </h3>
           {unreadCount > 0 && (
-            <span className="px-2 py-0.5 bg-olive-100  text-olive-600  text-[10px] font-bold rounded-full">
+            <span className="px-2 py-0.5 bg-olive-100  text-olive-600  text-[11px] font-bold rounded-full">
               {unreadCount} New
             </span>
           )}
@@ -112,7 +112,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({
                       <h4 className="text-sm font-bold text-olive-950  leading-tight">
                         {notification.title}
                       </h4>
-                      <div className="flex items-center gap-1 text-[10px] text-olive-400  font-medium shrink-0">
+                      <div className="flex items-center gap-1 text-[11px] text-olive-400  font-medium shrink-0">
                         <Clock size={10} />
                         {new Date(notification.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
@@ -122,7 +122,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({
                     </p>
 
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-olive-500  uppercase tracking-widest flex items-center gap-1">
+                      <span className="text-[11px] font-bold text-olive-500  uppercase tracking-widest flex items-center gap-1">
                         View details <ExternalLink size={10} />
                       </span>
                       {!notification.isRead && (
@@ -131,7 +131,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({
                             e.stopPropagation();
                             onMarkAsRead(notification.id);
                           }}
-                          className="text-[10px] font-bold text-olive-400 hover:text-olive-600  transition-colors uppercase"
+                          className="text-[11px] font-bold text-olive-400 hover:text-olive-600  transition-colors uppercase"
                         >
                           Mark as read
                         </button>

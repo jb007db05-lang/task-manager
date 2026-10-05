@@ -15,7 +15,7 @@ const QUICK_START_SNIPPET = "import { initTracker } from '@jamesbond007db05/even
 
 const ERROR_HANDLING_SNIPPET = "import {\n  initTracker,\n  normalizeSdkError,\n  SDKValidationError\n} from '@jamesbond007db05/events-sdk';\n\ntry {\n  const tracker = initTracker({ apiKey: 'your_api_key_here' });\n  await tracker.track('checkout_completed', { amount: 199 });\n} catch (error) {\n  const normalized = normalizeSdkError(error);\n  console.error(normalized.code, normalized.message);\n\n  if (error instanceof SDKValidationError) {\n    // show friendly validation feedback\n  }\n}";
 
-const ENGAGEMENT_SNIPPET = "import { Engagement } from '@jamesbond007db05/events-sdk';\n\n// Initialize the Engagement Runtime\nEngagement.init({\n  tenantId: 'your_tenant_id_here',\n  apiKey: 'your_api_key_here',\n  userId: 'user_123',\n  debug: false\n});\n\n// Trigger a custom event (evaluated immediately for checklist/tour triggers)\nawait Engagement.track('user_onboarded_step1');\n\n// Fetch/refresh eligible flows manually (usually handled automatically on SPA routes)\nawait Engagement.refresh();";
+const ENGAGEMENT_SNIPPET = "import { Engagement } from '@jamesbond007db05/events-sdk';\n\n// Initialize the Engagement Runtime\nEngagement.init({\n  apiKey: 'sdk_...', // or your sandbox key: sdk_test_...\n  userId: 'user_123',\n  debug: false\n});\n\n// Trigger a custom event (evaluated immediately for checklist/tour triggers)\nawait Engagement.track('user_onboarded_step1');\n\n// Fetch/refresh eligible flows manually (usually handled automatically on SPA routes)\nawait Engagement.refresh();";
 
 function SdkDocsPanel(): JSX.Element {
   const { showToast } = useToast();

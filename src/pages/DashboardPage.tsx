@@ -1888,12 +1888,12 @@ function DashboardPage(): JSX.Element {
                   <span className="text-slate-300 ">/</span>
                   <span className="text-slate-600 ">{activeProject.name}</span>
                   {activeProjectAiEnabled ? (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 border border-green-200/50 uppercase tracking-wider font-bold text-[9px] select-none ml-1.5">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 border border-green-200/50 uppercase tracking-wider font-bold text-[11px] select-none ml-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                       AI ({activeProjectAiProvider ? activeProjectAiProvider.toUpperCase() : ''})
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 border border-zinc-200/50 uppercase tracking-wider font-bold text-[9px] select-none ml-1.5">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 border border-zinc-200/50 uppercase tracking-wider font-bold text-[11px] select-none ml-1.5">
                       AI (FALLBACK)
                     </span>
                   )}
@@ -2112,7 +2112,7 @@ function DashboardPage(): JSX.Element {
                   <div className={`flex items-center justify-between px-5 py-6 border-b border-olive-100  bg-linear-to-b from-white/50 to-transparent  ${isSidebarCollapsed ? 'flex-col gap-4' : ''}`}>
                     {!isSidebarCollapsed && (
                       <div className="animate-in fade-in duration-500">
-                        <span className="text-[0.6rem] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Infrastructure</span>
+                        <span className="text-[11px] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Infrastructure</span>
                         <h3 className="text-[1rem] font-bold font-sans text-olive-950  m-0 mt-1 tracking-tight">Epics</h3>
                       </div>
                     )}
@@ -2155,7 +2155,7 @@ function DashboardPage(): JSX.Element {
                               <h4 className={`text-[0.9rem] font-bold m-0 leading-tight transition-colors ${isActive ? 'text-olive-950' : 'text-olive-950'}`}>
                                 {epic.name}
                               </h4>
-                              <span className={`shrink-0 text-[0.55rem] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${statusPillCls[epic.status] ?? 'bg-olive-100 text-olive-600 border-olive-200'}`}>
+                              <span className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${statusPillCls[epic.status] ?? 'bg-olive-100 text-olive-600 border-olive-200'}`}>
                                 {epic.status}
                               </span>
                             </div>
@@ -2205,7 +2205,7 @@ function DashboardPage(): JSX.Element {
                     <>
                       <div className="flex items-center justify-between px-6 py-6 border-b border-olive-100  bg-linear-to-b from-white/50 to-transparent ">
                         <div>
-                          <span className="text-[0.6rem] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Execution</span>
+                          <span className="text-[11px] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Execution</span>
                           <h3 className="text-[1.1rem] font-bold font-sans text-olive-950  m-0 mt-1 tracking-tight">{tasksHeading}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-olive-500  text-[0.78rem] truncate max-w-[200px]">
@@ -2354,7 +2354,7 @@ function DashboardPage(): JSX.Element {
                   <div className="flex flex-col w-[420px] shrink-0 h-full rounded-md border border-olive-200/60  bg-white/70  backdrop-blur-md shadow-sm overflow-hidden animate-slideInRight duration-500 z-10">
                     <div className="flex items-center justify-between px-6 pt-6 bg-linear-to-b from-white to-olive-50/30   border-b border-olive-100 ">
                       <div>
-                        <span className="text-[0.6rem] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Task Focus</span>
+                        <span className="text-[11px] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Task Focus</span>
                         <h3 className="text-[1.1rem] font-bold font-sans text-olive-950  m-0 mt-1 tracking-tight truncate max-w-[240px]">
                           {activeTask.title}
                         </h3>

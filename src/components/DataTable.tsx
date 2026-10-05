@@ -184,7 +184,7 @@ export default function DataTable<TData>({
             <span className="text-[0.68rem] font-bold uppercase tracking-widest text-olive-400 ">Page</span>
             <div className="flex items-center px-3 py-1 rounded-full bg-olive-100  border border-olive-200  shadow-inner">
               <span className="text-[0.75rem] font-bold text-olive-900 ">{currentPage}</span>
-              <span className="mx-1.5 text-[0.65rem] text-olive-400  font-bold">/</span>
+              <span className="mx-1.5 text-[11px] text-olive-400  font-bold">/</span>
               <span className="text-[0.75rem] font-bold text-olive-500 ">{totalPages}</span>
             </div>
           </div>

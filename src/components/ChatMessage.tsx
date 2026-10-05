@@ -182,7 +182,7 @@ function ChatMessageComponent({
           <span className="text-[11px] font-medium text-olive-500 ">
             {message.content}
           </span>
-          <span className="text-[10px] text-olive-400 ">
+          <span className="text-[11px] text-olive-400 ">
             {formatTime(message.createdAt)}
           </span>
         </div>
@@ -304,7 +304,7 @@ function ChatMessageComponent({
                 </div>
 
                 {/* Footer Info */}
-                <div className={['mt-3 flex items-center justify-between gap-4 text-[10px] uppercase font-bold tracking-wider opacity-60'].join(' ')}>
+                <div className={['mt-3 flex items-center justify-between gap-4 text-[11px] uppercase font-bold tracking-wider opacity-60'].join(' ')}>
                   <span>{formatTime(message.createdAt)}</span>
                   {message.isEdited && <span>(edited)</span>}
                 </div>

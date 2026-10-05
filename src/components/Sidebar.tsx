@@ -136,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               }}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[0.55rem] font-bold uppercase tracking-widest text-[#9cb07a]">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#9cb07a]">
                   Active Integration
                 </span>
                 {/* Active pulsating beacon status indicator */}
@@ -145,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#afc28e] opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#afc28e]"></span>
                   </span>
-                  <span className="text-[0.6rem] font-semibold text-[#afc28e]/80 uppercase">Live</span>
+                  <span className="text-[11px] font-semibold text-[#afc28e]/80 uppercase">Live</span>
                 </div>
               </div>
               <span className="text-[0.8rem] font-medium flex items-center gap-2 truncate text-white/90">
@@ -154,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </span>
             </div>
 
-            <span className="text-[0.58rem] font-semibold uppercase tracking-widest px-2 pb-1 block" style={{ color: TEXT_DIM }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest px-2 pb-1 block" style={{ color: TEXT_DIM }}>
               Workspace
             </span>
             <NavBtn isActive={activeTab === 'overview'} onClick={() => onViewChange('sdk-integration-detail', 'overview')}>
@@ -188,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </>
         ) : (
           <>
-            <span className="text-[0.58rem] font-semibold uppercase tracking-widest px-2 pb-1 block" style={{ color: TEXT_DIM }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest px-2 pb-1 block" style={{ color: TEXT_DIM }}>
               Navigate
             </span>
             <NavBtn isActive={selectedProjectView === allProjectsValue && activeView === 'dashboard'} onClick={() => onProjectSelect(allProjectsValue)}>

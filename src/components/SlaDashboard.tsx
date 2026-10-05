@@ -36,7 +36,7 @@ function SlaDashboard(): JSX.Element | null {
       {items.map((item) => (
         <div key={item.label} className={`rounded-xl border p-3 ${item.tone}`}>
           <div className="flex items-center justify-between">
-            <span className="text-[0.65rem] uppercase tracking-widest font-black opacity-70">{item.label}</span>
+            <span className="text-[11px] uppercase tracking-widest font-black opacity-70">{item.label}</span>
             <item.icon size={15} />
           </div>
           <strong className="block mt-1 text-lg font-black">{item.value}</strong>

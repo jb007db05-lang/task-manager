@@ -90,7 +90,7 @@ function CommentSection({ taskId }: CommentSectionProps): JSX.Element {
                   <span className="text-xs font-bold text-olive-700 ">
                     {comment.user.name || comment.user.email}
                   </span>
-                  <span className="text-[0.65rem] text-olive-400 font-medium">
+                  <span className="text-[11px] text-olive-400 font-medium">
                     {displayDate(comment.createdAt)}
                   </span>
                 </div>

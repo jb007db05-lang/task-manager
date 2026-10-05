@@ -293,7 +293,7 @@ export const PromptVersionCompareModal: React.FC<PromptVersionCompareModalProps>
                   <div className="p-4 rounded-xl bg-olive-50/50 border border-olive-200 space-y-3">
                     <div className="flex items-center justify-between text-xs font-semibold text-olive-700 border-b border-olive-200 pb-2">
                       <span>v{compareData.v1.version} Prompt Body</span>
-                      <span className="font-mono text-[10px] text-olive-500">
+                      <span className="font-mono text-[11px] text-olive-500">
                         {compareData.v1.hash ? compareData.v1.hash.slice(0, 8) : "N/A"}
                       </span>
                     </div>
@@ -305,7 +305,7 @@ export const PromptVersionCompareModal: React.FC<PromptVersionCompareModalProps>
                   <div className="p-4 rounded-xl bg-olive-50/50 border border-olive-200 space-y-3">
                     <div className="flex items-center justify-between text-xs font-semibold text-olive-900 border-b border-olive-200 pb-2">
                       <span>v{compareData.v2.version} Prompt Body</span>
-                      <span className="font-mono text-[10px] text-olive-600">
+                      <span className="font-mono text-[11px] text-olive-600">
                         {compareData.v2.hash ? compareData.v2.hash.slice(0, 8) : "N/A"}
                       </span>
                     </div>

@@ -169,7 +169,7 @@ export default function TaskInspector({
                     </span>
                     {task.dynamicPriority && priorityBadge[task.dynamicPriority] && (
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.58rem] font-bold uppercase tracking-wider ${
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
                           priorityBadge[task.dynamicPriority].color
                         }`}
                       >
@@ -263,7 +263,7 @@ export default function TaskInspector({
                   {/* Subtask list */}
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[0.65rem] font-black text-slate-500 uppercase tracking-widest">
+                      <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                         Checklist Subtasks ({completedSubtasks}/{task.subtasks.length})
                       </span>
                       <button

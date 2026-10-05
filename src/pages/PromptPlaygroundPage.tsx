@@ -665,7 +665,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-lg font-bold text-olive-950">Prompt Playground</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-olive-100 text-olive-800 border border-olive-200 uppercase tracking-wider font-mono">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-olive-100 text-olive-800 border border-olive-200 uppercase tracking-wider font-mono">
                 Full-Page Workspace
               </span>
             </div>
@@ -784,7 +784,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                           <span className="truncate">{folder.name}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-mono text-olive-600 bg-olive-200 px-1.5 py-0.2 rounded-full">
+                          <span className="text-[11px] font-mono text-olive-600 bg-olive-200 px-1.5 py-0.2 rounded-full">
                             {folderPrompts.length}
                           </span>
                           {isExpanded ? (
@@ -817,7 +817,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                                 >
                                   <div className="truncate pr-2">
                                     <div className="truncate text-xs">{p.name}</div>
-                                    <div className="text-[10px] opacity-75 font-mono">
+                                    <div className="text-[11px] opacity-75 font-mono">
                                       v{p.version} • {p.category}
                                     </div>
                                   </div>
@@ -854,7 +854,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                       <Layers className="w-3.5 h-3.5 text-olive-600 shrink-0" />
                       <span>Uncategorized Prompts</span>
                     </div>
-                    <span className="text-[10px] font-mono text-olive-600 bg-olive-200 px-1.5 py-0.2 rounded-full">
+                    <span className="text-[11px] font-mono text-olive-600 bg-olive-200 px-1.5 py-0.2 rounded-full">
                       {(promptsByFolder.uncategorized || []).length}
                     </span>
                   </button>
@@ -876,7 +876,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                           >
                             <div className="truncate pr-2">
                               <div className="truncate text-xs">{p.name}</div>
-                              <div className="text-[10px] opacity-75 font-mono">
+                              <div className="text-[11px] opacity-75 font-mono">
                                 v{p.version} • {p.category}
                               </div>
                             </div>
@@ -1145,7 +1145,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                       <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-olive-900 text-white">
                         v{selectedVersionNum}
                       </span>
-                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-olive-200 text-olive-800">
+                      <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-olive-200 text-olive-800">
                         {activePrompt?.category}
                       </span>
                     </div>
@@ -1334,7 +1334,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                     messages.length > 0 ? (
                       messages.map((m, idx) => (
                         <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                          <span className="text-emerald-400 font-bold uppercase text-[10px] block mb-1">
+                          <span className="text-emerald-400 font-bold uppercase text-[11px] block mb-1">
                             [{m.role}]
                           </span>
                           <div className="whitespace-pre-wrap">{m.content}</div>
@@ -1346,7 +1346,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                   ) : Array.isArray(resolvedPreview) ? (
                     resolvedPreview.map((m, idx) => (
                       <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                        <span className="text-amber-300 font-bold uppercase text-[10px] block mb-1">
+                        <span className="text-amber-300 font-bold uppercase text-[11px] block mb-1">
                           [{m.role}]
                         </span>
                         <div className="whitespace-pre-wrap text-white">{m.content}</div>
@@ -1392,14 +1392,14 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               {`{{${varName}}}`}
                               {isRequired && <span className="text-rose-500 font-bold">*</span>}
                             </label>
-                            <span className="text-[10px] text-olive-700 uppercase font-mono px-2 py-0.5 rounded bg-olive-200 font-bold">
+                            <span className="text-[11px] text-olive-700 uppercase font-mono px-2 py-0.5 rounded bg-olive-200 font-bold">
                               {varType}
                             </span>
                           </div>
 
                           {/* Runtime Test Value Input */}
                           <div>
-                            <span className="text-[10px] font-bold text-olive-600 uppercase tracking-wider block mb-1">
+                            <span className="text-[11px] font-bold text-olive-600 uppercase tracking-wider block mb-1">
                               Runtime Test Value
                             </span>
 
@@ -1527,7 +1527,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-olive-600 block mb-1">
+                      <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">
                         Run A
                       </span>
                       <select
@@ -1544,7 +1544,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                     </div>
 
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-olive-600 block mb-1">
+                      <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">
                         Run B
                       </span>
                       <select
@@ -1736,13 +1736,13 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               }`}
                             >
                               <div className="flex items-center gap-2 truncate">
-                                <span className="font-mono font-bold text-[10px] opacity-75">
+                                <span className="font-mono font-bold text-[11px] opacity-75">
                                   #{runHistory.length - idx}
                                 </span>
                                 <span className="font-semibold">{run.modelName}</span>
-                                <span className="text-[10px] opacity-75">({run.timestamp})</span>
+                                <span className="text-[11px] opacity-75">({run.timestamp})</span>
                               </div>
-                              <div className="flex items-center gap-2 font-mono text-[10px]">
+                              <div className="flex items-center gap-2 font-mono text-[11px]">
                                 <span>{run.latencyMs}ms</span>
                                 <ChevronRight className="w-3.5 h-3.5" />
                               </div>

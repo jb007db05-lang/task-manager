@@ -38,6 +38,7 @@ import {
   type ChecklistPayload
 } from '@/lib/engagement/api';
 import { listIntegrations, type SdkIntegration } from '@/lib/sdk-integrations/api';
+import { normalizeApiError } from '@/utils/apiError';
 import type {
   FrequencyRules,
   Guide,
@@ -149,9 +150,11 @@ export interface EngagementPageProps {
   sdkIntegrationId?: string;
   defaultTab?: BuilderTab;
   hideHeader?: boolean;
+  /** Analytics and responses shown for live or sandbox traffic. */
+  environment?: 'live' | 'sandbox';
 }
 
-function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hideHeader = false }: EngagementPageProps): JSX.Element {
+function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hideHeader = false, environment = 'live' }: EngagementPageProps): JSX.Element {
   const { integrationId } = useParams();
   const [activeIntegrationId, setActiveIntegrationId] = useState<string>('');
   const [integrations, setIntegrations] = useState<SdkIntegration[]>([]);
@@ -162,6 +165,18 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
   const [analytics, setAnalytics] = useState<GuideAnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  /** Runs an action and shows the server's reason if it is refused. */
+  const runAction = async (action: () => Promise<void>) => {
+    setMessage(null);
+    setErrorMessage(null);
+    try {
+      await action();
+    } catch (error) {
+      setErrorMessage(normalizeApiError(error).message);
+    }
+  };
   const [selectedSurveyForResponses, setSelectedSurveyForResponses] = useState<Guide | null>(null);
   const [isResponsesModalOpen, setIsResponsesModalOpen] = useState(false);
   const [editingExperience, setEditingExperience] = useState<Guide | null>(null);
@@ -204,7 +219,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
         listGuides(activeIntegrationId),
         listSurveys(activeIntegrationId),
         listChecklists(),
-        getGuideAnalyticsSummary(activeIntegrationId)
+        getGuideAnalyticsSummary(activeIntegrationId, environment)
       ]);
       setGuides(guideList);
       setSurveys(surveyList);
@@ -223,7 +238,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
       window.dispatchEvent(new CustomEvent('sync:active-integration-changed', { detail: { id: activeIntegrationId } }));
       void load();
     }
-  }, [activeIntegrationId]);
+  }, [activeIntegrationId, environment]);
 
   const handleStatusChangeRequest = async (experience: Guide, status: 'LIVE' | 'PAUSED' | 'ARCHIVED') => {
     if (status === 'LIVE') {
@@ -233,19 +248,20 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
     }
   };
 
-  const executeStatusChange = async (experience: Guide, status: 'LIVE' | 'PAUSED' | 'ARCHIVED') => {
-    if (experience.type === 'SURVEY') {
-      await updateSurvey(activeIntegrationId, experience.id, { status });
-      setMessage(`Survey ${status.toLowerCase()}.`);
-    } else if (experience.type === 'CHECKLIST') {
-      await updateChecklist(experience.id, { status });
-      setMessage(`Checklist ${status.toLowerCase()}.`);
-    } else {
-      await updateGuideStatus(activeIntegrationId, experience.id, status);
-      setMessage(`Guide ${status.toLowerCase()}.`);
-    }
-    await load();
-  };
+  const executeStatusChange = (experience: Guide, status: 'LIVE' | 'PAUSED' | 'ARCHIVED') =>
+    runAction(async () => {
+      if (experience.type === 'SURVEY') {
+        await updateSurvey(activeIntegrationId, experience.id, { status });
+        setMessage(`Survey ${status.toLowerCase()}.`);
+      } else if (experience.type === 'CHECKLIST') {
+        await updateChecklist(experience.id, { status });
+        setMessage(`Checklist ${status.toLowerCase()}.`);
+      } else {
+        await updateGuideStatus(activeIntegrationId, experience.id, status);
+        setMessage(`Guide ${status.toLowerCase()}.`);
+      }
+      await load();
+    });
 
   const totals = useMemo(
     () => ({
@@ -299,6 +315,17 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
           {message}
         </div>
       )}
+      {errorMessage && (
+        <div role="alert" className="mx-8 mt-5 flex items-start justify-between gap-3 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          <span>{errorMessage}</span>
+          <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700" aria-label="Dismiss error">×</button>
+        </div>
+      )}
+      {environment === 'sandbox' && (
+        <div className="mx-8 mt-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+          Showing <span className="font-bold">sandbox</span> analytics and responses. Draft guides and surveys are delivered to the sandbox key, so you can test them before going live.
+        </div>
+      )}
 
       <div className="p-8">
         {(tab === 'guides' || tab === 'surveys' || tab === 'checklists') && (
@@ -334,7 +361,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
                 setEditingExperience(experience);
                 setIsEditModalOpen(true);
               }}
-              onDelete={async (experience) => {
+              onDelete={(experience) => runAction(async () => {
                 if (tab === 'guides') {
                   await deleteGuide(activeIntegrationId, experience.id);
                   setMessage('Guide deleted.');
@@ -346,7 +373,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
                   setMessage('Checklist archived.');
                 }
                 await load();
-              }}
+              })}
             />
           </div>
         )}
@@ -361,6 +388,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
           }}
           survey={selectedSurveyForResponses}
           sdkIntegrationId={activeIntegrationId}
+          environment={environment}
         />
       )}
       {isEditModalOpen && editingExperience && (
@@ -465,7 +493,7 @@ function ExperienceList({
                 <p className="m-0 text-sm font-bold text-slate-900  truncate">{experience.title}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   <span className="text-xs text-slate-500 ">{experience.type}</span>
-                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${statusColor[experience.status ?? 'DRAFT'] ?? statusColor.DRAFT}`}>
+                  <span className={`rounded px-1.5 py-0.5 text-[11px] font-bold uppercase ${statusColor[experience.status ?? 'DRAFT'] ?? statusColor.DRAFT}`}>
                     {experience.status ?? 'DRAFT'}
                   </span>
                   <span className="text-xs text-slate-500 ">{experience.priority}</span>
@@ -854,13 +882,15 @@ interface SurveyResponsesModalProps {
   onClose: () => void;
   survey: Guide;
   sdkIntegrationId: string;
+  environment: 'live' | 'sandbox';
 }
 
 function SurveyResponsesModal({
   isOpen,
   onClose,
   survey,
-  sdkIntegrationId
+  sdkIntegrationId,
+  environment
 }: SurveyResponsesModalProps): JSX.Element | null {
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -868,12 +898,12 @@ function SurveyResponsesModal({
   useEffect(() => {
     if (isOpen && survey.id) {
       setLoading(true);
-      listSurveyResponses(sdkIntegrationId, survey.id)
+      listSurveyResponses(sdkIntegrationId, survey.id, environment)
         .then(setResponses)
         .catch(console.error)
         .finally(() => setLoading(false));
     }
-  }, [isOpen, survey.id, sdkIntegrationId]);
+  }, [isOpen, survey.id, sdkIntegrationId, environment]);
 
   if (!isOpen) return null;
 
@@ -926,7 +956,7 @@ function SurveyResponsesModal({
                       {response.category && response.category !== 'NONE' && (
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-olive-500">NPS Class:</span>
-                          <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider ${
+                          <span className={`px-2 py-0.5 rounded-full font-bold text-[11px] uppercase tracking-wider ${
                             response.category === 'PROMOTER'
                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                               : response.category === 'PASSIVE'
@@ -960,7 +990,7 @@ function SurveyResponsesModal({
                               <span className="font-medium truncate max-w-[200px]" title={answer.questionTitle}>
                                 {answer.questionTitle}
                               </span>
-                              <span className="bg-olive-50 px-1 rounded text-[10px] font-mono">{answer.questionType}</span>
+                              <span className="bg-olive-50 px-1 rounded text-[11px] font-mono">{answer.questionType}</span>
                             </div>
                             <div className="mt-1 font-semibold text-olive-900">
                               {typeof answer.value === 'object' && answer.value !== null

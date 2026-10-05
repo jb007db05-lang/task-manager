@@ -133,7 +133,7 @@ function ChatInput({
         <div className="mx-4 mt-3 flex items-center gap-3 px-4 py-2.5 bg-olive-50/50  border border-olive-100  rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[10px] uppercase font-bold text-olive-600  tracking-wider">
+              <span className="text-[11px] uppercase font-bold text-olive-600  tracking-wider">
                 Replying to
               </span>
               <span className="text-xs font-bold text-olive-700  truncate">
@@ -178,7 +178,7 @@ function ChatInput({
           {/* Character count */}
           <div
             className={[
-              'absolute right-4 bottom-3 text-[10px] font-bold tracking-tighter',
+              'absolute right-4 bottom-3 text-[11px] font-bold tracking-tighter',
               isAtLimit
                 ? 'text-red-500'
                 : isNearLimit

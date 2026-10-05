@@ -112,13 +112,13 @@ function TaskCard({
                   className="w-4 h-4 rounded border-olive-300 text-olive-600 focus:ring-olive-500 cursor-pointer"
                 />
               )}
-              <div className={`px-2 py-0.5 rounded-full text-[0.6rem] font-bold uppercase tracking-wider border shadow-sm ${statusCls}`}>
+              <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border shadow-sm ${statusCls}`}>
                 {task.status.replace('_', ' ')}
               </div>
               {task.priority && (
                 <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-olive-100  border border-olive-200 ">
                   {priorityIcons[task.priority]}
-                  <span className="text-[0.6rem] font-bold text-olive-500 ">{task.priority}</span>
+                  <span className="text-[11px] font-bold text-olive-500 ">{task.priority}</span>
                 </div>
               )}
             </div>
@@ -155,7 +155,7 @@ function TaskCard({
               {task.subtasks.length > 0 && (
                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-olive-100/80 ">
                   <Rows3 size={10} />
-                  <span className="text-[0.65rem] font-bold">
+                  <span className="text-[11px] font-bold">
                     {completedSubtasksCount}<span className="opacity-40">/</span>{task.subtasks.length}
                   </span>
                 </div>
@@ -163,13 +163,13 @@ function TaskCard({
               {projectName && (
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-olive-100/80 ">
                   <div className="w-1 h-1 rounded-full bg-olive-500/50" />
-                  <span className="text-[0.6rem] font-bold uppercase tracking-wider truncate max-w-[100px]">{projectName}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[100px]">{projectName}</span>
                 </div>
               )}
               {epicName && (
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-olive-100/80 ">
                   <div className="w-1 h-1 rounded-full bg-olive-500/50" />
-                  <span className="text-[0.6rem] font-bold uppercase tracking-wider truncate max-w-[100px]">{epicName}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[100px]">{epicName}</span>
                 </div>
               )}
             </div>

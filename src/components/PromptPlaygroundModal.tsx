@@ -418,7 +418,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-olive-950">Prompt Playground</h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-olive-200 text-olive-800 uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-olive-200 text-olive-800 uppercase tracking-wider">
                   Isolated Environment
                 </span>
               </div>
@@ -581,7 +581,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                   messages.length > 0 ? (
                     messages.map((m, idx) => (
                       <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                        <span className="text-emerald-400 font-bold uppercase text-[10px] block mb-1">
+                        <span className="text-emerald-400 font-bold uppercase text-[11px] block mb-1">
                           [{m.role}]
                         </span>
                         <div className="whitespace-pre-wrap">{m.content}</div>
@@ -593,7 +593,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 ) : Array.isArray(resolvedPreview) ? (
                   resolvedPreview.map((m, idx) => (
                     <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                      <span className="text-amber-300 font-bold uppercase text-[10px] block mb-1">
+                      <span className="text-amber-300 font-bold uppercase text-[11px] block mb-1">
                         [{m.role}]
                       </span>
                       <div className="whitespace-pre-wrap text-white">{m.content}</div>
@@ -639,7 +639,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                             {`{{${varName}}}`}
                             {isRequired && <span className="text-rose-500 font-bold">*</span>}
                           </label>
-                          <span className="text-[10px] text-olive-500 uppercase font-mono px-1.5 py-0.5 rounded bg-olive-100">
+                          <span className="text-[11px] text-olive-500 uppercase font-mono px-1.5 py-0.5 rounded bg-olive-100">
                             {varType}
                           </span>
                         </div>
@@ -859,7 +859,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 {/* Compare Selectors */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-olive-600 block mb-1">Run A</span>
+                    <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">Run A</span>
                     <select
                       value={compareRunIdA}
                       onChange={(e) => setCompareRunIdA(e.target.value)}
@@ -874,7 +874,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-olive-600 block mb-1">Run B</span>
+                    <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">Run B</span>
                     <select
                       value={compareRunIdB}
                       onChange={(e) => setCompareRunIdB(e.target.value)}
@@ -1061,13 +1061,13 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                             }`}
                           >
                             <div className="flex items-center gap-2 truncate">
-                              <span className="font-mono font-bold text-[10px] opacity-75">
+                              <span className="font-mono font-bold text-[11px] opacity-75">
                                 #{runHistory.length - idx}
                               </span>
                               <span className="font-semibold">{run.modelName}</span>
-                              <span className="text-[10px] opacity-75">({run.timestamp})</span>
+                              <span className="text-[11px] opacity-75">({run.timestamp})</span>
                             </div>
-                            <div className="flex items-center gap-2 font-mono text-[10px]">
+                            <div className="flex items-center gap-2 font-mono text-[11px]">
                               <span>{run.latencyMs}ms</span>
                               <ChevronRight className="w-3.5 h-3.5" />
                             </div>

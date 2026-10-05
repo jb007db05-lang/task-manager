@@ -98,7 +98,7 @@ export function EngagementFab(): JSX.Element {
                   </div>
                   <div>
                     <h3 className="font-semibold text-sm leading-none">Pristine Guide</h3>
-                    <p className="text-[10px] text-slate-200/80 mt-1">Manual triggers & tours</p>
+                    <p className="text-[11px] text-slate-200/80 mt-1">Manual triggers & tours</p>
                   </div>
                 </div>
                 <button
@@ -109,7 +109,7 @@ export function EngagementFab(): JSX.Element {
                 </button>
               </div>
               <div className="p-2 max-h-[350px] overflow-y-auto">
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                   Page Tours
                 </div>
                 <div className="space-y-1">
@@ -129,14 +129,14 @@ export function EngagementFab(): JSX.Element {
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{tour.description}</p>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">{tour.description}</p>
                       </div>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
                     </button>
                   ))}
                 </div>
                 <div className="h-px bg-slate-100 my-2" />
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                   User Surveys
                 </div>
                 <button
@@ -150,7 +150,7 @@ export function EngagementFab(): JSX.Element {
                     <div className="font-semibold text-xs text-slate-800 group-hover:text-slate-800">
                       NPS Pulse Survey
                     </div>
-                    <p className="text-[10px] text-slate-500 truncate mt-0.5">Share your feedback about the portal</p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">Share your feedback about the portal</p>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0 self-center" />
                 </button>

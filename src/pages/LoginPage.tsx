@@ -493,7 +493,7 @@ function LoginPage(): JSX.Element {
                         onChange={(event) => setRememberMe(event.target.checked)}
                         type="checkbox"
                       />
-                      <span className="text-[10px] font-extrabold text-olive-600 uppercase tracking-widest">
+                      <span className="text-[11px] font-extrabold text-olive-600 uppercase tracking-widest">
                         Remember Me
                       </span>
                     </label>

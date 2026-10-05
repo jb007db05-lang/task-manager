@@ -132,7 +132,7 @@ export default function AssigneeSelector({
                       {member.user.name || member.user.email}
                     </span>
                     {member.user.name && (
-                      <span className="text-[0.65rem] text-olive-500  truncate">
+                      <span className="text-[11px] text-olive-500  truncate">
                         {member.user.email}
                       </span>
                     )}

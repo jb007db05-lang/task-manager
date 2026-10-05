@@ -12,14 +12,18 @@ import {
   Trash2,
   Edit,
   Play,
+  Rocket,
+  FlaskConical,
 } from "lucide-react";
 import {
   promptService,
   PromptItem,
   PromptFolder,
+  PromptFeature,
 } from "@/services/prompts";
 import { PromptEditorModal } from "@/components/PromptEditorModal";
 import { PromptVersionCompareModal } from "@/components/PromptVersionCompareModal";
+import { PromptDeploymentModal } from "@/components/PromptDeploymentModal";
 
 interface PromptLibraryPageProps {
   workspaceId: string;
@@ -45,6 +49,9 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
   const [comparePrompt, setComparePrompt] = useState<PromptItem | null>(null);
 
+  const [deployPrompt, setDeployPrompt] = useState<PromptItem | null>(null);
+  const [features, setFeatures] = useState<PromptFeature[]>([]);
+
   const [newFolderName, setNewFolderName] = useState<string>("");
   const [isCreatingFolder, setIsCreatingFolder] = useState<boolean>(false);
 
@@ -53,6 +60,15 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
       loadData();
     }
   }, [workspaceId, selectedFolderId, selectedCategory, searchQuery, showFavoritesOnly, showTemplatesOnly]);
+
+  useEffect(() => {
+    if (workspaceId) {
+      promptService
+        .listFeatures(workspaceId)
+        .then(setFeatures)
+        .catch((err) => console.error("Failed to load AI features", err));
+    }
+  }, [workspaceId]);
 
   const loadData = async () => {
     try {
@@ -221,7 +237,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
               <span className="flex items-center gap-2">
                 <Layers className="w-4 h-4" /> All Prompts
               </span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+              <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
                 selectedFolderId === null && !showFavoritesOnly && !showTemplatesOnly
                   ? "bg-olive-800 text-olive-100"
                   : "bg-olive-100 text-olive-700"
@@ -268,13 +284,13 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                 <div className="flex items-center justify-end gap-1.5">
                   <button
                     onClick={() => setIsCreatingFolder(false)}
-                    className="px-2 py-1 text-[10px] text-olive-600 hover:text-olive-950"
+                    className="px-2 py-1 text-[11px] text-olive-600 hover:text-olive-950"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleCreateFolder}
-                    className="px-2.5 py-1 text-[10px] bg-olive-900 text-white rounded-md font-semibold"
+                    className="px-2.5 py-1 text-[11px] bg-olive-900 text-white rounded-md font-semibold"
                   >
                     Save
                   </button>
@@ -367,10 +383,34 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                           <h3 className="text-sm font-bold text-olive-950 group-hover:text-olive-700 transition">
                             {p.name}
                           </h3>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-olive-100 text-olive-800 border border-olive-200 font-bold">
+                          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-olive-100 text-olive-800 border border-olive-200 font-bold">
                             v{p.version}
                           </span>
                         </div>
+                        {p.deployment && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                              prod v{p.deployment.productionVersion}
+                            </span>
+                            {p.deployment.stagingVersion && (
+                              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-bold">
+                                staging v{p.deployment.stagingVersion}
+                              </span>
+                            )}
+                            {p.deployment.canary && (
+                              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-bold flex items-center gap-1">
+                                <FlaskConical className="w-3 h-3" />
+                                canary v{p.deployment.canary.version} · {p.deployment.canary.percentage}%
+                              </span>
+                            )}
+                            {p.deployment.featureKey && (
+                              <span className="text-[11px] px-2 py-0.5 rounded-full bg-olive-900 text-white font-semibold">
+                                {features.find((f) => f.key === p.deployment?.featureKey)?.label ||
+                                  p.deployment.featureKey}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <p className="text-xs text-olive-600 line-clamp-2 mt-1">
                           {p.description || "No description provided."}
                         </p>
@@ -390,16 +430,16 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
 
                     {/* Metadata & Tag Badges */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-olive-100 text-olive-800 border border-olive-200">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-olive-100 text-olive-800 border border-olive-200">
                         {p.category}
                       </span>
                       {p.hash && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
                           {p.hash.slice(0, 8)}
                         </span>
                       )}
                       {(p.variables || []).length > 0 && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200">
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200">
                           {p.variables.length} vars
                         </span>
                       )}
@@ -427,6 +467,14 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                         title="Open in Playground"
                       >
                         <Play className="w-3.5 h-3.5 text-emerald-400 fill-current" /> Open in Playground
+                      </button>
+
+                      <button
+                        onClick={() => setDeployPrompt(p)}
+                        className="p-1.5 rounded-lg bg-olive-50 hover:bg-olive-100 text-olive-800 border border-olive-200 transition"
+                        title="Deploy: feature, production & canary"
+                      >
+                        <Rocket className="w-3.5 h-3.5 text-olive-700" />
                       </button>
 
                       <button
@@ -481,6 +529,20 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
           navigate(`/playground?promptId=${p._id}&version=${p.version}`);
         }}
       />
+
+      {/* Deployment Modal */}
+      {deployPrompt && (
+        <PromptDeploymentModal
+          isOpen={!!deployPrompt}
+          onClose={() => setDeployPrompt(null)}
+          workspaceId={workspaceId}
+          prompt={deployPrompt}
+          onChanged={() => {
+            loadData();
+            promptService.listFeatures(workspaceId).then(setFeatures).catch(() => {});
+          }}
+        />
+      )}
 
       {/* Compare Modal */}
       {comparePrompt && (

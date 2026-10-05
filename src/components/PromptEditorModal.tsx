@@ -441,7 +441,7 @@ export const PromptEditorModal: React.FC<PromptEditorModalProps> = ({
             ) : (
               <div className="border border-olive-200 rounded-xl overflow-hidden bg-white shadow-xs">
                 <table className="w-full text-xs text-left text-olive-800">
-                  <thead className="bg-olive-50 text-olive-700 font-semibold uppercase text-[10px] tracking-wider border-b border-olive-200">
+                  <thead className="bg-olive-50 text-olive-700 font-semibold uppercase text-[11px] tracking-wider border-b border-olive-200">
                     <tr>
                       <th className="px-3 py-2">Variable Name</th>
                       <th className="px-3 py-2">Type</th>

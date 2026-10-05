@@ -174,7 +174,7 @@ function InvitationNotificationPanel() {
           <Bell size={17} />
         )}
         {hasNotifications ? (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
             {totalCount > 9 ? '9+' : totalCount}
           </span>
         ) : null}
@@ -203,7 +203,7 @@ function InvitationNotificationPanel() {
             {myInvitations.length > 0 ? (
               <div>
                 <div className="px-4 pt-3 pb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-olive-500">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-olive-500">
                     Project Invitations
                   </span>
                 </div>
@@ -225,7 +225,7 @@ function InvitationNotificationPanel() {
                           {inv.projectName}
                         </p>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-olive-100 text-olive-700">
+                          <span className="text-[11px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-olive-100 text-olive-700">
                             {inv.role}
                           </span>
                           <span className="text-[0.72rem] text-olive-400 flex items-center gap-1">
@@ -264,7 +264,7 @@ function InvitationNotificationPanel() {
             {adminNotifications.length > 0 ? (
               <div>
                 <div className="px-4 pt-3 pb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-olive-500">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-olive-500">
                     Invitation Updates
                   </span>
                 </div>

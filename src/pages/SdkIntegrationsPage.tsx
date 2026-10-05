@@ -225,14 +225,14 @@ function DetailsModal({ integration, onClose, onRefresh }: { integration: SdkInt
               { label: 'Latest Origin', value: integration.latestOrigin ?? '—' },
             ].map(({ label, value }) => (
               <div key={label} className="rounded bg-slate-50 p-3">
-                <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-0.5">{label}</p>
+                <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-0.5">{label}</p>
                 <p className="text-xs text-slate-700 truncate">{value}</p>
               </div>
             ))}
           </div>
           {integration.allowedOrigins?.length > 0 && (
             <div className="rounded bg-slate-50 p-3">
-              <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-0.5">Allowed Origins</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-0.5">Allowed Origins</p>
               <p className="text-xs text-slate-700 break-all">{integration.allowedOrigins.join(', ')}</p>
             </div>
           )}
@@ -332,7 +332,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
             { label: 'SDK Version', value: integration.sdkVersion ?? '—' },
           ].map(({ label, value }) => (
             <div key={label} className="px-2 text-center">
-              <p className="text-[9px] uppercase tracking-wider text-slate-400">{label}</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-400">{label}</p>
               <p className="text-[11px] text-slate-600 mt-0.5 truncate">{value}</p>
             </div>
           ))}
@@ -340,7 +340,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
 
         <div className="flex items-center gap-2 px-4 py-2 border-t border-slate-100" onClick={e => e.stopPropagation()}>
           <KeyRound size={11} className="text-slate-300 shrink-0" />
-          <code className="text-[10px] font-mono text-slate-400 flex-1 truncate">{integration.sdkKeyMasked}</code>
+          <code className="text-[11px] font-mono text-slate-400 flex-1 truncate">{integration.sdkKeyMasked}</code>
           <CopyBtn text={integration.sdkKeyMasked} />
         </div>
       </div>
@@ -427,7 +427,7 @@ export default function SdkIntegrationsPage() {
             <div key={label} className={`rounded ${bg} px-4 py-3.5 flex items-center gap-3`}>
               <span className={iconCls}>{icon}</span>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-slate-400">{label}</p>
+                <p className="text-[11px] uppercase tracking-wider text-slate-400">{label}</p>
                 <p className={`text-xl font-semibold ${txt} leading-tight mt-0.5`}>{value}</p>
               </div>
             </div>

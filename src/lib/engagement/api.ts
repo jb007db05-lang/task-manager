@@ -150,9 +150,15 @@ export interface SurveyResponse {
 
 export const listSurveyResponses = async (
   sdkIntegrationId: string,
-  surveyId: string
+  surveyId: string,
+  environment: 'live' | 'sandbox' = 'live',
+  page = 1,
+  limit = 100
 ): Promise<SurveyResponse[]> => {
-  const response = await api.get<ApiEnvelope<{ responses: SurveyResponse[] }>>(`/sdk-integrations/${sdkIntegrationId}/surveys/${surveyId}/responses`);
+  const response = await api.get<ApiEnvelope<{ responses: SurveyResponse[] }>>(
+    `/sdk-integrations/${sdkIntegrationId}/surveys/${surveyId}/responses`,
+    { params: { environment, page, limit } }
+  );
   return response.data.data.responses;
 };
 
@@ -189,8 +195,14 @@ export const trackEngagementEvent = async (payload: {
   await api.post('/engagement/track', payload);
 };
 
-export const getGuideAnalyticsSummary = async (sdkIntegrationId: string): Promise<GuideAnalyticsSummary> => {
-  const response = await api.get<ApiEnvelope<GuideAnalyticsSummary>>(`/sdk-integrations/${sdkIntegrationId}/guide-analytics/summary`);
+export const getGuideAnalyticsSummary = async (
+  sdkIntegrationId: string,
+  environment: 'live' | 'sandbox' = 'live'
+): Promise<GuideAnalyticsSummary> => {
+  const response = await api.get<ApiEnvelope<GuideAnalyticsSummary>>(
+    `/sdk-integrations/${sdkIntegrationId}/guide-analytics/summary`,
+    { params: { environment } }
+  );
   return response.data.data;
 };
 

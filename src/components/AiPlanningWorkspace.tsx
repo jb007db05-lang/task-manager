@@ -285,7 +285,7 @@ function AiPlanningWorkspacePanel({ project, onArtifactsCreated, onGoToSettings 
 
             {/* Key configured status check / Enabled check */}
             {!user?.[`${aiConfig.provider}ApiKeyConfigured` as keyof typeof user] ? (
-              <div className="mt-1 text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded p-2 flex gap-1.5 items-start">
+              <div className="mt-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded p-2 flex gap-1.5 items-start">
                 <Shield size={12} className="shrink-0 text-amber-600 mt-0.5" />
                 <div>
                   <span className="font-semibold">Missing API Key:</span> No key is set for {aiConfig.provider === 'openai' ? 'OpenAI' : aiConfig.provider === 'gemini' ? 'Google Gemini' : 'Anthropic Claude'}. Configure it globally in the{' '}
@@ -304,7 +304,7 @@ function AiPlanningWorkspacePanel({ project, onArtifactsCreated, onGoToSettings 
                 </div>
               </div>
             ) : !aiConfig.enabled ? (
-              <div className="text-[10px] text-olive-500 bg-olive-50/50 p-2 rounded border border-dashed border-olive-200 flex gap-1.5 mt-1">
+              <div className="text-[11px] text-olive-500 bg-olive-50/50 p-2 rounded border border-dashed border-olive-200 flex gap-1.5 mt-1">
                 <Shield size={12} className="shrink-0 text-olive-400 mt-0.5" />
                 <span>AI planning is disabled. Toggle it on to use your configured credentials.</span>
               </div>
@@ -315,7 +315,7 @@ function AiPlanningWorkspacePanel({ project, onArtifactsCreated, onGoToSettings 
         <div className="max-h-[260px] min-h-[140px] space-y-2 overflow-y-auto rounded bg-olive-50 p-3">
           {workspace?.messages.length ? workspace.messages.map((item) => (
             <div className={`max-w-[88%] rounded-lg px-3 py-2 text-sm ${item.role === 'USER' ? 'ml-auto bg-olive-700 text-white' : 'bg-white text-olive-950 shadow-sm'}`} key={item.id}>
-              <div className="mb-1 text-[10px] font-bold uppercase tracking-wide opacity-70">{item.role === 'USER' ? 'You' : 'AI planner'}</div>
+              <div className="mb-1 text-[11px] font-bold uppercase tracking-wide opacity-70">{item.role === 'USER' ? 'You' : 'AI planner'}</div>
               <div className="whitespace-pre-wrap">{item.content}</div>
             </div>
           )) : <p className="text-sm text-olive-500">Describe goal, users, scope, constraints, and required outcomes.</p>}

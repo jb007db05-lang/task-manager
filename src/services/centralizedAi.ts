@@ -245,9 +245,10 @@ export const centralizedAiService = {
     return res.data.breakdown;
   },
 
-  async planDailyWork(workloadContext?: string): Promise<AIDailyScheduleResponse> {
+  async planDailyWork(workloadContext?: string, workspaceId?: string | null): Promise<AIDailyScheduleResponse> {
     const res = await api.post<{ schedule: AIDailyScheduleResponse }>("/ai/daily-plan", {
       workloadContext,
+      workspaceId,
     });
     return res.data.schedule;
   },

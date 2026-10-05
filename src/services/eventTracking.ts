@@ -61,6 +61,7 @@ export interface RawEvent {
 export interface EventFilters {
   apiKeyId?: string;
   sdkIntegrationId?: string;
+  environment?: 'live' | 'sandbox';
   page?: number;
   limit?: number;
   offset?: number;
@@ -104,11 +105,13 @@ export const getTrackedEvents = async (
 export const getEventLogs = async (
   eventId: string,
   apiKeyIdOrSdkIntegrationId: string,
-  isSdkIntegration = false
+  isSdkIntegration = false,
+  environment: 'live' | 'sandbox' = 'live'
 ): Promise<EventLog[]> => {
   const params: Record<string, unknown> = {};
   if (isSdkIntegration) {
     params.sdkIntegrationId = apiKeyIdOrSdkIntegrationId;
+    params.environment = environment;
   } else {
     params.apiKeyId = apiKeyIdOrSdkIntegrationId;
   }

@@ -277,7 +277,7 @@ function ProjectAiSettingsModal({ projectId, isAdmin, onClose }: ProjectAiSettin
               {/* Custom Endpoint Base URL Override */}
               <div className="flex flex-col gap-1">
                 <label className="text-[0.7rem] font-bold text-olive-500 uppercase tracking-widest pl-1">
-                  API Base URL Override <span className="text-[0.65rem] font-normal text-olive-400 italic">(Optional)</span>
+                  API Base URL Override <span className="text-[11px] font-normal text-olive-400 italic">(Optional)</span>
                 </label>
                 <input
                   type="text"
@@ -287,7 +287,7 @@ function ProjectAiSettingsModal({ projectId, isAdmin, onClose }: ProjectAiSettin
                   disabled={!isAdmin || !config.enabled}
                   onChange={(e) => updateField('baseUrl', e.target.value)}
                 />
-                <span className="text-[0.65rem] text-olive-400 italic pl-1">
+                <span className="text-[11px] text-olive-400 italic pl-1">
                   Defaults to {currentPreset?.defaultBaseUrl}
                 </span>
               </div>

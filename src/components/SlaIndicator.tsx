@@ -43,7 +43,7 @@ function SlaIndicator({ compact = false, task }: SlaIndicatorProps): JSX.Element
 
   return (
     <div className="grid gap-1.5 min-w-0">
-      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[0.65rem] font-black uppercase tracking-wider ${stateClass[state]}`}>
+      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-black uppercase tracking-wider ${stateClass[state]}`}>
         {state === 'PAUSED' ? <PauseCircle size={12} /> : breached ? <ShieldAlert size={12} /> : <Clock3 size={12} />}
         <span>{state.replace('_', ' ')}</span>
         {!compact && <span className="opacity-70">Resolution {remaining}</span>}

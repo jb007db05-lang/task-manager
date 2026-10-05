@@ -161,17 +161,17 @@ function ManageDevicesModal({ onClose, onDevicesChanged }: ManageDevicesModalPro
                             {device.deviceName}
                           </span>
                           {device.status === 'pending' && (
-                            <span className="text-[9px] font-bold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-200/50 uppercase">
+                            <span className="text-[11px] font-bold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-200/50 uppercase">
                               Pending
                             </span>
                           )}
                         </div>
-                        <p className="text-[0.6rem] text-olive-400 m-0 uppercase tracking-wider font-bold">
+                        <p className="text-[11px] text-olive-400 m-0 uppercase tracking-wider font-bold">
                           {device.deviceType}
                         </p>
                       </div>
                     </div>
-                    <span className={`text-[0.6rem] font-bold px-2 py-0.5 rounded uppercase tracking-wide border ${device.status === 'pending'
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded uppercase tracking-wide border ${device.status === 'pending'
                       ? 'bg-amber-100/50 text-amber-600 border-amber-200/50'
                       : 'bg-green-100/50 text-green-600 border-green-200/50'
                       }`}>
@@ -181,7 +181,7 @@ function ManageDevicesModal({ onClose, onDevicesChanged }: ManageDevicesModalPro
 
                   <div className="grid grid-cols-2 gap-2.5">
                     <div className="flex flex-col gap-1">
-                      <label className="text-[0.6rem] font-bold text-olive-400 uppercase tracking-widest pl-0.5">Name</label>
+                      <label className="text-[11px] font-bold text-olive-400 uppercase tracking-widest pl-0.5">Name</label>
                       <input
                         className="bg-white border border-olive-200 rounded px-2.5 py-1.5 text-xs text-olive-950 focus:outline-none focus:border-olive-500"
                         value={draft.deviceName}
@@ -189,7 +189,7 @@ function ManageDevicesModal({ onClose, onDevicesChanged }: ManageDevicesModalPro
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-[0.6rem] font-bold text-olive-400 uppercase tracking-widest pl-0.5">Category</label>
+                      <label className="text-[11px] font-bold text-olive-400 uppercase tracking-widest pl-0.5">Category</label>
                       <select
                         className="bg-white border border-olive-200 rounded px-2.5 py-1.5 text-xs text-olive-950 focus:outline-none focus:border-olive-500"
                         value={draft.deviceType}

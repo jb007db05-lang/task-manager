@@ -100,7 +100,7 @@ const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
           <Filter className="w-4 h-4" />
           <span>Filters</span>
           {activeFilterCount > 0 && (
-            <span className="flex items-center justify-center w-5 h-5 bg-white text-olive-600 rounded-full text-[10px] font-bold">
+            <span className="flex items-center justify-center w-5 h-5 bg-white text-olive-600 rounded-full text-[11px] font-bold">
               {activeFilterCount}
             </span>
           )}
@@ -122,7 +122,7 @@ const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-olive-200/50  animate-in fade-in slide-in-from-top-2">
           {/* Status */}
           <div className="space-y-1.5">
-            <label className="flex items-center gap-1.5 text-[10px] font-bold text-olive-400 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-1.5 text-[11px] font-bold text-olive-400 uppercase tracking-widest ml-1">
               <Activity className="w-3 h-3" /> Status
             </label>
             <select
@@ -139,7 +139,7 @@ const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
 
           {/* Assignee */}
           <div className="space-y-1.5">
-            <label className="flex items-center gap-1.5 text-[10px] font-bold text-olive-400 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-1.5 text-[11px] font-bold text-olive-400 uppercase tracking-widest ml-1">
               <User className="w-3 h-3" /> Assigned to
             </label>
             <select

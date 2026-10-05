@@ -121,7 +121,7 @@ export default function ApprovalSection({ projectId, taskId, members }: Approval
               <div key={approval.id} className="p-3 bg-white border border-olive-200 rounded-lg text-sm">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-olive-900">{ACTION_LABELS[approval.action] || approval.action}</span>
-                  <span className={`text-[0.65rem] px-2 py-0.5 rounded uppercase font-bold tracking-wider ${
+                  <span className={`text-[11px] px-2 py-0.5 rounded uppercase font-bold tracking-wider ${
                     approval.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
                     approval.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
                     'bg-amber-100 text-amber-700'

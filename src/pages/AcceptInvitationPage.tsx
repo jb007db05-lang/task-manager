@@ -147,7 +147,7 @@ function AcceptInvitationPage(): JSX.Element {
             </p>
 
             <div className="w-full bg-white/5 border border-white/5 rounded-2xl p-6 mb-8 text-center">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-olive-400">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-olive-400">
                 Project Name
               </span>
               <h3 className="text-xl font-bold text-white mt-1 mb-4">
@@ -156,7 +156,7 @@ function AcceptInvitationPage(): JSX.Element {
 
               <div className="flex justify-center gap-6 text-xs border-t border-white/5 pt-4 text-olive-300">
                 <div>
-                  <span className="block text-[10px] font-extrabold uppercase tracking-widest text-olive-400 mb-0.5">
+                  <span className="block text-[11px] font-extrabold uppercase tracking-widest text-olive-400 mb-0.5">
                     Invited Role
                   </span>
                   <span className="font-bold text-white uppercase tracking-wider">
@@ -165,7 +165,7 @@ function AcceptInvitationPage(): JSX.Element {
                 </div>
                 <div className="w-px bg-white/5" />
                 <div>
-                  <span className="block text-[10px] font-extrabold uppercase tracking-widest text-olive-400 mb-0.5">
+                  <span className="block text-[11px] font-extrabold uppercase tracking-widest text-olive-400 mb-0.5">
                     Invited Email
                   </span>
                   <span className="font-bold text-white">{details?.email}</span>
