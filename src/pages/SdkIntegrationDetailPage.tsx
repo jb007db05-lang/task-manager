@@ -28,6 +28,7 @@ import {
   Pause
 } from 'lucide-react';
 import { useConfirm } from '@/context/ConfirmationContext';
+import { normalizeApiError } from '@/utils/apiError';
 
 const SdkIntegrationDetailPage: React.FC = () => {
   const { integrationId, tab } = useParams<{ integrationId: string; tab?: string }>();
@@ -50,10 +51,13 @@ const SdkIntegrationDetailPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
 
   const activeTab = tab || 'overview';
-  // Which data the Guides/Surveys/Events tabs show; sandbox only when it exists.
+  // Which data the Guides/Surveys/Events tabs show. Sandbox integrations only
+  // have sandbox data; production ones can switch when a sandbox key exists.
   const [dataEnvironment, setDataEnvironment] = useState<DataEnvironment>('live');
-  const effectiveEnvironment: DataEnvironment =
-    integration?.sandbox?.enabled ? dataEnvironment : 'live';
+  const isSandboxMode = integration?.mode === 'sandbox';
+  const effectiveEnvironment: DataEnvironment = isSandboxMode
+    ? 'sandbox'
+    : integration?.sandbox?.enabled ? dataEnvironment : 'live';
 
   const loadData = async () => {
     if (!integrationId) return;
@@ -176,7 +180,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to save integration details', err);
-      alert('Failed to update SDK integration details.');
+      alert(normalizeApiError(err).message || 'Failed to update SDK integration details.');
     } finally {
       setSaving(false);
     }
@@ -233,16 +237,22 @@ const SdkIntegrationDetailPage: React.FC = () => {
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${statusColors[integration.status]}`}>
                   {integration.status}
                 </span>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium text-white uppercase bg-gradient-to-r ${envGradient[integration.environment] ?? 'from-slate-600 to-slate-800'}`}>
-                  {integration.environment}
-                </span>
+                {isSandboxMode ? (
+                  <span className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white uppercase bg-gradient-to-r from-amber-500 to-orange-500">
+                    Sandbox
+                  </span>
+                ) : (
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium text-white uppercase bg-gradient-to-r ${envGradient[integration.environment] ?? 'from-slate-600 to-slate-800'}`}>
+                    {integration.environment}
+                  </span>
+                )}
               </div>
               <p className="m-0 mt-1.5 text-sm text-slate-500">
                 Target: <span className="font-mono text-slate-600 text-xs">{integration.domain}</span>
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              {activeTab !== 'overview' && integration.sandbox?.enabled && (
+              {activeTab !== 'overview' && !isSandboxMode && integration.sandbox?.enabled && (
                 <div
                   role="radiogroup"
                   aria-label="Data environment"
@@ -290,7 +300,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                   <div className="w-8 h-8 rounded bg-indigo-50 flex items-center justify-center">
                     <Code className="h-4 w-4 text-indigo-600" />
                   </div>
-                  <h3 className="m-0 text-base font-semibold text-slate-800">Integration SDK Key</h3>
+                  <h3 className="m-0 text-base font-semibold text-slate-800">{isSandboxMode ? 'Sandbox SDK Key' : 'Integration SDK Key'}</h3>
                 </div>
 
                 {newKey ? (
@@ -391,11 +401,11 @@ const SdkIntegrationDetailPage: React.FC = () => {
                           required
                           value={editDomain}
                           onChange={(e) => setEditDomain(e.target.value)}
-                          placeholder="example.com"
+                          placeholder={isSandboxMode ? 'http://localhost:5173' : 'https://example.com'}
                           className="w-full rounded bg-slate-50 px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-xs"
                         />
                       </div>
-                      <div>
+                      {!isSandboxMode && <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                           Environment
                         </label>
@@ -408,7 +418,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                           <option value="staging">Staging</option>
                           <option value="production">Production</option>
                         </select>
-                      </div>
+                      </div>}
                     </div>
 
                     <div>
@@ -419,7 +429,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                         type="text"
                         value={editAllowedOrigins}
                         onChange={(e) => setEditAllowedOrigins(e.target.value)}
-                        placeholder="http://localhost:3000, https://staging.example.com"
+                        placeholder={isSandboxMode ? 'http://localhost:3000, https://preview.example.dev' : 'https://staging.example.com'}
                         className="w-full rounded bg-slate-50 px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-xs"
                       />
                     </div>
@@ -464,8 +474,10 @@ const SdkIntegrationDetailPage: React.FC = () => {
                         <span className="text-sm font-semibold text-slate-800">{integration.domain}</span>
                       </div>
                       <div>
-                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Environment</span>
-                        <span className="text-sm font-semibold text-slate-800 capitalize">{integration.environment}</span>
+                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Mode</span>
+                        <span className="text-sm font-semibold text-slate-800 capitalize">
+                          {isSandboxMode ? 'Sandbox' : `Production · ${integration.environment}`}
+                        </span>
                       </div>
                     </div>
 

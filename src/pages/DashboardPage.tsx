@@ -266,6 +266,7 @@ function DashboardPage(): JSX.Element {
   const [isEvaluatingPriority, setIsEvaluatingPriority] = useState(false);
   const { lastMessage, clearLastMessage, setActiveProject } = useChat();
   const [activeIntegrationName, setActiveIntegrationName] = useState<string>('');
+  const [activeIntegrationSandbox, setActiveIntegrationSandbox] = useState(false);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('');
 
   useEffect(() => {
@@ -291,6 +292,7 @@ function DashboardPage(): JSX.Element {
         try {
           const data = await getIntegration(integrationId);
           setActiveIntegrationName(data.name);
+          setActiveIntegrationSandbox(data.mode === 'sandbox');
         } catch (err) {
           console.error('Failed to fetch integration name for sidebar', err);
           setActiveIntegrationName('');
@@ -1673,7 +1675,7 @@ function DashboardPage(): JSX.Element {
     });
 
     if (isConfirmed) {
-      logout();
+      await logout();
     }
   };
 
@@ -1804,6 +1806,7 @@ function DashboardPage(): JSX.Element {
         onLogout={handleLogout}
         activeIntegrationId={integrationId}
         activeIntegrationName={activeIntegrationName}
+        activeIntegrationSandbox={activeIntegrationSandbox}
         activeTab={tab || 'overview'}
       />
 

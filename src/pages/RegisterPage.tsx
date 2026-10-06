@@ -31,9 +31,9 @@ function RegisterPage(): JSX.Element {
     try {
       await register({ email, password, firstName, lastName });
       if (tokenParam) {
-        navigate(`/accept-invitation?token=${tokenParam}`, { replace: true });
+        navigate(`/accept-invitation?token=${encodeURIComponent(tokenParam)}`, { replace: true });
       } else {
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch {
       // Handled by AuthContext
@@ -42,7 +42,8 @@ function RegisterPage(): JSX.Element {
 
   const startGoogleSignIn = (): void => {
     const params = new URLSearchParams();
-    params.set('redirect', '/');
+    params.set('redirect', tokenParam ? `/accept-invitation?token=${encodeURIComponent(tokenParam)}` : '/dashboard');
+    params.set('origin', window.location.origin);
     window.location.assign(`${apiBase}/auth/google?${params.toString()}`);
   };
 
@@ -189,7 +190,8 @@ function RegisterPage(): JSX.Element {
                 <input
                   autoComplete="new-password"
                   className={inputCls}
-                  minLength={6}
+                  minLength={8}
+                  maxLength={72}
                   name="password"
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="At least 6 characters"

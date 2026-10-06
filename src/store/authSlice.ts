@@ -1,5 +1,15 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import api from '@/services/api';
+import {
+  clearAuth,
+  getAccessToken,
+  getRefreshToken,
+  getStoredJson,
+  isRememberMe,
+  saveAuth,
+  saveStoredJson
+} from '@/services/authTokens';
+import type { NormalizedApiError } from '@/utils/apiError';
 
 export interface AuthProfile {
   id: string;
@@ -36,25 +46,21 @@ export interface AuthState {
   rememberMe: boolean;
 }
 
-const getPersistedItem = (key: string): string | null => {
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key);
-};
+const initialToken = getAccessToken();
+const initialRefreshToken = getRefreshToken();
+const initialUser = getStoredJson<AuthProfile>('user');
+const initialSession = getStoredJson<AuthSession>('session');
+const initialRememberMe = isRememberMe();
 
-const getPersistedJson = <T>(key: string): T | null => {
-  const val = getPersistedItem(key);
-  if (!val) return null;
-  try {
-    return JSON.parse(val) as T;
-  } catch {
-    return null;
-  }
-};
+interface AuthPayload {
+  token: string;
+  refreshToken: string;
+  user: AuthProfile;
+  session?: AuthSession;
+}
 
-const initialToken = getPersistedItem('todo_token');
-const initialRefreshToken = getPersistedItem('todo_refresh_token');
-const initialUser = getPersistedJson<AuthProfile>('todo_user');
-const initialSession = getPersistedJson<AuthSession>('todo_session');
-const initialRememberMe = localStorage.getItem('todo_remember_me') === 'true';
+const errorMessage = (err: unknown, fallback: string): string =>
+  (err as { message?: string } | null)?.message || fallback;
 
 const initialState: AuthState = {
   user: initialUser,
@@ -114,6 +120,42 @@ export const registerThunk = createAsyncThunk(
   }
 );
 
+/** Exchanges the single-use code from the Google callback for a session. */
+export const googleExchangeThunk = createAsyncThunk(
+  'auth/googleExchange',
+  async (payload: { code: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/google/exchange', { code: payload.code });
+      return response.data.data as AuthPayload;
+    } catch (err) {
+      return rejectWithValue(errorMessage(err, 'Google sign-in failed'));
+    }
+  }
+);
+
+export const companionLoginThunk = createAsyncThunk(
+  'auth/companionLogin',
+  async (payload: { key: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/companion-login', { key: payload.key });
+      return response.data.data as AuthPayload;
+    } catch (err) {
+      return rejectWithValue(errorMessage(err, 'Companion login failed'));
+    }
+  }
+);
+
+/** Revokes the session on the server (best effort), then clears local state. */
+export const logoutThunk = createAsyncThunk('auth/logout', async () => {
+  if (getAccessToken()) {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Already expired or offline: local sign-out still happens.
+    }
+  }
+});
+
 export const refreshUserThunk = createAsyncThunk(
   'auth/refreshUser',
   async (_, { rejectWithValue }) => {
@@ -121,8 +163,11 @@ export const refreshUserThunk = createAsyncThunk(
       const response = await api.get('/auth/me');
       return response.data.data;
     } catch (err) {
-      const errorObj = err as { message?: string };
-      return rejectWithValue(errorObj.message || 'Unable to refresh session');
+      const status = (err as NormalizedApiError | null)?.status;
+      return rejectWithValue({
+        message: errorMessage(err, 'Unable to refresh session'),
+        unauthorized: status === 401
+      });
     }
   }
 );
@@ -159,17 +204,12 @@ const authSlice = createSlice({
     clearError(state) {
       state.error = null;
     },
-    setTokens(state, action: PayloadAction<{ token: string; refreshToken: string; user: AuthProfile; session?: AuthSession; rememberMe: boolean }>) {
+    setTokens(state, action: PayloadAction<AuthPayload & { rememberMe: boolean }>) {
       state.rememberMe = action.payload.rememberMe;
       saveTokens(state, action.payload);
     },
     setRememberMe(state, action: PayloadAction<boolean>) {
       state.rememberMe = action.payload;
-      if (action.payload) {
-        localStorage.setItem('todo_remember_me', 'true');
-      } else {
-        localStorage.removeItem('todo_remember_me');
-      }
     }
   },
   extraReducers: (builder) => {
@@ -222,18 +262,41 @@ const authSlice = createSlice({
       state.error = action.payload as string;
     });
 
+    // Google / companion sign-in (always "remember me": one sign-in per device)
+    for (const thunk of [googleExchangeThunk, companionLoginThunk]) {
+      builder.addCase(thunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      });
+      builder.addCase(thunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.rememberMe = true;
+        saveTokens(state, action.payload);
+      });
+      builder.addCase(thunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+    }
+
+    builder.addCase(logoutThunk.fulfilled, (state) => {
+      clearTokens(state);
+    });
+
     // Refresh User
     builder.addCase(refreshUserThunk.fulfilled, (state, action) => {
       state.user = action.payload.user;
       state.session = action.payload.session ?? null;
-      const storage = state.rememberMe ? localStorage : sessionStorage;
-      storage.setItem('todo_user', JSON.stringify(action.payload.user));
+      saveStoredJson('user', action.payload.user);
       if (action.payload.session) {
-        storage.setItem('todo_session', JSON.stringify(action.payload.session));
+        saveStoredJson('session', action.payload.session);
       }
     });
-    builder.addCase(refreshUserThunk.rejected, (state) => {
-      clearTokens(state);
+    builder.addCase(refreshUserThunk.rejected, (state, action) => {
+      // Only a definite auth failure signs out; a network blip must not.
+      if ((action.payload as { unauthorized?: boolean } | undefined)?.unauthorized) {
+        clearTokens(state);
+      }
     });
 
     // Update Profile
@@ -244,8 +307,7 @@ const authSlice = createSlice({
     builder.addCase(updateProfileThunk.fulfilled, (state, action) => {
       state.loading = false;
       state.user = action.payload;
-      const storage = state.rememberMe ? localStorage : sessionStorage;
-      storage.setItem('todo_user', JSON.stringify(action.payload));
+      saveStoredJson('user', action.payload);
     });
     builder.addCase(updateProfileThunk.rejected, (state, action) => {
       state.loading = false;
@@ -254,27 +316,14 @@ const authSlice = createSlice({
   },
 });
 
-function saveTokens(state: AuthState, payload: { token: string; refreshToken: string; user: AuthProfile; session?: AuthSession }) {
+function saveTokens(state: AuthState, payload: AuthPayload) {
   state.token = payload.token;
   state.refreshToken = payload.refreshToken;
   state.user = payload.user;
   state.session = payload.session ?? null;
   state.require2fa = false;
   state.tempEmail2fa = null;
-
-  const storage = state.rememberMe ? localStorage : sessionStorage;
-  storage.setItem('todo_token', payload.token);
-  storage.setItem('todo_refresh_token', payload.refreshToken);
-  storage.setItem('todo_user', JSON.stringify(payload.user));
-  if (payload.session) {
-    storage.setItem('todo_session', JSON.stringify(payload.session));
-  }
-  
-  if (state.rememberMe) {
-    localStorage.setItem('todo_remember_me', 'true');
-  } else {
-    localStorage.removeItem('todo_remember_me');
-  }
+  saveAuth(payload, state.rememberMe);
 }
 
 function clearTokens(state: AuthState) {
@@ -284,17 +333,8 @@ function clearTokens(state: AuthState) {
   state.session = null;
   state.require2fa = false;
   state.tempEmail2fa = null;
-
-  localStorage.removeItem('todo_token');
-  localStorage.removeItem('todo_refresh_token');
-  localStorage.removeItem('todo_user');
-  localStorage.removeItem('todo_session');
-  localStorage.removeItem('todo_remember_me');
-
-  sessionStorage.removeItem('todo_token');
-  sessionStorage.removeItem('todo_refresh_token');
-  sessionStorage.removeItem('todo_user');
-  sessionStorage.removeItem('todo_session');
+  state.rememberMe = false;
+  clearAuth();
 }
 
 export const { logout, clearError, setTokens, setRememberMe } = authSlice.actions;

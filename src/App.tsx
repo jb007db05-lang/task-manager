@@ -14,6 +14,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const AcceptInvitationPage = lazy(() => import('@/pages/AcceptInvitationPage'));
+const GoogleOAuthCallbackPage = lazy(() => import('@/pages/GoogleOAuthCallbackPage'));
 
 import { LoadingProvider } from '@/context/LoadingContext';
 import GlobalLoadingSpinner from '@/components/GlobalLoadingSpinner';
@@ -32,6 +33,7 @@ function App(): JSX.Element {
                   <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+                    <Route path="/auth/google/callback" element={<GoogleOAuthCallbackPage />} />
                     <Route
                       path="/login"
                       element={

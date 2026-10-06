@@ -79,8 +79,8 @@ function AcceptInvitationPage(): JSX.Element {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     // After logging out, reload or redirect to force correct login state
     if (details) {
       navigate(`/login?token=${token}&email=${encodeURIComponent(details.email)}`, { replace: true });

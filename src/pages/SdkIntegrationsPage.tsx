@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertCircle, CheckCircle2, Clock, Copy, EyeOff, Globe,
+  AlertCircle, CheckCircle2, Clock, Copy, Eye, EyeOff, Globe,
   KeyRound, Loader2, Plus, RefreshCw, Server,
   Shield, Trash2, WifiOff, Zap, ChevronDown, ChevronRight, Code2,
-  Settings, BookOpen, Target, Activity
+  Settings, BookOpen, Target, Activity, FlaskConical, Rocket
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { SdkIntegration, SdkEnvironment } from '@/lib/sdk-integrations/api';
+import type { SdkIntegration, SdkEnvironment, SdkIntegrationMode } from '@/lib/sdk-integrations/api';
 import {
   listIntegrations, createIntegration, regenerateKey,
   disableIntegration, enableIntegration, deleteIntegration
 } from '@/lib/sdk-integrations/api';
+import { normalizeApiError } from '@/utils/apiError';
 
 // ---------- helpers ----------
 const ENV_LABELS: Record<SdkEnvironment, string> = { development: 'Development', staging: 'Staging', production: 'Production' };
@@ -31,6 +32,27 @@ const STATUS_META: Record<SdkIntegration['status'], { label: string; icon: JSX.E
   revoked: { label: 'Revoked', icon: <AlertCircle size={13} />, cls: 'bg-red-50 text-red-700 shadow-xs' },
 };
 
+const SANDBOX_BADGE = 'bg-amber-100 text-amber-800';
+const SANDBOX_BORDER = 'border-t-amber-500';
+
+const LOCAL_HOST_RE = /^(https?:\/\/)?(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/i;
+const isLocalUrl = (url: string) => LOCAL_HOST_RE.test(url.trim());
+
+const MODE_OPTIONS: { value: SdkIntegrationMode; label: string; icon: JSX.Element; blurb: string }[] = [
+  {
+    value: 'sandbox',
+    label: 'Sandbox',
+    icon: <FlaskConical size={16} />,
+    blurb: 'For testing. Works on localhost, shows draft guides & surveys, and keeps its events and responses separate from live data.',
+  },
+  {
+    value: 'production',
+    label: 'Production',
+    icon: <Rocket size={16} />,
+    blurb: 'For your live site. Only works from your real domain and shows published content only.',
+  },
+];
+
 const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 const fmtTime = (d?: string | null) => d ? new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
 
@@ -50,33 +72,45 @@ function CopyBtn({ text }: { text: string }) {
 }
 
 // ---------- Create modal ----------
-function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (key: string) => void }) {
+function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (key: string, name: string) => void }) {
   const [name, setName] = useState('');
+  const [mode, setMode] = useState<SdkIntegrationMode>('production');
   const [env, setEnv] = useState<SdkEnvironment>('production');
   const [domain, setDomain] = useState('');
   const [origins, setOrigins] = useState('');
   const [desc, setDesc] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const isSandbox = mode === 'sandbox';
 
   const submit = async () => {
-    if (!name.trim() || !domain.trim()) { setErr('Name and domain are required.'); return; }
+    if (!name.trim() || !domain.trim()) { setErr('Name and application URL are required.'); return; }
+    const allowedOrigins = origins
+      .split(',')
+      .map(o => o.trim())
+      .filter(Boolean);
+    const localUrl = !isSandbox && [domain, ...allowedOrigins].find(isLocalUrl);
+    if (localUrl) {
+      setErr(`${localUrl} is a localhost URL. Choose Sandbox to test on localhost.`);
+      return;
+    }
     setLoading(true); setErr(null);
     try {
-      const allowedOrigins = origins
-        .split(',')
-        .map(o => o.trim())
-        .filter(Boolean);
-      const { sdkKey } = await createIntegration({
+      const { sdkKey, integration } = await createIntegration({
         name,
-        environment: env,
+        mode,
+        environment: isSandbox ? 'development' : env,
         domain,
         allowedOrigins,
         description: desc,
       });
-      onCreated(sdkKey);
-    } catch { setErr('Failed to create integration.'); } finally { setLoading(false); }
+      onCreated(sdkKey, integration.name);
+    } catch (e) {
+      setErr(normalizeApiError(e).message || 'Failed to create integration.');
+    } finally { setLoading(false); }
   };
+
+  const inputCls = 'rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-sm focus:shadow-sm transition-shadow';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-xs px-4">
@@ -86,36 +120,65 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
           <p className="text-sm text-slate-300 mt-0.5">Connect an external website to the Engagement Platform</p>
         </div>
         <div className="p-6 grid gap-4 overflow-y-auto max-h-[70vh]">
-          {err && <div className="flex items-center gap-2 rounded bg-red-50 px-4 py-2.5 text-sm text-red-700 shadow-sm"><AlertCircle size={15} />{err}</div>}
+          {err && <div className="flex items-center gap-2 rounded bg-red-50 px-4 py-2.5 text-sm text-red-700 shadow-sm"><AlertCircle size={15} className="shrink-0" />{err}</div>}
+          <div className="grid gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Mode *</span>
+            <div role="radiogroup" aria-label="Integration mode" className="grid grid-cols-2 gap-2">
+              {MODE_OPTIONS.map(opt => {
+                const active = mode === opt.value;
+                const accent = opt.value === 'sandbox' ? 'ring-amber-500 bg-amber-50/60' : 'ring-indigo-500 bg-indigo-50/60';
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => { setMode(opt.value); setErr(null); }}
+                    className={`text-left rounded p-3 shadow-sm transition-all ${active ? `ring-2 ${accent}` : 'bg-white hover:bg-slate-50'}`}
+                  >
+                    <span className={`flex items-center gap-1.5 text-sm font-bold ${opt.value === 'sandbox' ? 'text-amber-700' : 'text-indigo-700'}`}>
+                      {opt.icon}{opt.label}
+                    </span>
+                    <span className="block mt-1 text-[11px] leading-snug text-slate-500">{opt.blurb}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <label className="grid gap-1.5">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Integration Name *</span>
-            <input className="rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-sm focus:shadow-sm transition-shadow" placeholder="e.g. Production Website" value={name} onChange={e => setName(e.target.value)} />
+            <input className={inputCls} placeholder={isSandbox ? 'e.g. Local Dev' : 'e.g. Production Website'} value={name} onChange={e => setName(e.target.value)} />
           </label>
-          <label className="grid gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Environment *</span>
-            <select className="rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-sm focus:shadow-sm transition-shadow" value={env} onChange={e => setEnv(e.target.value as SdkEnvironment)}>
-              <option value="production">Production</option>
-              <option value="staging">Staging</option>
-              <option value="development">Development</option>
-            </select>
-          </label>
+          {!isSandbox && (
+            <label className="grid gap-1.5">
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Environment *</span>
+              <select className={inputCls} value={env} onChange={e => setEnv(e.target.value as SdkEnvironment)}>
+                <option value="production">Production</option>
+                <option value="staging">Staging</option>
+                <option value="development">Development</option>
+              </select>
+            </label>
+          )}
           <label className="grid gap-1.5">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Application URL *</span>
-            <input className="rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-sm focus:shadow-sm transition-shadow" placeholder="https://app.company.com" value={domain} onChange={e => setDomain(e.target.value)} />
+            <input className={inputCls} placeholder={isSandbox ? 'http://localhost:5173' : 'https://app.company.com'} value={domain} onChange={e => setDomain(e.target.value)} />
+            <span className="text-[11px] text-slate-400">
+              {isSandbox ? 'localhost URLs are allowed. Any localhost port can use the sandbox key.' : 'localhost is not allowed for production. Use a sandbox integration to test locally.'}
+            </span>
           </label>
           <label className="grid gap-1.5">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Additional Allowed Origins (optional, comma-separated)</span>
-            <input className="rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-sm focus:shadow-sm transition-shadow" placeholder="https://origin2.com, http://localhost:5173" value={origins} onChange={e => setOrigins(e.target.value)} />
+            <input className={inputCls} placeholder={isSandbox ? 'https://preview.company.dev' : 'https://origin2.com, https://*.company.com'} value={origins} onChange={e => setOrigins(e.target.value)} />
           </label>
           <label className="grid gap-1.5">
             <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Description (optional)</span>
-            <textarea className="rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 resize-none h-20 shadow-sm focus:shadow-sm transition-shadow" placeholder="Brief description of this integration" value={desc} onChange={e => setDesc(e.target.value)} />
+            <textarea className={`${inputCls} resize-none h-20`} placeholder="Brief description of this integration" value={desc} onChange={e => setDesc(e.target.value)} />
           </label>
         </div>
         <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
           <button onClick={onClose} type="button" className="px-4 py-2 rounded text-sm font-semibold text-slate-600 hover:bg-slate-50 shadow-xs">Cancel</button>
           <button onClick={() => void submit()} type="button" disabled={loading} className="px-5 py-2 rounded bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 disabled:opacity-60 flex items-center gap-2 shadow-sm hover:shadow-sm transition-all">
-            {loading && <Loader2 size={14} className="animate-spin" />} Create Integration
+            {loading && <Loader2 size={14} className="animate-spin" />} Create {isSandbox ? 'Sandbox' : 'Integration'}
           </button>
         </div>
       </div>
@@ -140,13 +203,13 @@ function KeyRevealModal({ sdkKey, name, onClose }: { sdkKey: string; name: strin
           </div>
           <div className="rounded bg-slate-50 px-4 py-3 shadow-inner">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Public SDK Key</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">{sdkKey.startsWith('sdk_test_') ? 'Sandbox SDK Key' : 'Public SDK Key'}</span>
               <div className="flex items-center gap-3">
-                <button onClick={() => setVisible(!visible)} type="button" className="text-slate-400 hover:text-slate-600"><EyeOff size={14} /></button>
+                <button onClick={() => setVisible(!visible)} type="button" title={visible ? 'Hide key' : 'Show key'} className="text-slate-400 hover:text-slate-600">{visible ? <EyeOff size={14} /> : <Eye size={14} />}</button>
                 <CopyBtn text={sdkKey} />
               </div>
             </div>
-            <code className="text-xs font-mono text-slate-800 break-all">{visible ? sdkKey : `${sdkKey.slice(0, 8)}${'•'.repeat(32)}`}</code>
+            <code className="text-xs font-mono text-slate-800 break-all">{visible ? sdkKey : `${sdkKey.slice(0, sdkKey.startsWith('sdk_test_') ? 9 : 4)}${'•'.repeat(32)}`}</code>
           </div>
         </div>
         <div className="flex justify-end px-6 pb-6">
@@ -174,22 +237,23 @@ function InstallGuide({ integration }: { integration: SdkIntegration }) {
         <div className="p-5 grid gap-4 bg-white shadow-xs">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">1. Install the SDK</p>
-            <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`npm install @engagement/sdk`}</pre>
+            <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`npm install @jamesbond007db05/events-sdk`}</pre>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">2. Initialize</p>
-            <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`import { EngagementSDK } from '@engagement/sdk';
+            <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`import { Engagement } from '@jamesbond007db05/events-sdk';
 
-EngagementSDK.init({
-  sdkKey: '${masked}',
+Engagement.init({
+  apiKey: '${masked}', // the full key shown when it was generated
+  userId: 'user-123',
 });`}</pre>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">3. Identify user (optional)</p>
-            <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`EngagementSDK.identify({ userId: 'user-123', role: 'admin' });`}</pre>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">3. Track an event</p>
+            <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`await Engagement.track('signup_completed');`}</pre>
           </div>
           <div className="rounded bg-sky-50 px-4 py-3 text-xs text-sky-700 shadow-xs">
-            <strong>Domain:</strong> {integration.domain} &nbsp;·&nbsp; <strong>Environment:</strong> {integration.environment}
+            <strong>Domain:</strong> {integration.domain} &nbsp;·&nbsp; <strong>Mode:</strong> {integration.mode === 'sandbox' ? 'Sandbox (localhost allowed, drafts visible)' : `Production · ${integration.environment}`}
           </div>
         </div>
       )}
@@ -281,7 +345,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
     <>
       {showDetails && <DetailsModal integration={integration} onClose={() => setShowDetails(false)} onRefresh={onRefresh} />}
       <div
-        className={`rounded-md bg-white shadow-sm hover:shadow-sm transition-all duration-200 flex flex-col overflow-hidden cursor-pointer group border-t-[3px] ${ENV_BORDER[integration.environment]} ${integration.status === 'disabled' || integration.status === 'revoked' ? 'opacity-70' : ''}`}
+        className={`rounded-md bg-white shadow-sm hover:shadow-sm transition-all duration-200 flex flex-col overflow-hidden cursor-pointer group border-t-[3px] ${integration.mode === 'sandbox' ? SANDBOX_BORDER : ENV_BORDER[integration.environment]} ${integration.status === 'disabled' || integration.status === 'revoked' ? 'opacity-70' : ''}`}
         onClick={() => navigate(`/sdk-integrations/${integration.id}/overview`)}
         role="button"
         tabIndex={0}
@@ -289,7 +353,9 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
       >
         <div className="p-5 flex-1 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
-            <Badge cls={ENV_COLORS[integration.environment]}>{ENV_LABELS[integration.environment]}</Badge>
+            {integration.mode === 'sandbox'
+              ? <Badge cls={SANDBOX_BADGE}><FlaskConical size={11} />Sandbox</Badge>
+              : <Badge cls={ENV_COLORS[integration.environment]}>{ENV_LABELS[integration.environment]}</Badge>}
             <Badge cls={sm.cls}>{sm.icon}{sm.label}</Badge>
           </div>
           <div>
@@ -341,7 +407,6 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
         <div className="flex items-center gap-2 px-4 py-2 border-t border-slate-100" onClick={e => e.stopPropagation()}>
           <KeyRound size={11} className="text-slate-300 shrink-0" />
           <code className="text-[11px] font-mono text-slate-400 flex-1 truncate">{integration.sdkKeyMasked}</code>
-          <CopyBtn text={integration.sdkKeyMasked} />
         </div>
       </div>
     </>
@@ -355,7 +420,7 @@ export default function SdkIntegrationsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [newKey, setNewKey] = useState<{ key: string; name: string } | null>(null);
   const [search, setSearch] = useState('');
-  const [filterEnv, setFilterEnv] = useState<SdkEnvironment | 'all'>('all');
+  const [filterEnv, setFilterEnv] = useState<SdkEnvironment | 'sandbox' | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<SdkIntegration['status'] | 'all'>('all');
 
   const load = async () => {
@@ -367,7 +432,8 @@ export default function SdkIntegrationsPage() {
 
   const filtered = integrations.filter(i => {
     const matchSearch = !search || i.name.toLowerCase().includes(search.toLowerCase()) || i.domain.toLowerCase().includes(search.toLowerCase());
-    const matchEnv = filterEnv === 'all' || i.environment === filterEnv;
+    const matchEnv = filterEnv === 'all'
+      || (filterEnv === 'sandbox' ? i.mode === 'sandbox' : i.mode !== 'sandbox' && i.environment === filterEnv);
     const matchStatus = filterStatus === 'all' || i.status === filterStatus;
     return matchSearch && matchEnv && matchStatus;
   });
@@ -384,11 +450,10 @@ export default function SdkIntegrationsPage() {
       {showCreate && (
         <CreateModal
           onClose={() => setShowCreate(false)}
-          onCreated={(key) => {
+          onCreated={(key, name) => {
             setShowCreate(false);
-            void load().then(() => {
-              setNewKey({ key, name: 'New Integration' });
-            });
+            setNewKey({ key, name });
+            void load();
           }}
         />
       )}
@@ -443,6 +508,7 @@ export default function SdkIntegrationsPage() {
         />
         <select className="rounded bg-white px-3 py-2 text-sm focus:outline-none shadow-xs text-slate-700 font-semibold" value={filterEnv} onChange={e => setFilterEnv(e.target.value as typeof filterEnv)}>
           <option value="all">All Environments</option>
+          <option value="sandbox">Sandbox</option>
           <option value="production">Production</option>
           <option value="staging">Staging</option>
           <option value="development">Development</option>

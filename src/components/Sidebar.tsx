@@ -41,6 +41,8 @@ interface SidebarProps {
   onLogout: () => void;
   activeIntegrationId?: string;
   activeIntegrationName?: string;
+  /** Sandbox integrations show a SANDBOX badge instead of LIVE. */
+  activeIntegrationSandbox?: boolean;
   activeTab?: string;
 }
 
@@ -54,6 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   activeIntegrationId,
   activeIntegrationName,
+  activeIntegrationSandbox = false,
   activeTab,
 }) => {
   // Ultra-premium dark olive palette tokens
@@ -140,13 +143,19 @@ const Sidebar: React.FC<SidebarProps> = ({
                   Active Integration
                 </span>
                 {/* Active pulsating beacon status indicator */}
-                <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#afc28e] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#afc28e]"></span>
+                {activeIntegrationSandbox ? (
+                  <span className="rounded-full bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                    Sandbox
                   </span>
-                  <span className="text-[11px] font-semibold text-[#afc28e]/80 uppercase">Live</span>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#afc28e] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#afc28e]"></span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-[#afc28e]/80 uppercase">Live</span>
+                  </div>
+                )}
               </div>
               <span className="text-[0.8rem] font-medium flex items-center gap-2 truncate text-white/90">
                 <Plug size={13} className="text-[#9cb07a] shrink-0" />

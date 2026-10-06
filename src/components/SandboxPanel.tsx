@@ -71,7 +71,9 @@ const SandboxPanel: React.FC<SandboxPanelProps> = ({ integration, onChange }) =>
   const handleReset = async () => {
     const ok = await confirm({
       title: 'Reset sandbox data',
-      message: 'This permanently deletes all sandbox events, guide and survey views, survey responses and users. Live data is not touched.',
+      message: integration.mode === 'sandbox'
+        ? 'This permanently deletes all events, guide and survey views, survey responses and users of this sandbox integration.'
+        : 'This permanently deletes all sandbox events, guide and survey views, survey responses and users. Live data is not touched.',
       confirmText: 'Reset data',
       type: 'danger'
     });
@@ -103,6 +105,40 @@ const SandboxPanel: React.FC<SandboxPanelProps> = ({ integration, onChange }) =>
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (integration.mode === 'sandbox') {
+    return (
+      <div className="rounded-md bg-white p-4 shadow-sm border-l-4 border-amber-500">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded bg-amber-50 flex items-center justify-center">
+            <FlaskConical className="h-4 w-4 text-amber-600" />
+          </div>
+          <h3 className="m-0 text-base font-semibold text-slate-800">Sandbox integration</h3>
+        </div>
+        <p className="m-0 mb-4 text-xs leading-relaxed text-slate-600">
+          This integration&apos;s key is a sandbox key. It works from <span className="font-mono">localhost</span> and
+          from the domains above, shows <span className="font-semibold">draft</span> and live guides and surveys, and stores
+          its events, views and survey responses as sandbox data. Nothing here counts toward live analytics or MTU.
+        </p>
+        {error && (
+          <div role="alert" className="mb-3 rounded bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800">
+            {error}
+          </div>
+        )}
+        {notice && (
+          <div className="mb-3 rounded bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">{notice}</div>
+        )}
+        <button
+          onClick={handleReset}
+          disabled={busy !== null}
+          className="flex items-center gap-1.5 rounded bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-200 transition-colors disabled:opacity-50"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          {busy === 'reset' ? 'Resetting…' : 'Reset sandbox data'}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-md bg-white p-4 shadow-sm border-l-4 border-amber-500">

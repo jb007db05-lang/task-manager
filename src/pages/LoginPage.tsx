@@ -16,6 +16,10 @@ function LoginPage(): JSX.Element {
   const [searchParams] = useSearchParams();
   const emailParam = searchParams.get('email') || '';
   const tokenParam = searchParams.get('token') || '';
+  // Set by the Google callback (?error=) and by an expired session (?expired=1).
+  const oauthError = searchParams.get('error');
+  const sessionExpired = searchParams.get('expired') === '1';
+  const redirectParam = searchParams.get('redirect');
 
   const {
     login,
@@ -51,9 +55,16 @@ function LoginPage(): JSX.Element {
   const [resetErrorMessage, setResetErrorMessage] = useState<string | null>(null);
   const [resetLoading, setResetLoading] = useState<boolean>(false);
 
+  const fromState = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
+  const isInternalPath = (path: string | null | undefined): path is string =>
+    !!path && path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\');
   const nextPath = tokenParam
-    ? `/accept-invitation?token=${tokenParam}`
-    : ((location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/');
+    ? `/accept-invitation?token=${encodeURIComponent(tokenParam)}`
+    : isInternalPath(redirectParam)
+      ? redirectParam
+      : fromState?.pathname
+        ? `${fromState.pathname}${fromState.search ?? ''}`
+        : '/dashboard';
 
   const apiBase = useMemo(
     () => (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace(/\/$/, ''),
@@ -63,14 +74,15 @@ function LoginPage(): JSX.Element {
   const startGoogleSignIn = (): void => {
     const params = new URLSearchParams();
     params.set('redirect', nextPath);
+    params.set('origin', window.location.origin);
     window.location.assign(`${apiBase}/auth/google?${params.toString()}`);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     try {
-      await login(email, password, rememberMe);
-      if (!require2fa) {
+      const result = await login(email, password, rememberMe);
+      if (!result.require2fa) {
         navigate(nextPath, { replace: true });
       }
     } catch {
@@ -328,6 +340,9 @@ function LoginPage(): JSX.Element {
                 <div className="relative">
                   <input
                     className={inputCls}
+                    autoComplete="new-password"
+                    maxLength={72}
+                    minLength={8}
                     onChange={(event) => setResetPassword(event.target.value)}
                     placeholder="At least 8 characters"
                     required
@@ -381,6 +396,15 @@ function LoginPage(): JSX.Element {
               {resetSuccessMessage ? (
                 <p className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-medium">
                   {resetSuccessMessage}
+                </p>
+              ) : null}
+
+              {oauthError || sessionExpired ? (
+                <p
+                  role="alert"
+                  className="m-0 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-sm font-medium"
+                >
+                  {oauthError || 'Your session has expired. Please sign in again.'}
                 </p>
               ) : null}
 

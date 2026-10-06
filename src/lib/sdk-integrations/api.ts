@@ -2,6 +2,11 @@ import api from '@/services/api';
 
 export type SdkIntegrationStatus = 'pending' | 'connected' | 'disabled' | 'revoked';
 export type SdkEnvironment = 'development' | 'staging' | 'production';
+/**
+ * Chosen when the integration is created. Sandbox integrations work from
+ * localhost, see draft guides/surveys and keep all their data as sandbox data.
+ */
+export type SdkIntegrationMode = 'sandbox' | 'production';
 /** Which data an SDK key reads and writes: the live key or the sandbox key. */
 export type DataEnvironment = 'live' | 'sandbox';
 
@@ -22,6 +27,7 @@ export interface SandboxPurgeResult {
 export interface SdkIntegration {
   id: string;
   name: string;
+  mode: SdkIntegrationMode;
   environment: SdkEnvironment;
   domain: string;
   allowedOrigins: string[];
@@ -57,6 +63,7 @@ export const getIntegration = async (id: string): Promise<SdkIntegration> => {
 
 export const createIntegration = async (payload: {
   name: string;
+  mode: SdkIntegrationMode;
   environment: SdkEnvironment;
   domain: string;
   allowedOrigins?: string[];
