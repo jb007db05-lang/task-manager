@@ -92,7 +92,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
 
       {isOpen && (
         <div className="absolute left-0 top-full mt-1.5 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-1.5 text-sm">
-          <div className="px-2 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="px-2 py-1.5 text-xs font-medium text-slate-400">
             Workspaces
           </div>
           <div className="max-h-48 overflow-y-auto space-y-0.5">
@@ -150,7 +150,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
             {error && <div className="mb-4 text-sm text-red-400 bg-red-950/50 p-2.5 rounded-lg">{error}</div>}
             <form onSubmit={handleCreateWorkspace} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">
                   Workspace Name
                 </label>
                 <input
@@ -191,7 +191,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
             {error && <div className="mb-4 text-sm text-red-400 bg-red-950/50 p-2.5 rounded-lg">{error}</div>}
             <form onSubmit={handleInviteUser} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">
                   User Email Address
                 </label>
                 <input

@@ -424,7 +424,7 @@ export const PromptVersionCompareModal: React.FC<PromptVersionCompareModalProps>
                         <button
                           type="button"
                           onClick={runTestPreview}
-                          className="px-4 py-2 rounded-lg bg-olive-900 text-white font-semibold hover:bg-black transition flex items-center gap-2 mt-2"
+                          className="px-4 py-2 rounded-lg bg-brand-700 text-white font-semibold hover:bg-brand-800 transition flex items-center gap-2 mt-2"
                         >
                           <Play className="w-3.5 h-3.5" /> Render Template Preview
                         </button>
@@ -454,7 +454,7 @@ export const PromptVersionCompareModal: React.FC<PromptVersionCompareModalProps>
                   onClose();
                   onOpenPlayground(prompt, v2Number);
                 }}
-                className="px-4 py-2 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer"
               >
                 <Play className="w-4 h-4 text-emerald-400 fill-current" /> Open v{v2Number} in Playground
               </button>

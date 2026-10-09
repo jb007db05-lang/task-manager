@@ -50,9 +50,9 @@ function DaySummary({ controls = null, date, error = null, loading = false, summ
           {metrics.map(({ label, value }, i) => (
             <article
               key={label}
-              className="bg-white/46  border border-olive-200  rounded-lg p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-white/68 "
+              className="bg-white/46  border border-olive-200  rounded-lg p-5 transition-all duration-200.5 hover:shadow-md hover:bg-white/68 "
             >
-              <span className="text-olive-500  text-[0.9rem] uppercase tracking-[0.05em] font-semibold">
+              <span className="text-olive-500  text-[0.9rem] tracking-[0.05em] font-semibold">
                 {label}
               </span>
               <strong className={`block text-[2.25rem] font-bold font-sans mt-2 ${metricColors[i]}`}>

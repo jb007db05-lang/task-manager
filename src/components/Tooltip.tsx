@@ -85,7 +85,7 @@ export default function Tooltip({
       </div>
       {isVisible && createPortal(
         <div 
-          className={`fixed z-[999999] px-2.5 py-1.5 text-xs font-semibold text-white bg-olive-900  rounded-lg shadow-xl whitespace-nowrap animate-fadeIn pointer-events-none ${positionClasses[position]}`}
+          className={`fixed z-[999999] px-2 py-1 text-xs font-medium text-white bg-olive-900 rounded-md shadow-lg whitespace-nowrap animate-fadeIn pointer-events-none ${positionClasses[position]}`}
           style={{ top: coords.top, left: coords.left }}
         >
           {content}

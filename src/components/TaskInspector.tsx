@@ -164,12 +164,12 @@ export default function TaskInspector({
                 <div className="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse mt-1.5 shrink-0" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="text-[0.62rem] uppercase tracking-[0.25em] font-bold text-slate-500">
+                    <span className="text-[0.62rem] font-bold text-slate-500">
                       TASK INSPECTOR
                     </span>
                     {task.dynamicPriority && priorityBadge[task.dynamicPriority] && (
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
                           priorityBadge[task.dynamicPriority].color
                         }`}
                       >
@@ -196,7 +196,7 @@ export default function TaskInspector({
             <div className="flex gap-6 px-6 shadow-xs bg-white">
               <button
                 onClick={() => setSidePanelTab('subtasks')}
-                className={`pb-3 pt-3 text-xs font-bold uppercase tracking-widest transition-all relative ${
+                className={`pb-3 pt-3 text-xs font-medium transition-all relative ${
                   sidePanelTab === 'subtasks' ? 'text-slate-700' : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
@@ -207,7 +207,7 @@ export default function TaskInspector({
               </button>
               <button
                 onClick={() => setSidePanelTab('comments')}
-                className={`pb-3 pt-3 text-xs font-bold uppercase tracking-widest transition-all relative ${
+                className={`pb-3 pt-3 text-xs font-medium transition-all relative ${
                   sidePanelTab === 'comments' ? 'text-slate-700' : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
@@ -225,7 +225,7 @@ export default function TaskInspector({
                   {/* Action / Assignee / Priority quick properties grid */}
                   <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50/50">
                     <div>
-                      <span className="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
+                      <span className="text-[0.62rem] font-bold text-slate-400 block mb-1.5">
                         Assignee
                       </span>
                       <AssigneeSelector
@@ -238,7 +238,7 @@ export default function TaskInspector({
                       />
                     </div>
                     <div>
-                      <span className="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
+                      <span className="text-[0.62rem] font-bold text-slate-400 block mb-1.5">
                         Priority
                       </span>
                       <div className="relative">
@@ -263,11 +263,11 @@ export default function TaskInspector({
                   {/* Subtask list */}
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                      <span className="text-[11px] font-semibold text-slate-500">
                         Checklist Subtasks ({completedSubtasks}/{task.subtasks.length})
                       </span>
                       <button
-                        className="flex items-center justify-center w-7 h-7 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-md transition-all transform active:scale-95 disabled:opacity-40"
+                        className="flex items-center justify-center w-7 h-7 bg-brand-700 hover:bg-brand-800 text-white rounded-lg shadow-md transition-all transform disabled:opacity-40"
                         disabled={!task.permissions.canUpdate}
                         onClick={() => setSubtaskModalTask(task)}
                         title="New Subtask"
@@ -398,7 +398,7 @@ export default function TaskInspector({
                   {/* SLA timers and details */}
                   <div className="shadow-sm rounded-xl p-5 bg-white relative overflow-hidden">
                     <div className="absolute -top-12 -right-12 w-24 h-24 bg-slate-500/5 rounded-full blur-2xl" />
-                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-800 m-0 mb-4 flex items-center gap-2">
+                    <h4 className="text-xs font-medium text-slate-800 m-0 mb-4 flex items-center gap-2">
                       <Clock size={14} className="text-slate-650" /> Dual-Timers
                     </h4>
                     {task.description && (
@@ -408,7 +408,7 @@ export default function TaskInspector({
                     )}
                     <div className="flex flex-wrap items-center gap-2.5 mb-4">
                       <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[0.62rem] font-bold uppercase tracking-wider ${
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-medium ${
                           statusPillCls[task.status] ?? 'bg-slate-50 text-slate-600 shadow-xs'
                         }`}
                       >
@@ -419,7 +419,7 @@ export default function TaskInspector({
                       <button
                         type="button"
                         onClick={() => handleToggleBlocked(task)}
-                        className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[0.62rem] font-bold uppercase tracking-wider transition-all shadow-sm ${
+                        className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-medium transition-all shadow-sm ${
                           task.isBlocked
                             ? 'bg-red-500 text-white'
                             : 'bg-white text-red-500 hover:bg-red-50'
@@ -519,7 +519,7 @@ export default function TaskInspector({
 
                   {/* Work Notes */}
                   <button
-                    className="w-full group/btn relative flex items-center justify-center gap-2.5 px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm shadow-md transition-all overflow-hidden"
+                    className="w-full group/btn relative flex items-center justify-center gap-2.5 px-5 py-3.5 bg-brand-700 hover:bg-brand-800 text-white rounded-xl font-bold text-sm shadow-md transition-all overflow-hidden"
                     onClick={() => handleOpenTaskNote(task)}
                     type="button"
                   >

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { type Task, type TaskWorkflowStatus, TASK_WORKFLOW_STATUS_OPTIONS } from '@/types/task';
 import TaskCard from './TaskCard';
 import Skeleton from './Skeleton';
+import { statusMeta } from '@/utils/taskMeta';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -52,24 +53,19 @@ function KanbanBoard({
   };
 
   return (
-    <div className="flex-1 overflow-x-auto p-4">
+    <div className="h-full overflow-x-auto px-6 pb-6 custom-scrollbar">
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4 h-full min-h-[600px]">
+        <div className="flex gap-3 h-full min-h-[480px]">
           {COLUMNS.map((status) => {
             const columnTasks = getTasksByStatus(status);
             const label = TASK_WORKFLOW_STATUS_OPTIONS.find(opt => opt.value === status)?.label || status;
 
             return (
-              <div key={status} className="flex-shrink-0 w-80 flex flex-col bg-olive-50/50  rounded-xl border border-olive-200 ">
-                <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-olive-700  uppercase tracking-wider">
-                      {label}
-                    </h3>
-                    <span className="px-2 py-0.5 rounded-full bg-olive-200  text-olive-500  text-[0.7rem] font-bold">
-                      {columnTasks.length}
-                    </span>
-                  </div>
+              <div key={status} className="flex-shrink-0 w-[280px] flex flex-col rounded-xl bg-olive-100/60">
+                <div className="flex items-center gap-2 px-3 h-10 shrink-0">
+                  <span className={`w-2 h-2 rounded-full ${statusMeta(status).dot}`} />
+                  <h3 className="text-[13px] font-medium text-olive-800 m-0">{label}</h3>
+                  <span className="text-xs text-olive-400 tabular-nums">{columnTasks.length}</span>
                 </div>
 
                 <Droppable droppableId={status}>
@@ -77,71 +73,63 @@ function KanbanBoard({
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className={`flex-1 p-2 space-y-3 overflow-y-auto transition-colors duration-200 ${snapshot.isDraggingOver ? 'bg-olive-50/30' : ''}`}
+                      className={`flex-1 px-2 pb-2 flex flex-col gap-2 overflow-y-auto rounded-b-xl transition-colors duration-150 ${snapshot.isDraggingOver ? 'bg-brand-50/70' : ''}`}
                     >
-                  {loading ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                      <div key={`skeleton-${status}-${i}`} className="p-4 bg-white  rounded-xl border border-olive-100  space-y-3">
-                        <div className="flex justify-between items-center">
-                          <Skeleton variant="text" className="w-1/2 h-4" />
-                          <Skeleton variant="rectangle" className="w-4 h-4 rounded" />
-                        </div>
-                        <Skeleton variant="text" className="w-full h-3" />
-                        <div className="flex justify-between items-center pt-2">
-                          <Skeleton variant="circle" className="w-6 h-6" />
-                          <div className="flex gap-1">
-                            <Skeleton variant="rectangle" className="w-6 h-6 rounded" />
-                            <Skeleton variant="rectangle" className="w-6 h-6 rounded" />
+                      {loading ? (
+                        Array.from({ length: 2 }).map((_, i) => (
+                          <div key={`skeleton-${status}-${i}`} className="p-3 bg-white rounded-lg border border-olive-200 space-y-2.5">
+                            <Skeleton variant="text" className="w-3/4" />
+                            <Skeleton variant="text" className="w-1/2" />
                           </div>
+                        ))
+                      ) : (
+                        columnTasks.map((task, index) => (
+                          <Draggable key={task.id} draggableId={task.id} index={index}>
+                            {(provided, snapshot) => {
+                              const content = (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`rounded-lg border border-olive-200 bg-white overflow-hidden ${snapshot.isDragging ? 'shadow-xl ring-1 ring-brand-200 rotate-[1deg]' : 'shadow-xs hover:border-olive-300'}`}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                                  }}
+                                >
+                                  <TaskCard
+                                    task={task}
+                                    onDelete={onDeleteTask}
+                                    onEditTask={onEditTask}
+                                    onSelect={onSelectTask}
+                                    onComment={onCommentTask}
+                                    onToggleBlocked={onToggleBlocked}
+                                  />
+                                </div>
+                              );
+
+                              return snapshot.isDragging ? createPortal(content, document.body) : content;
+                            }}
+                          </Draggable>
+                        ))
+                      )}
+
+                      {provided.placeholder}
+
+                      {!loading && columnTasks.length === 0 && !snapshot.isDraggingOver && (
+                        <div className="flex-1 min-h-[72px] rounded-lg border border-dashed border-olive-300/70 flex items-center justify-center text-xs text-olive-400">
+                          Drop tasks here
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    columnTasks.map((task, index) => (
-                      <Draggable key={task.id} draggableId={task.id} index={index}>
-                        {(provided, snapshot) => {
-                          const content = (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`${snapshot.isDragging ? 'shadow-2xl scale-[1.02] z-[9999]' : ''}`}
-                              style={{
-                                ...provided.draggableProps.style,
-                                // Avoid potential position jumps during portal creation
-                                cursor: snapshot.isDragging ? 'grabbing' : 'grab',
-                              }}
-                            >
-                              <TaskCard
-                                task={task}
-                                onDelete={onDeleteTask}
-                                onEditTask={onEditTask}
-                                onSelect={onSelectTask}
-                                onComment={onCommentTask}
-                                onToggleBlocked={onToggleBlocked}
-                              />
-                            </div>
-                          );
-
-                          return snapshot.isDragging
-                            ? createPortal(content, document.body)
-                            : content;
-                        }}
-                      </Draggable>
-                    ))
+                      )}
+                    </div>
                   )}
-
-                  {provided.placeholder}
-              </div>
-            )
-          }
                 </Droppable>
+              </div>
+            );
+          })}
+        </div>
+      </DragDropContext>
     </div>
-  );
-})}
-        </div >
-      </DragDropContext >
-    </div >
   );
 }
 

@@ -1,14 +1,14 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Shield, Smartphone, Sparkles } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Shield, Smartphone } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
-import logoImg from '@/assets/logo.png';
+import AuthLayout, { authInputCls, authLabelCls } from '@/components/AuthLayout';
+import GoogleMark from '@/components/GoogleMark';
 
-const inputCls =
-  'w-full bg-white border border-olive-200 rounded-xl text-olive-950 px-4 py-3 transition-all duration-200 focus:outline-none focus:border-olive-500 focus:ring-4 focus:ring-olive-500/10 placeholder:text-olive-400/80';
-const labelCls = 'grid gap-1.5 font-bold text-xs uppercase tracking-widest text-olive-800';
+const inputCls = authInputCls;
+const labelCls = authLabelCls;
 
 function LoginPage(): JSX.Element {
   const navigate = useNavigate();
@@ -145,446 +145,307 @@ function LoginPage(): JSX.Element {
     }
   };
 
+  const PasswordToggle = ({ shown, onToggle }: { shown: boolean; onToggle: () => void }) => (
+    <button
+      aria-label={shown ? 'Hide password' : 'Show password'}
+      className="absolute right-1.5 top-1/2 -translate-y-1/2 icon-btn !w-7 !h-7"
+      onClick={onToggle}
+      type="button"
+    >
+      {shown ? <EyeOff size={16} /> : <Eye size={16} />}
+    </button>
+  );
+
+  const BackLink = ({ onClick, label = 'Back to sign in' }: { onClick: () => void; label?: string }) => (
+    <button
+      className="flex items-center justify-center gap-1.5 text-[13px] text-olive-500 hover:text-olive-900 transition-colors"
+      onClick={onClick}
+      type="button"
+    >
+      <ArrowLeft size={14} /> {label}
+    </button>
+  );
+
+  const Notice = ({ tone, children }: { tone: 'success' | 'warning' | 'error'; children: React.ReactNode }) => (
+    <p
+      role={tone === 'error' ? 'alert' : 'status'}
+      className={[
+        'm-0 px-3 py-2.5 rounded-lg border text-[13px] leading-snug',
+        tone === 'success' ? 'bg-brand-50 border-brand-200 text-brand-900' : tone === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-red-50 border-red-200 text-red-800'
+      ].join(' ')}
+    >
+      {children}
+    </p>
+  );
+
   return (
-    <main className="min-h-screen flex bg-white font-sans overflow-hidden">
-      {/* Left Side (65% width) */}
-      <div className="hidden lg:flex lg:w-[65%] bg-gradient-to-br from-olive-950 via-neutral-900 to-olive-900 relative p-16 flex-col justify-between overflow-hidden select-none">
-        {/* Glowing abstract backgrounds */}
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-olive-700/10 rounded-full blur-[140px] pointer-events-none animate-pulse duration-[8000ms]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse duration-[6000ms]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
-        {/* Brand Header */}
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-white/20 shadow-md p-2">
-            <img src={logoImg} alt="Pristine Logo" className="w-full h-full object-contain" />
-          </div>
-          <span className="text-white font-black tracking-[0.25em] text-lg">PRISTINE</span>
-        </div>
-
-        {/* Visual Centerpiece (Horizontal layout of text and red outline logo container) */}
-        <div className="relative z-10 my-auto w-full grid lg:grid-cols-2 gap-16 items-center">
-          {/* Text Centerpiece */}
-          <div className="flex flex-col gap-6 max-w-[500px]">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full w-fit backdrop-blur-sm">
-              <Sparkles size={13} className="text-emerald-400" />
-              <span className="text-xs font-bold text-olive-200 uppercase tracking-widest">Version 1.2 Active</span>
+    <AuthLayout>
+      {require2fa ? (
+        <form className="grid gap-5" onSubmit={(event) => void handleVerify2fa(event)}>
+          <div>
+            <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 flex items-center justify-center mb-5">
+              <Shield size={19} />
             </div>
-            <h2 className="text-5xl font-black leading-[1.15] text-white tracking-tight">
-              Elevate your workflow with{' '}
-              <span className="bg-gradient-to-r from-emerald-400 to-olive-300 bg-clip-text text-transparent">
-                effortless organization
-              </span>
-            </h2>
-            <p className="text-olive-300 text-lg leading-relaxed font-light">
-              A premium, secure environment designed for high-performing teams to coordinate, automate, and synchronize
-              development epics.
+            <h1 className="text-2xl font-semibold tracking-tight text-olive-950 m-0">Check your email</h1>
+            <p className="text-olive-500 text-sm mt-1.5 mb-0">
+              We sent a 6-digit code to <span className="font-medium text-olive-800">{tempEmail2fa || email}</span>.
             </p>
           </div>
 
-          {/* Large Premium Showcase containing the Logo */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="w-full max-w-[420px] aspect-square bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/10 rounded-3xl flex items-center justify-center relative overflow-hidden group transition-all duration-300 p-10 shadow-2xl backdrop-blur-sm">
-              {/* Inner ambient emerald glow hover effect */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              {/* Logo container inside the showcase */}
-              <div className="w-36 h-36 bg-white rounded-2xl flex items-center justify-center p-6 shadow-2xl relative z-10 transition-all duration-500 group-hover:scale-105 group-hover:shadow-emerald-500/10">
-                <img src={logoImg} alt="Pristine Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(16,185,129,0.15)]" />
-              </div>
-            </div>
+          <label className={labelCls}>
+            <span>Verification code</span>
+            <input
+              autoFocus
+              autoComplete="one-time-code"
+              className={`${inputCls} text-center tracking-[0.5em] font-mono !text-lg`}
+              inputMode="numeric"
+              maxLength={6}
+              onChange={(event) => setVerificationCode(event.target.value)}
+              placeholder="000000"
+              required
+              type="text"
+              value={verificationCode}
+            />
+          </label>
+
+          {error ? <Notice tone="error">{error}</Notice> : null}
+
+          <button className="btn btn-primary btn-lg w-full" disabled={loading} type="submit">
+            {loading ? 'Verifying…' : 'Verify and sign in'}
+          </button>
+
+          <BackLink
+            onClick={() => {
+              clearError();
+              window.location.reload();
+            }}
+          />
+        </form>
+      ) : forgotPasswordStep === 'request-otp' ? (
+        <form className="grid gap-5" onSubmit={(event) => void handleRequestOtp(event)}>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-olive-950 m-0">Reset your password</h1>
+            <p className="text-olive-500 text-sm mt-1.5 mb-0">Enter your account email and we'll send you a reset code.</p>
           </div>
-        </div>
 
-        {/* Footer branding */}
-        <div className="relative z-10 flex items-center justify-between text-xs text-olive-400 font-bold uppercase tracking-widest">
-          <span>© 2026 Pristine</span>
-        </div>
-      </div>
+          <label className={labelCls}>
+            <span>Email</span>
+            <input
+              autoFocus
+              autoComplete="email"
+              className={inputCls}
+              onChange={(event) => setResetEmail(event.target.value)}
+              placeholder="you@company.com"
+              required
+              type="email"
+              value={resetEmail}
+            />
+          </label>
 
-      {/* Right Side (35% width on large screens, full width on small screens) */}
-      <section className="w-full lg:w-[35%] flex items-center justify-center p-8 lg:p-16 bg-white overflow-y-auto">
-        <div className="w-full max-w-[380px] grid gap-6">
-          {/* Brand Logo Header */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-white border border-zinc-200/50 rounded-xl flex items-center justify-center p-2 shadow-md">
-              <img src={logoImg} alt="Pristine Logo" className="w-full h-full object-contain" />
-            </div>
-            <span className="font-black tracking-[0.25em] text-lg text-olive-950">PRISTINE</span>
+          {resetErrorMessage ? <Notice tone="error">{resetErrorMessage}</Notice> : null}
+
+          <button className="btn btn-primary btn-lg w-full" disabled={resetLoading} type="submit">
+            {resetLoading ? 'Sending…' : 'Send reset code'}
+          </button>
+
+          <BackLink
+            onClick={() => {
+              setForgotPasswordStep('none');
+              setResetErrorMessage(null);
+            }}
+          />
+        </form>
+      ) : forgotPasswordStep === 'reset-password' ? (
+        <form className="grid gap-5" onSubmit={(event) => void handleResetPassword(event)}>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-olive-950 m-0">Choose a new password</h1>
+            <p className="text-olive-500 text-sm mt-1.5 mb-0">Enter the code from your inbox and a new password.</p>
           </div>
 
-          {/* 2FA view */}
-          {require2fa ? (
-            <form className="grid gap-6" onSubmit={(event) => void handleVerify2fa(event)}>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-olive-900 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Shield size={22} />
-                </div>
-                <h1 className="text-2xl font-black text-olive-950 m-0">Two-Factor Authentication</h1>
-                <p className="text-olive-500 text-sm mt-2">
-                  We've sent a 6-digit verification code to{' '}
-                  <strong className="text-olive-700">{tempEmail2fa || email}</strong>.
-                </p>
-              </div>
+          {resetSuccessMessage ? <Notice tone="success">{resetSuccessMessage}</Notice> : null}
 
+          <label className={labelCls}>
+            <span>Reset code</span>
+            <input
+              autoFocus
+              autoComplete="one-time-code"
+              className={`${inputCls} font-mono tracking-widest`}
+              inputMode="numeric"
+              onChange={(event) => setResetOtp(event.target.value)}
+              placeholder="6-digit code"
+              required
+              type="text"
+              value={resetOtp}
+            />
+          </label>
+
+          <label className={labelCls}>
+            <span>New password</span>
+            <div className="relative">
+              <input
+                className={`${inputCls} !pr-10`}
+                autoComplete="new-password"
+                maxLength={72}
+                minLength={8}
+                onChange={(event) => setResetPassword(event.target.value)}
+                placeholder="At least 8 characters"
+                required
+                type={showResetPassword ? 'text' : 'password'}
+                value={resetPassword}
+              />
+              <PasswordToggle shown={showResetPassword} onToggle={() => setShowResetPassword(!showResetPassword)} />
+            </div>
+          </label>
+
+          {resetErrorMessage ? <Notice tone="error">{resetErrorMessage}</Notice> : null}
+
+          <button className="btn btn-primary btn-lg w-full" disabled={resetLoading} type="submit">
+            {resetLoading ? 'Updating…' : 'Update password'}
+          </button>
+
+          <BackLink
+            label="Cancel"
+            onClick={() => {
+              setForgotPasswordStep('none');
+              setResetErrorMessage(null);
+              setResetSuccessMessage(null);
+            }}
+          />
+        </form>
+      ) : (
+        <div className="grid gap-6">
+          <div>
+            <h1 className="display-serif text-[40px] text-olive-950 m-0">Welcome back</h1>
+            <p className="text-olive-500 text-sm mt-2 mb-0">Sign in to pick up where you left off.</p>
+          </div>
+
+          {resetSuccessMessage ? <Notice tone="success">{resetSuccessMessage}</Notice> : null}
+          {oauthError || sessionExpired ? (
+            <Notice tone="warning">{oauthError || 'Your session has expired. Please sign in again.'}</Notice>
+          ) : null}
+
+          <button className="btn btn-secondary btn-lg w-full" disabled={loading} onClick={startGoogleSignIn} type="button">
+            <GoogleMark />
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3">
+            <hr className="flex-1 border-0 h-px bg-olive-200" />
+            <span className="text-olive-400 text-xs">or</span>
+            <hr className="flex-1 border-0 h-px bg-olive-200" />
+          </div>
+
+          {loginMode === 'account' ? (
+            <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
               <label className={labelCls}>
-                <span>Verification Code</span>
-                <input
-                  className={`${inputCls} text-center tracking-[0.2em] font-mono text-lg`}
-                  maxLength={6}
-                  onChange={(event) => setVerificationCode(event.target.value)}
-                  placeholder="000000"
-                  required
-                  type="text"
-                  value={verificationCode}
-                />
-              </label>
-
-              {error ? <p className="text-red-600 m-0 text-sm font-medium text-center">{error}</p> : null}
-
-              <button
-                className="w-full bg-olive-900 text-white rounded-xl py-3.5 text-sm font-bold hover:bg-olive-800 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
-                disabled={loading}
-                type="submit"
-              >
-                {loading ? 'Verifying...' : 'Verify & Sign In'}
-              </button>
-
-              <button
-                className="flex items-center justify-center gap-2 text-olive-600 hover:text-olive-900 text-sm font-semibold transition-colors mt-2"
-                onClick={() => {
-                  clearError();
-                  window.location.reload();
-                }}
-                type="button"
-              >
-                <ArrowLeft size={16} /> Back to Login
-              </button>
-            </form>
-          ) : forgotPasswordStep === 'request-otp' ? (
-            /* Forgot Password Request Form */
-            <form className="grid gap-5" onSubmit={(event) => void handleRequestOtp(event)}>
-              <div>
-                <h1 className="text-2xl font-black text-olive-950 m-0">Reset Password</h1>
-                <p className="text-olive-500 text-sm mt-1">
-                  Enter your account email to receive a password reset OTP code.
-                </p>
-              </div>
-
-              <label className={labelCls}>
-                <span>Email Address</span>
+                <span>Email</span>
                 <input
                   autoComplete="email"
                   className={inputCls}
-                  onChange={(event) => setResetEmail(event.target.value)}
-                  placeholder="you@example.com"
+                  name="email"
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@company.com"
                   required
                   type="email"
-                  value={resetEmail}
+                  value={email}
                 />
               </label>
 
-              {resetErrorMessage ? (
-                <p className="text-red-600 m-0 text-sm font-medium">{resetErrorMessage}</p>
-              ) : null}
-
-              <button
-                className="bg-olive-900 text-white rounded-xl py-3.5 text-sm font-bold hover:bg-olive-800 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
-                disabled={resetLoading}
-                type="submit"
-              >
-                {resetLoading ? 'Sending OTP...' : 'Send Reset Code'}
-              </button>
-
-              <button
-                className="flex items-center justify-center gap-2 text-olive-600 hover:text-olive-900 text-sm font-semibold transition-colors mt-2"
-                onClick={() => {
-                  setForgotPasswordStep('none');
-                  setResetErrorMessage(null);
-                }}
-                type="button"
-              >
-                <ArrowLeft size={16} /> Back to Login
-              </button>
-            </form>
-          ) : forgotPasswordStep === 'reset-password' ? (
-            /* Forgot Password Reset Form */
-            <form className="grid gap-5" onSubmit={(event) => void handleResetPassword(event)}>
-              <div>
-                <h1 className="text-2xl font-black text-olive-950 m-0">Enter Reset OTP</h1>
-                <p className="text-olive-500 text-sm mt-1">
-                  Check your inbox for the OTP code and enter your new password below.
-                </p>
-              </div>
-
-              {resetSuccessMessage ? (
-                <p className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-medium">
-                  {resetSuccessMessage}
-                </p>
-              ) : null}
-
-              <label className={labelCls}>
-                <span>Reset OTP Code</span>
-                <input
-                  className={`${inputCls} font-mono`}
-                  onChange={(event) => setResetOtp(event.target.value)}
-                  placeholder="6-digit code"
-                  required
-                  type="text"
-                  value={resetOtp}
-                />
-              </label>
-
-              <label className={labelCls}>
-                <span>New Password</span>
-                <div className="relative">
-                  <input
-                    className={inputCls}
-                    autoComplete="new-password"
-                    maxLength={72}
-                    minLength={8}
-                    onChange={(event) => setResetPassword(event.target.value)}
-                    placeholder="At least 8 characters"
-                    required
-                    type={showResetPassword ? 'text' : 'password'}
-                    value={resetPassword}
-                  />
+              <div className={labelCls}>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="login-password">Password</label>
                   <button
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-olive-400 hover:text-olive-600 transition-colors"
-                    onClick={() => setShowResetPassword(!showResetPassword)}
-                    type="button"
-                  >
-                    {showResetPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </label>
-
-              {resetErrorMessage ? (
-                <p className="text-red-600 m-0 text-sm font-medium">{resetErrorMessage}</p>
-              ) : null}
-
-              <button
-                className="bg-olive-900 text-white rounded-xl py-3.5 text-sm font-bold hover:bg-olive-800 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
-                disabled={resetLoading}
-                type="submit"
-              >
-                {resetLoading ? 'Resetting Password...' : 'Reset Password'}
-              </button>
-
-              <button
-                className="flex items-center justify-center gap-2 text-olive-600 hover:text-olive-900 text-sm font-semibold transition-colors mt-2"
-                onClick={() => {
-                  setForgotPasswordStep('none');
-                  setResetErrorMessage(null);
-                  setResetSuccessMessage(null);
-                }}
-                type="button"
-              >
-                <ArrowLeft size={16} /> Cancel
-              </button>
-            </form>
-          ) : (
-            /* Main Login Form */
-            <>
-              <div>
-                <h1 className="text-3xl font-black tracking-tight text-olive-950 m-0">Sign In</h1>
-                <p className="text-olive-500 text-sm mt-1.5">
-                  Welcome back. Enter your credentials to manage your workflow.
-                </p>
-              </div>
-
-              {resetSuccessMessage ? (
-                <p className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-medium">
-                  {resetSuccessMessage}
-                </p>
-              ) : null}
-
-              {oauthError || sessionExpired ? (
-                <p
-                  role="alert"
-                  className="m-0 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-sm font-medium"
-                >
-                  {oauthError || 'Your session has expired. Please sign in again.'}
-                </p>
-              ) : null}
-
-              {/* Google OAuth */}
-              <button
-                className="w-full py-3 bg-white border border-olive-200 rounded-xl text-olive-800 font-bold hover:bg-olive-50 flex items-center justify-center gap-2.5 shadow-sm transition-all duration-250 active:scale-[0.98]"
-                disabled={loading}
-                onClick={startGoogleSignIn}
-                type="button"
-              >
-                Sign in with Google
-              </button>
-
-              <div className="flex items-center gap-3 my-1">
-                <hr className="flex-1 border-olive-200/60" />
-                <span className="text-olive-400 text-xs font-bold uppercase tracking-widest">or</span>
-                <hr className="flex-1 border-olive-200/60" />
-              </div>
-
-              {/* Mode switch */}
-              <div
-                aria-label="Login method"
-                className="flex p-1 bg-olive-100/50 border border-olive-200/30 rounded-xl gap-1"
-                role="tablist"
-              >
-                {(
-                  [
-                    { key: 'account', label: 'Account', Icon: Shield },
-                    { key: 'companion', label: 'Companion', Icon: Smartphone }
-                  ] as const
-                ).map(({ key, label, Icon }) => (
-                  <button
-                    key={key}
-                    aria-selected={loginMode === key}
-                    className={[
-                      'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200',
-                      loginMode === key
-                        ? 'bg-white text-olive-950 shadow-sm border border-olive-100'
-                        : 'text-olive-500 hover:text-olive-700'
-                    ].join(' ')}
+                    className="text-[13px] font-normal text-brand-700 hover:text-brand-900 transition-colors"
                     onClick={() => {
-                      setLoginMode(key);
+                      setForgotPasswordStep('request-otp');
+                      setResetEmail(email);
                       clearError();
                     }}
                     type="button"
                   >
-                    <Icon size={14} /> {label}
+                    Forgot password?
                   </button>
-                ))}
+                </div>
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    autoComplete="current-password"
+                    className={`${inputCls} !pr-10`}
+                    name="password"
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Your password"
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                  />
+                  <PasswordToggle shown={showPassword} onToggle={() => setShowPassword(!showPassword)} />
+                </div>
               </div>
 
-              {/* Account form */}
-              {loginMode === 'account' ? (
-                <form className="grid gap-5" onSubmit={(event) => void handleSubmit(event)}>
-                  <label className={labelCls}>
-                    <span>Email</span>
-                    <input
-                      autoComplete="email"
-                      className={inputCls}
-                      name="email"
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="you@example.com"
-                      required
-                      type="email"
-                      value={email}
-                    />
-                  </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+                <input
+                  checked={rememberMe}
+                  className="w-4 h-4 accent-brand-600"
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  type="checkbox"
+                />
+                <span className="text-[13px] text-olive-600">Keep me signed in</span>
+              </label>
 
-                  <label className={labelCls}>
-                    <div className="flex items-center justify-between">
-                      <span>Password</span>
-                      <button
-                        className="text-xs text-olive-600 hover:text-olive-900 transition-colors lowercase font-bold tracking-normal"
-                        onClick={() => {
-                          setForgotPasswordStep('request-otp');
-                          setResetEmail(email);
-                          clearError();
-                        }}
-                        type="button"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <input
-                        autoComplete="current-password"
-                        className={inputCls}
-                        name="password"
-                        onChange={(event) => setPassword(event.target.value)}
-                        placeholder="••••••••"
-                        required
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                      />
-                      <button
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-olive-400 hover:text-olive-600 transition-colors"
-                        onClick={() => setShowPassword(!showPassword)}
-                        type="button"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  </label>
+              {user != null ? <p className="text-olive-500 text-xs m-0 text-center">You're already signed in. Redirecting…</p> : null}
+              {error ? <Notice tone="error">{error}</Notice> : null}
 
-                  <div className="flex items-center justify-between select-none">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        checked={rememberMe}
-                        className="w-4 h-4 rounded border-olive-300 text-olive-800 focus:ring-olive-500/20"
-                        onChange={(event) => setRememberMe(event.target.checked)}
-                        type="checkbox"
-                      />
-                      <span className="text-[11px] font-extrabold text-olive-600 uppercase tracking-widest">
-                        Remember Me
-                      </span>
-                    </label>
-                  </div>
-
-                  {user != null ? (
-                    <p className="text-olive-500 text-xs m-0 text-center">
-                      You already have an active session. Redirecting...
-                    </p>
-                  ) : null}
-
-                  {error ? <p className="text-red-600 m-0 text-xs font-medium text-center">{error}</p> : null}
-
-                  <button
-                    className="bg-olive-900 text-white rounded-xl py-3.5 text-sm font-bold hover:bg-olive-800 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
-                    disabled={loading}
-                    type="submit"
-                  >
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </button>
-                </form>
-              ) : (
-                <form className="grid gap-5" onSubmit={(event) => void handleCompanionSubmit(event)}>
-                  <label className={labelCls}>
-                    <span>Companion Device ID</span>
-                    <input
-                      className={inputCls}
-                      name="companion-key"
-                      onChange={(event) => setCompanionKey(event.target.value)}
-                      placeholder="Paste companion device ID"
-                      required
-                      type="password"
-                      value={companionKey}
-                    />
-                  </label>
-                  <p className="text-olive-500 m-0 text-xs leading-relaxed">
-                    Generate a companion device ID from your primary device in settings.
-                  </p>
-                  {error ? <p className="text-red-600 m-0 text-xs font-medium text-center">{error}</p> : null}
-                  <button
-                    className="bg-olive-900 text-white rounded-xl py-3.5 text-sm font-bold hover:bg-olive-800 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
-                    disabled={loading}
-                    type="submit"
-                  >
-                    {loading ? 'Authorizing...' : 'Authorize Device'}
-                  </button>
-                </form>
-              )}
-
-              <p className="text-olive-500 m-0 text-xs text-center">
-                New to Pristine?{' '}
-                <Link
-                  className="text-olive-800 font-bold hover:underline"
-                  to={
-                    tokenParam
-                      ? `/register?token=${tokenParam}&email=${encodeURIComponent(emailParam)}`
-                      : '/register'
-                  }
-                >
-                  Create an account
-                </Link>
-              </p>
-            </>
+              <button className="btn btn-primary btn-lg w-full mt-1" disabled={loading} type="submit">
+                {loading ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+          ) : (
+            <form className="grid gap-4" onSubmit={(event) => void handleCompanionSubmit(event)}>
+              <label className={labelCls}>
+                <span>Companion device ID</span>
+                <input
+                  autoFocus
+                  className={inputCls}
+                  name="companion-key"
+                  onChange={(event) => setCompanionKey(event.target.value)}
+                  placeholder="Paste the ID from your primary device"
+                  required
+                  type="password"
+                  value={companionKey}
+                />
+                <span className="text-xs font-normal text-olive-500">Generate one in Settings → Security on a device that's already signed in.</span>
+              </label>
+              {error ? <Notice tone="error">{error}</Notice> : null}
+              <button className="btn btn-primary btn-lg w-full" disabled={loading} type="submit">
+                {loading ? 'Authorizing…' : 'Authorize this device'}
+              </button>
+            </form>
           )}
+
+          <button
+            className="flex items-center justify-center gap-1.5 text-[13px] text-olive-500 hover:text-olive-900 transition-colors"
+            onClick={() => {
+              setLoginMode(loginMode === 'account' ? 'companion' : 'account');
+              clearError();
+            }}
+            type="button"
+          >
+            {loginMode === 'account' ? <Smartphone size={14} /> : <Shield size={14} />}
+            {loginMode === 'account' ? 'Sign in with a companion device' : 'Sign in with email and password'}
+          </button>
+
+          <p className="text-olive-500 m-0 text-[13px] text-center pt-4 border-t border-olive-100">
+            New to Pristine?{' '}
+            <Link
+              className="font-medium text-brand-700 hover:text-brand-900"
+              to={tokenParam ? `/register?token=${tokenParam}&email=${encodeURIComponent(emailParam)}` : '/register'}
+            >
+              Create an account
+            </Link>
+          </p>
         </div>
-      </section>
-    </main>
+      )}
+    </AuthLayout>
   );
 }
 

@@ -418,7 +418,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-olive-950">Prompt Playground</h2>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-olive-200 text-olive-800 uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-olive-200 text-olive-800">
                   Isolated Environment
                 </span>
               </div>
@@ -545,7 +545,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
             {/* Prompt Template & Resolved Preview Section */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                   <Code2 className="w-4 h-4 text-olive-700" />
                   Prompt Preview & Substitution
                 </h3>
@@ -581,7 +581,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                   messages.length > 0 ? (
                     messages.map((m, idx) => (
                       <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                        <span className="text-emerald-400 font-bold uppercase text-[11px] block mb-1">
+                        <span className="text-emerald-400 font-bold text-[11px] block mb-1">
                           [{m.role}]
                         </span>
                         <div className="whitespace-pre-wrap">{m.content}</div>
@@ -593,7 +593,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 ) : Array.isArray(resolvedPreview) ? (
                   resolvedPreview.map((m, idx) => (
                     <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                      <span className="text-amber-300 font-bold uppercase text-[11px] block mb-1">
+                      <span className="text-amber-300 font-bold text-[11px] block mb-1">
                         [{m.role}]
                       </span>
                       <div className="whitespace-pre-wrap text-white">{m.content}</div>
@@ -608,7 +608,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
             {/* Dynamic Handlebars Variables Inputs */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-olive-700" />
                   Detected Variables ({activeDetectedVariables.length})
                 </h3>
@@ -639,7 +639,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                             {`{{${varName}}}`}
                             {isRequired && <span className="text-rose-500 font-bold">*</span>}
                           </label>
-                          <span className="text-[11px] text-olive-500 uppercase font-mono px-1.5 py-0.5 rounded bg-olive-100">
+                          <span className="text-[11px] text-olive-500 font-mono px-1.5 py-0.5 rounded bg-olive-100">
                             {varType}
                           </span>
                         </div>
@@ -711,7 +711,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
 
             {/* AI Model & Hyperparameter Settings */}
             <div className="space-y-4 pt-2 border-t border-olive-200">
-              <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-olive-700" />
                 Model & Execution Parameters
               </h3>
@@ -816,7 +816,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 type="button"
                 onClick={handleRunPlayground}
                 disabled={isExecuting}
-                className="w-full py-3 rounded-xl bg-olive-900 hover:bg-black disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-olive-900/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 rounded-xl bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isExecuting ? (
                   <>
@@ -843,7 +843,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
             {isComparing ? (
               <div className="space-y-4 flex-1 flex flex-col">
                 <div className="flex items-center justify-between pb-2 border-b border-olive-200">
-                  <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                     <GitCompare className="w-4 h-4 text-olive-700" />
                     Side-by-Side Run Comparison
                   </h3>
@@ -859,7 +859,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 {/* Compare Selectors */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">Run A</span>
+                    <span className="text-[11px] font-bold text-olive-600 block mb-1">Run A</span>
                     <select
                       value={compareRunIdA}
                       onChange={(e) => setCompareRunIdA(e.target.value)}
@@ -874,7 +874,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">Run B</span>
+                    <span className="text-[11px] font-bold text-olive-600 block mb-1">Run B</span>
                     <select
                       value={compareRunIdB}
                       onChange={(e) => setCompareRunIdB(e.target.value)}
@@ -946,7 +946,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
               /* Single Execution Result Output View */
               <div className="flex flex-col flex-1 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                     <Eye className="w-4 h-4 text-olive-700" />
                     Execution Result
                   </h3>
@@ -1042,7 +1042,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 {/* History Runs Drawer */}
                 {runHistory.length > 0 && (
                   <div className="space-y-2 pt-4 border-t border-olive-200">
-                    <h4 className="text-xs font-bold text-olive-800 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-xs font-medium text-olive-800 flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 text-olive-600" />
                       Session Run History ({runHistory.length})
                     </h4>
@@ -1118,7 +1118,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 type="button"
                 onClick={handleSaveAsVersionSubmit}
                 disabled={isSaving}
-                className="px-4 py-1.5 rounded-lg bg-olive-900 hover:bg-black text-white text-xs font-bold transition"
+                className="px-4 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition"
               >
                 {isSaving ? "Saving..." : "Confirm & Save Version"}
               </button>
@@ -1190,7 +1190,7 @@ export const PromptPlaygroundModal: React.FC<PromptPlaygroundModalProps> = ({
                 type="button"
                 onClick={handleSaveAsNewPromptSubmit}
                 disabled={isSaving}
-                className="px-4 py-1.5 rounded-lg bg-olive-900 hover:bg-black text-white text-xs font-bold transition"
+                className="px-4 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition"
               >
                 {isSaving ? "Creating..." : "Create Prompt"}
               </button>

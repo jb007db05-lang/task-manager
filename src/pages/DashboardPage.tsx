@@ -3,7 +3,6 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 
 import api from '@/services/api';
 import AddTaskForm from '@/components/AddTaskForm';
-import DateNavigator from '@/components/DateNavigator';
 import EditTaskForm from '@/components/EditTaskForm';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
@@ -33,7 +32,6 @@ import { workspaceService } from '@/services/workspaces';
 import { getIntegration } from '@/lib/sdk-integrations/api';
 import Sidebar, { SidebarView } from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
-import InvitationNotificationPanel from '@/components/InvitationNotificationPanel';
 import { useChat } from '@/context/ChatContext';
 import { Notification } from '@/components/NotificationBox';
 import TaskList from '@/components/TaskList';
@@ -66,8 +64,14 @@ import {
   X,
   Calculator,
   Zap,
-  Bot
+  Bot,
+  MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
+import Menu from '@/components/Menu';
+import { statusMeta } from '@/utils/taskMeta';
+import PageHeader from '@/components/PageHeader';
 import { recalculateDynamicPriorities, evaluateTaskPriority, type PriorityEvaluation } from '@/services/priorityEngine';
 import { createEpic, deleteEpic, getEpics, updateEpic } from '@/services/epics';
 import { createEpicNote, createNote, deleteNote, getEpicNotes, getNote, getProjectNotes, updateNote } from '@/services/notes';
@@ -154,13 +158,21 @@ const deriveTaskStatusFromSubtasks = (
   return 'TODO';
 };
 
+/** Resets a feedback message to null a few seconds after it is set. */
+function useAutoClear(value: string | null, setter: (value: string | null) => void, delayMs = 4000): void {
+  useEffect(() => {
+    if (value === null) return;
+    const timer = setTimeout(() => setter(null), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, setter, delayMs]);
+}
+
 function DashboardPage(): JSX.Element {
   const { user, logout } = useAuth();
   const confirm = useConfirm();
   const navigate = useNavigate();
   const location = useLocation();
   const { projectId, epicId, integrationId, tab } = useParams();
-  const [selectedDate, setSelectedDate] = useState<string>(getTodayDate);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [epics, setEpics] = useState<Epic[]>([]);
@@ -182,32 +194,16 @@ function DashboardPage(): JSX.Element {
   const [sidePanelTab, setSidePanelTab] = useState<'subtasks' | 'comments'>('subtasks');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // Universal auto-dismiss for all feedback alerts
-  useEffect(() => {
-    const feedbackStates = [
-      { value: taskMutationSuccess, setter: setTaskMutationSuccess },
-      { value: taskMutationError, setter: setTaskMutationError },
-      { value: projectMutationSuccess, setter: setProjectMutationSuccess },
-      { value: projectMutationError, setter: setProjectMutationError },
-      { value: epicMutationSuccess, setter: setEpicMutationSuccess },
-      { value: epicMutationError, setter: setEpicMutationError },
-      { value: noteMutationSuccess, setter: setNoteMutationSuccess },
-      { value: noteMutationError, setter: setNoteMutationError },
-      { value: error, setter: setError }
-    ];
-
-    const timers = feedbackStates
-      .filter(s => s.value !== null)
-      .map(s => setTimeout(() => s.setter(null), 5000));
-
-    return () => timers.forEach(clearTimeout);
-  }, [
-    taskMutationSuccess, taskMutationError,
-    projectMutationSuccess, projectMutationError,
-    epicMutationSuccess, epicMutationError,
-    noteMutationSuccess, noteMutationError,
-    error
-  ]);
+  // Each feedback message clears itself after a few seconds, independently of the others.
+  useAutoClear(taskMutationSuccess, setTaskMutationSuccess);
+  useAutoClear(taskMutationError, setTaskMutationError);
+  useAutoClear(projectMutationSuccess, setProjectMutationSuccess);
+  useAutoClear(projectMutationError, setProjectMutationError);
+  useAutoClear(epicMutationSuccess, setEpicMutationSuccess);
+  useAutoClear(epicMutationError, setEpicMutationError);
+  useAutoClear(noteMutationSuccess, setNoteMutationSuccess);
+  useAutoClear(noteMutationError, setNoteMutationError);
+  useAutoClear(error, setError);
 
   const [isProjectCreateModalOpen, setIsProjectCreateModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -352,7 +348,7 @@ function DashboardPage(): JSX.Element {
     try {
       const [taskList, projectData] = await Promise.all([
         getTasks(
-          selectedDate,
+          undefined,
           taskFilters.assigneeId === 'all' ? undefined : taskFilters.assigneeId,
           debouncedTaskSearchTerm.trim() || undefined
         ),
@@ -380,7 +376,7 @@ function DashboardPage(): JSX.Element {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, projectPage, debouncedProjectSearchTerm, taskFilters.assigneeId, debouncedTaskSearchTerm]);
+  }, [projectPage, debouncedProjectSearchTerm, taskFilters.assigneeId, debouncedTaskSearchTerm]);
 
   useEffect(() => {
     void loadDashboard();
@@ -430,7 +426,7 @@ function DashboardPage(): JSX.Element {
       title: payload.title.trim(),
       description: payload.description?.trim(),
       note: payload.note?.trim(),
-      date: selectedDate,
+      date: getTodayDate(),
       status: payload.status,
       priority: payload.priority,
       source: 'manual',
@@ -1361,9 +1357,9 @@ function DashboardPage(): JSX.Element {
 
   const handleDeleteNote = async (note: Note) => {
     const isConfirmed = await confirm({
-      title: 'Delete Note',
+      title: 'Delete note',
       message: `Delete note "${note.title}"?`,
-      confirmText: 'Delete Note',
+      confirmText: 'Delete note',
       type: 'danger'
     });
 
@@ -1409,9 +1405,9 @@ function DashboardPage(): JSX.Element {
       : `sub-task note for "${activeNoteEditor.subtask.title}"`;
 
     const isConfirmed = await confirm({
-      title: 'Delete Note',
+      title: 'Delete note',
       message: `Delete ${label}?`,
-      confirmText: 'Delete Note',
+      confirmText: 'Delete note',
       type: 'danger'
     });
 
@@ -1609,13 +1605,6 @@ function DashboardPage(): JSX.Element {
 
     return filtered;
   }, [selectedProjectView, tasks, taskFilters]);
-  const tasksHeading = useMemo(() => {
-    if (selectedProjectView === ALL_PROJECTS_VALUE) {
-      return `All tasks for ${selectedDate}`;
-    }
-
-    return `${activeProject?.name ?? 'Project'} tasks for ${selectedDate}`;
-  }, [activeProject?.name, selectedDate, selectedProjectView]);
   const activeProjectEpics = useMemo(
     () =>
       activeProject == null
@@ -1668,10 +1657,10 @@ function DashboardPage(): JSX.Element {
 
   const handleLogout = async () => {
     const isConfirmed = await confirm({
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out of your account?',
-      confirmText: 'LOGOUT',
-      type: 'danger'
+      title: 'Sign out?',
+      message: 'You’ll need to sign in again to get back to your projects.',
+      confirmText: 'Sign out',
+      type: 'info'
     });
 
     if (isConfirmed) {
@@ -1715,7 +1704,8 @@ function DashboardPage(): JSX.Element {
   };
 
   const activeEpicTasks = useMemo(() => {
-    if (!selectedEpicId) return [];
+    // With no epic chosen, the workspace shows every task in the project.
+    if (!selectedEpicId) return visibleTasks;
     return visibleTasks.filter(t => t.epicId === selectedEpicId);
   }, [selectedEpicId, visibleTasks]);
 
@@ -1724,12 +1714,14 @@ function DashboardPage(): JSX.Element {
     return tasks.find(t => t.id === selectedTaskId) ?? null;
   }, [selectedTaskId, tasks]);
 
-  const statusPillCls: Record<string, string> = {
-    planned: 'bg-olive-500/20 text-olive-300',
-    active: 'bg-amber-500/20 text-amber-300',
-    completed: 'bg-emerald-500/20 text-emerald-300',
-    archived: 'bg-olive-500/20 text-olive-400',
+  const epicStatusCls: Record<string, string> = {
+    planned: 'bg-olive-300',
+    active: 'bg-amber-400',
+    completed: 'bg-brand-500',
+    archived: 'bg-olive-200',
   };
+  const formatDateTime = (value?: string | Date | null) =>
+    value ? new Date(value).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : null;
 
   const allMutationMessages = [
     taskMutationError,
@@ -1743,44 +1735,63 @@ function DashboardPage(): JSX.Element {
     error
   ].filter(Boolean);
 
+  const clearMutationMessages = () => {
+    setTaskMutationError(null);
+    setTaskMutationSuccess(null);
+    setProjectMutationError(null);
+    setProjectMutationSuccess(null);
+    setEpicMutationError(null);
+    setEpicMutationSuccess(null);
+    setNoteMutationError(null);
+    setNoteMutationSuccess(null);
+    setError(null);
+  };
+
+  const viewTitles: Partial<Record<SidebarView, string>> = {
+    settings: 'Settings',
+    'sdk-docs': 'Documentation',
+    'event-tracking': 'Event tracking',
+    engagement: 'Engagement',
+    prompts: 'Prompt library',
+    playground: 'Playground',
+    'sdk-integrations': 'SDK integrations',
+    'sdk-integration-detail': activeIntegrationName || 'Integration',
+    'semantic-intelligence': 'Intelligence',
+  };
+  const topbarTitle = viewTitles[activeView] ?? (activeProject ? activeProject.name : 'Projects');
+  const selectedEpic = selectedEpicId ? epics.find(e => e.id === selectedEpicId) ?? null : null;
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100  text-slate-900  transition-colors duration-250">
-      {/* Toast Notification */}
+    <div className="flex h-screen overflow-hidden bg-olive-50 text-olive-900">
+      {/* Inline feedback from project / epic / task mutations */}
       {allMutationMessages.length > 0 && (
-        <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
-          {allMutationMessages.map((msg, i) => (
-            <div
-              key={i}
-              className={`px-4 py-2.5 rounded-lg shadow-lg border text-sm font-medium animate-in fade-in slide-in-from-top-4 ${msg?.toLowerCase().includes('unable') || msg?.toLowerCase().includes('error')
-                ? 'bg-red-50 border-red-200 text-red-800'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                }`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span>{msg}</span>
+        <div className="fixed bottom-5 right-5 z-[9999] flex w-[min(92vw,360px)] flex-col gap-2" aria-live="polite">
+          {allMutationMessages.map((msg, i) => {
+            const isError = /unable|error|fail/i.test(msg ?? '');
+            return (
+              <div
+                key={i}
+                className="flex items-start gap-3 rounded-xl bg-olive-950 px-4 py-3 text-white shadow-xl ring-1 ring-black/10 animate-slideUp"
+                role={isError ? 'alert' : 'status'}
+              >
+                <span className={`mt-0.5 shrink-0 ${isError ? 'text-red-300' : 'text-brand-300'}`}>
+                  {isError ? <AlertCircle size={17} /> : <CheckCircle size={17} />}
+                </span>
+                <span className="flex-1 text-[13px] leading-5 text-white/90">{msg}</span>
                 <button
-                  className="opacity-50 hover:opacity-100 transition-opacity"
-                  onClick={() => {
-                    // Clear all for now to keep it simple, or specific ones if needed
-                    setTaskMutationError(null);
-                    setTaskMutationSuccess(null);
-                    setProjectMutationError(null);
-                    setProjectMutationSuccess(null);
-                    setEpicMutationError(null);
-                    setEpicMutationSuccess(null);
-                    setNoteMutationError(null);
-                    setNoteMutationSuccess(null);
-                    setError(null);
-                  }}
+                  aria-label="Dismiss"
+                  className="shrink-0 -mr-1 rounded-md p-1 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+                  onClick={clearMutationMessages}
+                  type="button"
                 >
-                  <Plus className="rotate-45" size={14} />
+                  <X size={14} />
                 </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-      {/* Sidebar */}
+
       <Sidebar
         activeView={activeView}
         selectedProjectView={selectedProjectView}
@@ -1804,33 +1815,16 @@ function DashboardPage(): JSX.Element {
         }}
         onNewProject={() => setIsProjectCreateModalOpen(true)}
         onLogout={handleLogout}
+        user={{ name: user?.name || null, email: user?.email || '' }}
         activeIntegrationId={integrationId}
         activeIntegrationName={activeIntegrationName}
         activeIntegrationSandbox={activeIntegrationSandbox}
         activeTab={tab || 'overview'}
       />
 
-      {/* Right side wrapper */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        {/* Top bar */}
         <Topbar
-          title={activeView === 'settings'
-            ? 'Settings'
-            : activeView === 'sdk-docs'
-              ? 'SDK Documentation'
-              : activeView === 'event-tracking'
-                ? 'Event Tracking'
-                : activeView === 'engagement'
-                  ? 'Engagement'
-                  : activeView === 'prompts'
-                    ? 'Prompt Library'
-                    : activeView === 'playground'
-                      ? 'Prompt Playground'
-                      : activeView === 'sdk-integrations'
-                        ? 'SDK Integrations'
-                        : activeView === 'semantic-intelligence'
-                          ? 'Semantic Intelligence'
-                          : (activeProject ? activeProject.name : 'All Projects')}
+          title={topbarTitle}
           user={{ name: user?.name || null, email: user?.email || '' }}
           notifications={notifications}
           isNotificationsOpen={isNotificationsOpen}
@@ -1840,100 +1834,36 @@ function DashboardPage(): JSX.Element {
           onClearAll={handleClearAll}
           onNotificationClick={handleNotificationClick}
           breadcrumbs={
-            <>
-              <button
-                onClick={() => handleProjectSelect(ALL_PROJECTS_VALUE)}
-                className="hover:text-slate-600  transition-colors"
-                type="button"
-              >
-                Dashboard
+            activeView === 'sdk-integration-detail' ? (
+              <button onClick={() => navigate('/sdk-integrations')} className="hover:text-olive-900 transition-colors" type="button">
+                SDK integrations
               </button>
-
-              <span className="text-slate-300 ">/</span>
-
-              {activeView === 'settings' ? (
-                <span className="text-slate-600 ">Settings</span>
-              ) : activeView === 'sdk-docs' ? (
-                <span className="text-slate-600 ">SDK Documentation</span>
-              ) : activeView === 'event-tracking' ? (
-                <span className="text-slate-600 ">Event Tracking</span>
-              ) : activeView === 'engagement' ? (
-                <span className="text-slate-600 ">Engagement</span>
-              ) : activeView === 'sdk-integrations' ? (
-                <span className="text-slate-600 ">SDK Integrations</span>
-              ) : activeView === 'sdk-integration-detail' ? (
-                <>
-                  <button
-                    onClick={() => navigate('/sdk-integrations')}
-                    className="hover:text-slate-600  transition-colors"
-                    type="button"
-                  >
-                    SDK Integrations
-                  </button>
-                  <span className="text-slate-300 ">/</span>
-                  <span className="text-slate-600 ">Integration Detail</span>
-                </>
-              ) : activeView === 'prompts' ? (
-                <span className="text-slate-600 ">Prompt Library</span>
-              ) : activeView === 'playground' ? (
-                <span className="text-slate-600 ">Prompt Playground</span>
-              ) : activeView === 'semantic-intelligence' ? (
-                <span className="text-slate-600 ">Semantic Intelligence</span>
-              ) : activeProject ? (
-                <>
-                  <button
-                    onClick={() => handleProjectSelect(ALL_PROJECTS_VALUE)}
-                    className="hover:text-slate-600  transition-colors"
-                    type="button"
-                  >
-                    Projects
-                  </button>
-                  <span className="text-slate-300 ">/</span>
-                  <span className="text-slate-600 ">{activeProject.name}</span>
-                  {activeProjectAiEnabled ? (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 border border-green-200/50 uppercase tracking-wider font-bold text-[11px] select-none ml-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                      AI ({activeProjectAiProvider ? activeProjectAiProvider.toUpperCase() : ''})
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 border border-zinc-200/50 uppercase tracking-wider font-bold text-[11px] select-none ml-1.5">
-                      AI (FALLBACK)
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="text-olive-600 ">All Projects</span>
-              )}
-            </>
+            ) : activeView === 'dashboard' && activeProject ? (
+              <button onClick={() => handleProjectSelect(ALL_PROJECTS_VALUE)} className="hover:text-olive-900 transition-colors" type="button">
+                Projects
+              </button>
+            ) : undefined
           }
-          rightContent={
-            <div className="flex items-center gap-3">
-              <InvitationNotificationPanel />
-              {activeView !== 'settings' && (
-                <div className="mr-2">
-                  <DateNavigator date={selectedDate} disabled={loading} onChange={setSelectedDate} />
-                </div>
-              )}
-            </div>
-          }
+          rightContent={null}
         />
 
-        {/* Main */}
         <main className="flex-1 overflow-hidden">
           {activeView === 'settings' ? (
             <div className="h-full overflow-y-auto">
-              <div className="px-8 py-6 border-b border-olive-200  bg-white/60 ">
-                <h3 className="text-xl font-semibold text-olive-950  m-0">Settings</h3>
-                <p className="text-olive-500  m-0 text-sm mt-0.5">Account &amp; Preferences</p>
-              </div>
-              <div className="p-8">
-                <SettingsPanel
-                  activeProject={activeProject}
-                  onAiConfigChange={(enabled, provider) => {
-                    setActiveProjectAiEnabled(enabled);
-                    setActiveProjectAiProvider(provider);
-                  }}
+              <div className=" px-8 pt-8 pb-16">
+                <PageHeader
+                  title="Settings"
+                  description={activeProject ? `Your account, plus AI configuration for ${activeProject.name}.` : 'Manage your profile, security, and AI provider keys.'}
                 />
+                <div className="mt-8">
+                  <SettingsPanel
+                    activeProject={activeProject}
+                    onAiConfigChange={(enabled, provider) => {
+                      setActiveProjectAiEnabled(enabled);
+                      setActiveProjectAiProvider(provider);
+                    }}
+                  />
+                </div>
               </div>
             </div>
           ) : activeView === 'event-tracking' ? (
@@ -1953,7 +1883,7 @@ function DashboardPage(): JSX.Element {
               <SdkIntegrationDetailPage />
             </div>
           ) : activeView === 'prompts' ? (
-            <div className="h-full overflow-y-auto bg-slate-950">
+            <div className="h-full overflow-y-auto">
               <PromptLibraryPage workspaceId={activeWorkspaceId} />
             </div>
           ) : activeView === 'playground' ? (
@@ -1970,11 +1900,7 @@ function DashboardPage(): JSX.Element {
             </div>
           ) : activeView === 'sdk-docs' ? (
             <div className="h-full overflow-y-auto">
-              <div className="px-8 py-6 border-b border-olive-200  bg-white/60 ">
-                <h3 className="text-xl font-semibold text-olive-950  m-0">SDK Documentation</h3>
-                <p className="text-olive-500  m-0 text-sm mt-0.5">Integration Guide &amp; API Reference</p>
-              </div>
-              <div className="p-3">
+              <div className=" px-8 pt-8 pb-16">
                 <SdkDocsPanel />
               </div>
             </div>
@@ -1987,6 +1913,7 @@ function DashboardPage(): JSX.Element {
                 onDeleteProject={handleDeleteProject}
                 onDeleteProjects={handleDeleteProjects}
                 onOpenCreateProject={() => setIsProjectCreateModalOpen(true)}
+                onOpenAiPlanner={() => setIsAiPlanningWorkspaceOpen(true)}
                 onOpenEpicManager={(project) => {
                   handleProjectSelect(project.id);
                 }}
@@ -2004,621 +1931,597 @@ function DashboardPage(): JSX.Element {
               />
             </div>
           ) : (
-            /* 3-column workspace */
-            <div className="flex flex-col h-full overflow-hidden bg-white ">
-              <div className="shrink-0 px-6 py-5 border-b border-olive-200/80  bg-white/78  ">
-                <div className="flex items-start justify-between gap-5">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-olive-600 text-white shadow-lg shadow-olive-500/25 shrink-0">
-                      <Folder size={20} />
-                    </div>
-                    <div className="grid gap-1">
-                      <div className="relative flex items-center">
-                        <select
-                          className="appearance-none bg-transparent border-none text-[1.35rem] font-bold text-olive-950  focus:outline-none focus:ring-0 cursor-pointer pr-6 m-0 p-0 tracking-tight"
-                          onChange={(e) => handleProjectSelect(e.target.value)}
-                          value={activeProject.id}
-                        >
-                          {projects.map((project) => (
-                            <option
-                              className="text-olive-950  bg-white  text-base font-normal"
-                              key={project.id}
-                              value={project.id}
-                            >
-                              {project.name}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
-                          <ChevronDown className="text-olive-500 " size={16} />
-                        </div>
-                      </div>
-                    </div>
+            /* Project workspace: epics · tasks · inspector */
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="shrink-0 flex items-center justify-between gap-4 px-6 h-16 bg-white border-b border-olive-200">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 shrink-0">
+                    <Folder size={17} strokeWidth={1.75} />
                   </div>
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      className="flex items-center gap-2 px-3.5 py-2.5 bg-olive-700 border border-olive-700 rounded-lg text-sm font-semibold text-white hover:bg-olive-800 shadow-sm transition-colors"
-                      onClick={() => setIsAiPlanningWorkspaceOpen(true)}
-                      type="button"
-                    >
-                      <Zap size={16} />
-                      AI Planner
-                    </button>
-                    <button
-                      className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-olive-200 rounded-lg text-sm font-medium text-olive-600 hover:bg-olive-50 shadow-sm transition-colors"
-                      onClick={() => setActiveView('settings')}
-                      type="button"
-                    >
-                      <Bot size={16} />
-                      AI Settings
-                    </button>
-                    <button
-                      className="flex items-center gap-2 px-3.5 py-2.5 bg-white  border border-olive-200  rounded-lg text-sm font-medium text-olive-600  hover:bg-olive-50  shadow-sm transition-colors"
-                      onClick={() => handleOpenProjectNotesPanel(activeProject)}
-                      type="button"
-                    >
-                      <MessageSquare size={16} />
-                      Project Notes
-                    </button>
-                    <button
-                      className={[
-                        'flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-bold shadow-sm transition-all duration-300 transform active:scale-95',
-                        isChatPanelOpen
-                          ? 'bg-gradient-to-r from-olive-600 to-olive-600 border-olive-600 text-white shadow-olive-500/25'
-                          : 'bg-white border-olive-200 text-olive-600 hover:border-olive-400 hover:text-olive-600'
-                      ].join(' ')}
-                      onClick={() => setIsChatPanelOpen(!isChatPanelOpen)}
-                      type="button"
-                    >
-                      <MessageCircle size={18} className={isChatPanelOpen ? 'text-white' : 'text-olive-500'} />
-                      Chat
-                    </button>
-                    <button
-                      className="flex items-center gap-2 px-3.5 py-2.5 bg-white  border border-olive-200  rounded-lg text-sm font-medium text-olive-600  hover:bg-olive-50  shadow-sm transition-colors"
-                      onClick={() => setIsProjectTeamModalOpen(true)}
-                      type="button"
-                    >
-                      <Users size={16} />
-                      Team
-                    </button>
-                    <button
-                      className="flex items-center gap-2 px-3.5 py-2.5 bg-white  border border-olive-200  rounded-lg text-sm font-medium text-olive-600  hover:bg-olive-50  shadow-sm transition-colors"
-                      onClick={() => setIsActivityHistoryOpen(true)}
-                      type="button"
-                    >
-                      <History size={16} />
-                      History
-                    </button>
-                    <button
-                      className="group flex items-center gap-2 px-3.5 py-2.5 bg-white border border-olive-200 rounded-lg text-sm font-medium text-olive-600 hover:bg-olive-50 shadow-sm transition-colors disabled:opacity-50"
-                      disabled={isRecalculatingPriorities}
-                      onClick={() => void handleRecalculatePriorities()}
-                      type="button"
-                    >
-                      <Calculator size={16} className={isRecalculatingPriorities ? "animate-pulse text-olive-800" : ""} />
-                      {isRecalculatingPriorities ? 'Recalculating...' : 'Recalculate Priority'}
-                    </button>
-                    <button
-                      className="group flex items-center gap-2 px-3.5 py-2.5 bg-white  border border-olive-200  rounded-lg text-sm font-medium text-olive-600  hover:bg-olive-50  shadow-sm transition-colors disabled:opacity-50"
-                      onClick={() => void loadDashboard()}
-                      type="button"
-                    >
-                      <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
-                      Refresh
-                    </button>
+                  <div className="min-w-0">
+                    <div className="relative flex items-center">
+                      <select
+                        aria-label="Switch project"
+                        className="appearance-none bg-transparent border-none text-[17px] font-semibold text-olive-950 focus:outline-none focus:ring-0 cursor-pointer pr-6 m-0 p-0 tracking-tight max-w-[360px] truncate"
+                        onChange={(e) => handleProjectSelect(e.target.value)}
+                        value={activeProject.id}
+                      >
+                        {projects.map((project) => (
+                          <option className="text-olive-950 bg-white text-sm font-normal" key={project.id} value={project.id}>
+                            {project.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-0 text-olive-400" size={15} />
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-olive-500 mt-0.5">
+                      <span>{activeProjectEpics.length} {activeProjectEpics.length === 1 ? 'epic' : 'epics'}</span>
+                      <span className="text-olive-300">·</span>
+                      <span>{visibleTasks.length} {visibleTasks.length === 1 ? 'task' : 'tasks'}</span>
+                      <span className="text-olive-300">·</span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${activeProjectAiEnabled ? 'bg-brand-500' : 'bg-olive-300'}`} />
+                        {activeProjectAiEnabled ? `AI · ${activeProjectAiProvider ? activeProjectAiProvider.charAt(0).toUpperCase() + activeProjectAiProvider.slice(1) : 'On'}` : 'AI off'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-1 min-h-0 overflow-hidden gap-4 p-4 bg-olive-50 ">
-                {/* Column 1 — Epics (Sidebar) */}
-                <div className={`flex flex-col shrink-0 h-full rounded-md border border-olive-200/60  bg-white/70  backdrop-blur-xl shadow-sm overflow-hidden transition-all duration-500 ease-in-out ${isSidebarCollapsed ? 'w-14' : 'w-[300px]'}`}>
-                  <div className={`flex items-center justify-between px-5 py-6 border-b border-olive-100  bg-linear-to-b from-white/50 to-transparent  ${isSidebarCollapsed ? 'flex-col gap-4' : ''}`}>
-                    {!isSidebarCollapsed && (
-                      <div className="animate-in fade-in duration-500">
-                        <span className="text-[11px] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Infrastructure</span>
-                        <h3 className="text-[1rem] font-bold font-sans text-olive-950  m-0 mt-1 tracking-tight">Epics</h3>
-                      </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button className="btn btn-sm btn-ghost" onClick={() => handleOpenProjectNotesPanel(activeProject)} type="button">
+                    <NotebookPen size={15} strokeWidth={1.75} />
+                    Notes
+                  </button>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setIsProjectTeamModalOpen(true)} type="button">
+                    <Users size={15} strokeWidth={1.75} />
+                    Team
+                  </button>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setIsActivityHistoryOpen(true)} type="button">
+                    <History size={15} strokeWidth={1.75} />
+                    Activity
+                  </button>
+                  <button
+                    aria-pressed={isChatPanelOpen}
+                    className={`btn btn-sm ${isChatPanelOpen ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setIsChatPanelOpen(!isChatPanelOpen)}
+                    type="button"
+                  >
+                    <MessageCircle size={15} strokeWidth={1.75} />
+                    Chat
+                  </button>
+                  <Menu
+                    trigger={({ open, toggle }) => (
+                      <button
+                        aria-label="More project actions"
+                        className={`btn btn-sm btn-secondary btn-icon !w-8 ${open ? 'bg-olive-100' : ''}`}
+                        onClick={toggle}
+                        type="button"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
                     )}
-                    <div className={`flex items-center gap-1.5 ${isSidebarCollapsed ? 'flex-col' : ''}`}>
+                    items={[
+                      { label: 'Plan with AI', icon: Zap, onSelect: () => setIsAiPlanningWorkspaceOpen(true) },
+                      { label: 'Project AI settings', icon: Bot, onSelect: () => setActiveView('settings') },
+                      'divider',
+                      {
+                        label: isRecalculatingPriorities ? 'Recalculating…' : 'Recalculate priorities',
+                        icon: Calculator,
+                        disabled: isRecalculatingPriorities,
+                        onSelect: () => void handleRecalculatePriorities()
+                      },
+                      { label: 'Refresh', icon: RefreshCw, onSelect: () => void loadDashboard() },
+                      'divider',
+                      { label: 'Edit project', icon: Edit3, onSelect: () => setEditingProject(activeProject) },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-1 min-h-0 overflow-hidden">
+                {/* Epics */}
+                <aside className={`flex flex-col shrink-0 h-full border-r border-olive-200 bg-white transition-[width] duration-300 ${isSidebarCollapsed ? 'w-12' : 'w-[248px]'}`}>
+                  <div className={`flex items-center h-12 shrink-0 ${isSidebarCollapsed ? 'justify-center' : 'justify-between pl-4 pr-2'}`}>
+                    {!isSidebarCollapsed && (
+                      <h3 className="text-[13px] font-semibold text-olive-900 m-0">
+                        Epics <span className="ml-1 font-normal text-olive-400">{activeProjectEpics.length}</span>
+                      </h3>
+                    )}
+                    <div className="flex items-center">
                       {!isSidebarCollapsed && (
                         <button
-                          className="flex items-center justify-center w-9 h-9 bg-olive-900  hover:bg-olive-800  text-white rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-40"
+                          aria-label="New epic"
+                          className="icon-btn !w-7 !h-7"
                           disabled={!canManageActiveProject}
                           onClick={() => setIsEpicCreateModalOpen(true)}
-                          title="New Epic"
+                          title="New epic"
                           type="button"
                         >
                           <Plus size={16} />
                         </button>
                       )}
                       <button
-                        className="flex items-center justify-center w-9 h-9 hover:bg-olive-100  text-olive-400 hover:text-olive-600  rounded-lg transition-all"
+                        aria-label={isSidebarCollapsed ? 'Expand epics' : 'Collapse epics'}
+                        className="icon-btn !w-7 !h-7"
                         onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                        title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+                        title={isSidebarCollapsed ? 'Expand epics' : 'Collapse epics'}
+                        type="button"
                       >
-                        {isSidebarCollapsed ? <Layout size={18} /> : <List size={18} />}
+                        {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
                       </button>
                     </div>
                   </div>
 
                   {!isSidebarCollapsed && (
-                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar animate-in fade-in slide-in-from-left-4 duration-500">
+                    <div className="flex-1 overflow-y-auto px-2 pb-3 flex flex-col gap-0.5 custom-scrollbar">
+                      <button
+                        className={`flex items-center gap-2.5 h-9 px-2.5 rounded-md text-[13px] text-left transition-colors ${!selectedEpicId ? 'bg-olive-100 text-olive-950 font-medium' : 'text-olive-600 hover:bg-olive-50 hover:text-olive-900'}`}
+                        onClick={() => handleEpicSelect(null)}
+                        type="button"
+                      >
+                        <List size={15} strokeWidth={1.75} className="text-olive-400 shrink-0" />
+                        <span className="flex-1">All tasks</span>
+                        <span className="text-xs text-olive-400 tabular-nums">{visibleTasks.length}</span>
+                      </button>
+
+                      {activeProjectEpics.length > 0 && <div className="h-px bg-olive-100 my-1.5 mx-2" />}
+
                       {activeProjectEpics.map(epic => {
                         const isActive = selectedEpicId === epic.id;
+                        const count = visibleTasks.filter(t => t.epicId === epic.id).length;
                         return (
                           <div
                             key={epic.id}
-                            className={`relative flex flex-col gap-3 p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${isActive
-                              ? 'bg-olive-50/80  border-olive-400/60  ring-1 ring-olive-500/10'
-                              : 'bg-white/50  border-olive-200/80  hover:border-olive-300  hover:-tranolive-y-[2px]'
-                              }`}
+                            className={`group flex items-center gap-2.5 min-h-9 pl-2.5 pr-1 py-1.5 rounded-md cursor-pointer transition-colors ${isActive ? 'bg-brand-50 ring-1 ring-inset ring-brand-100' : 'hover:bg-olive-50'}`}
                             onClick={() => handleEpicSelect(isActive ? null : epic.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleEpicSelect(isActive ? null : epic.id)}
                           >
-                            <div className="flex items-start justify-between gap-3">
-                              <h4 className={`text-[0.9rem] font-bold m-0 leading-tight transition-colors ${isActive ? 'text-olive-950' : 'text-olive-950'}`}>
-                                {epic.name}
-                              </h4>
-                              <span className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${statusPillCls[epic.status] ?? 'bg-olive-100 text-olive-600 border-olive-200'}`}>
-                                {epic.status}
-                              </span>
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${epicStatusCls[epic.status] ?? 'bg-olive-300'}`} title={epic.status} />
+                            <div className="flex-1 min-w-0">
+                              <div className={`text-[13px] truncate ${isActive ? 'font-medium text-brand-900' : 'text-olive-800'}`}>{epic.name}</div>
+                              <div className="text-[11px] text-olive-400 capitalize">{epic.status} · {count} {count === 1 ? 'task' : 'tasks'}</div>
                             </div>
-
-                            {/* Action Toolbar — Contextual */}
-                            <div className="flex items-center gap-1 mt-1 opacity-60 hover:opacity-100 transition-opacity">
+                            <div className="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                               <button
-                                className="p-1 rounded hover:bg-olive-100  text-olive-400 hover:text-olive-600 transition-colors"
+                                aria-label="Epic notes"
+                                className="icon-btn !w-6 !h-6"
                                 onClick={(e) => { e.stopPropagation(); handleOpenEpicNotesPanel(epic); }}
                                 title="Notes"
+                                type="button"
                               >
-                                <FileText size={12} />
+                                <FileText size={13} />
                               </button>
                               <button
-                                className="p-1 rounded hover:bg-olive-100  text-olive-400 hover:text-olive-600 transition-colors disabled:opacity-40"
+                                aria-label="Edit epic"
+                                className="icon-btn !w-6 !h-6"
                                 disabled={!canManageActiveProject}
                                 onClick={(e) => { e.stopPropagation(); setEditingEpic(epic); }}
                                 title="Edit"
+                                type="button"
                               >
-                                <Edit3 size={12} />
+                                <Edit3 size={13} />
                               </button>
-                              <div className="flex-1" />
                               <button
-                                className="p-1 rounded hover:bg-red-50  text-olive-400 hover:text-red-500 transition-colors disabled:opacity-40"
+                                aria-label="Delete epic"
+                                className="icon-btn !w-6 !h-6 hover:!text-red-600 hover:!bg-red-50 disabled:opacity-30"
                                 disabled={actionEpicId === epic.id || activeProject?.currentUserRole !== 'ADMIN'}
                                 onClick={(e) => { e.stopPropagation(); handleDeleteEpic(epic.id); }}
                                 title="Delete"
+                                type="button"
                               >
-                                <Trash2 size={12} />
+                                <Trash2 size={13} />
                               </button>
                             </div>
                           </div>
                         );
                       })}
+
                       {activeProjectEpics.length === 0 && (
-                        <div className="py-10 text-center opacity-40">
-                          <EmptyState description="Create an epic to group your tasks." icon={List} title="No epics" />
+                        <div className="mt-2 mx-1 rounded-lg border border-dashed border-olive-200 p-4 text-center">
+                          <p className="text-xs text-olive-500 m-0 mb-2.5">Group related tasks into epics.</p>
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            disabled={!canManageActiveProject}
+                            onClick={() => setIsEpicCreateModalOpen(true)}
+                            type="button"
+                          >
+                            <Plus size={14} />
+                            New epic
+                          </button>
                         </div>
                       )}
                     </div>
                   )}
-                </div>
+                </aside>
 
-                {/* Column 2 — Main Workspace (Tasks) */}
-                <div className={`flex flex-col flex-1 min-w-0 h-full rounded-md border border-olive-200/60  bg-white/50  backdrop-blur-xl shadow-md overflow-hidden transition-[opacity,filter,background-color] duration-500 ${!selectedEpicId ? 'opacity-40 grayscale-[0.5]' : ''}`}>
-                  {selectedEpicId ? (
-                    <>
-                      <div className="flex items-center justify-between px-6 py-6 border-b border-olive-100  bg-linear-to-b from-white/50 to-transparent ">
-                        <div>
-                          <span className="text-[11px] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Execution</span>
-                          <h3 className="text-[1.1rem] font-bold font-sans text-olive-950  m-0 mt-1 tracking-tight">{tasksHeading}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-olive-500  text-[0.78rem] truncate max-w-[200px]">
-                              {epics.find(e => e.id === selectedEpicId)?.name}
-                            </span>
-                            <div className="w-1 h-1 rounded-full bg-olive-300 " />
-                            <span className="text-[0.7rem] font-bold text-olive-600 ">
-                              {activeEpicTasks.length} {activeEpicTasks.length === 1 ? 'Task' : 'Tasks'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex bg-olive-100  p-1 rounded-lg border border-olive-200/50 ">
-                            <button
-                              onClick={() => setViewMode('list')}
-                              className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white  shadow-sm text-olive-600' : 'text-olive-400 hover:text-olive-600'}`}
-                              title="List View"
-                            >
-                              <List size={18} />
-                            </button>
-                            <button
-                              onClick={() => setViewMode('kanban')}
-                              className={`p-1.5 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white  shadow-sm text-olive-600' : 'text-olive-400 hover:text-olive-600'}`}
-                              title="Kanban Board"
-                            >
-                              <Layout size={18} />
-                            </button>
-                          </div>
+                {/* Tasks */}
+                <section className="@container flex flex-col flex-1 min-w-0 h-full bg-olive-50/60">
+                  <div className="shrink-0 px-6 pt-5 pb-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-semibold tracking-tight text-olive-950 m-0 truncate">
+                          {selectedEpic ? selectedEpic.name : 'All tasks'}
+                        </h2>
+                        <p className="text-[13px] text-olive-500 m-0 mt-0.5">
+                          {activeEpicTasks.length} {activeEpicTasks.length === 1 ? 'task' : 'tasks'}
+                          {selectedEpic?.description ? <span className="text-olive-400"> — {selectedEpic.description}</span> : null}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center p-0.5 rounded-lg bg-olive-100 border border-olive-200/70" role="tablist" aria-label="Task view">
                           <button
-                            className="flex items-center justify-center w-10 h-10 bg-olive-900  hover:bg-olive-800  text-white rounded-lg shadow-sm transition-all duration-300 hover:scale-[1.03] active:scale-95 disabled:opacity-40"
-                            disabled={!canManageActiveProject}
-                            onClick={() => {
-                              const activeEpic = epics.find(e => e.id === selectedEpicId);
-                              setTaskModalProjectId(activeEpic?.projectId ?? activeProject?.id ?? null);
-                              setIsTaskCreateModalOpen(true);
-                            }}
-                            title="New Task"
+                            aria-selected={viewMode === 'list'}
+                            role="tab"
+                            onClick={() => setViewMode('list')}
+                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[13px] transition-colors ${viewMode === 'list' ? 'bg-white shadow-xs text-olive-900 font-medium' : 'text-olive-500 hover:text-olive-800'}`}
                             type="button"
                           >
-                            <Plus size={20} />
+                            <List size={14} />
+                            List
+                          </button>
+                          <button
+                            aria-selected={viewMode === 'kanban'}
+                            role="tab"
+                            onClick={() => setViewMode('kanban')}
+                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[13px] transition-colors ${viewMode === 'kanban' ? 'bg-white shadow-xs text-olive-900 font-medium' : 'text-olive-500 hover:text-olive-800'}`}
+                            type="button"
+                          >
+                            <Layout size={14} />
+                            Board
                           </button>
                         </div>
+                        <button
+                          className="btn btn-primary"
+                          disabled={!canManageActiveProject}
+                          onClick={() => {
+                            setTaskModalProjectId(selectedEpic?.projectId ?? activeProject?.id ?? null);
+                            setIsTaskCreateModalOpen(true);
+                          }}
+                          type="button"
+                        >
+                          <Plus size={16} />
+                          New task
+                        </button>
                       </div>
+                    </div>
 
-                      <div className="px-6 py-2 border-b border-olive-50 ">
-                        <div className="mb-3">
-                          <SlaDashboard />
+                    <div className="mt-4">
+                      <SlaDashboard />
+                    </div>
+                    <div className="mt-3">
+                      <TaskFilterBar
+                        filters={taskFilters}
+                        onFilterChange={setTaskFilters}
+                        members={activeProjectMembers}
+                        onClear={handleClearFilters}
+                      />
+                    </div>
+
+                    {selectedTaskIds.length > 0 && (
+                      <div className="mt-3 flex items-center justify-between gap-4 rounded-lg bg-olive-900 text-white pl-4 pr-2 py-2 animate-slideUp">
+                        <div className="flex items-center gap-3 text-[13px]">
+                          <span className="font-medium">{selectedTaskIds.length} selected</span>
+                          <button
+                            onClick={() => setSelectedTaskIds([])}
+                            className="text-white/60 hover:text-white transition-colors"
+                            type="button"
+                          >
+                            Clear
+                          </button>
                         </div>
-                        <TaskFilterBar
-                          filters={taskFilters}
-                          onFilterChange={setTaskFilters}
-                          members={activeProjectMembers}
-                          onClear={handleClearFilters}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] text-white/60">Assign to</span>
+                          <AssigneeSelector
+                            projectId={activeProject?.id ?? null}
+                            selectedUserId=""
+                            onSelect={handleBulkAssign}
+                            className="w-48"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 overflow-auto custom-scrollbar">
+                    {viewMode === 'list' ? (
+                      <div className="px-6 pb-8">
+                        <TaskList
+                          actionTaskId={actionTaskId}
+                          epics={epics}
+                          onDelete={(taskId) => {
+                            const task = tasks.find(t => t.id === taskId);
+                            void handleDeleteTask(taskId, task?.title ?? 'this task');
+                          }}
+                          onEditTask={(task) => setEditingTask(task)}
+                          onUpdateStatus={(task, status) => void handleUpdateTaskStatus(task, status, true)}
+                          onUpdateEpic={(task, epicId) => void handleUpdateTaskEpic(task, epicId)}
+                          projects={projects}
+                          tasks={activeEpicTasks}
+                          onSelectTask={(task) => setSelectedTaskId(task.id)}
+                          onCommentTask={handleOpenTaskComments}
+                          onToggleBlocked={handleToggleBlocked}
+                          selectedTaskId={selectedTaskId}
+                          selectedTaskIds={selectedTaskIds}
+                          onToggleSelection={handleToggleTaskSelection}
+                          loading={loading && tasks.length === 0}
                         />
-                      </div>
-
-                      {selectedTaskIds.length > 0 && (
-                        <div className="mx-6 my-2 p-3 bg-olive-50/50  border border-olive-100  rounded-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-olive-900 ">
-                              {selectedTaskIds.length} tasks selected
-                            </span>
-                            <button
-                              onClick={() => setSelectedTaskIds([])}
-                              className="text-xs text-olive-600 hover:text-red-500 font-medium transition-colors underline decoration-dotted"
-                            >
-                              Deselect all
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-olive-500 uppercase tracking-widest">Assign to:</span>
-                            <AssigneeSelector
-                              projectId={activeProject?.id ?? null}
-                              selectedUserId=""
-                              onSelect={handleBulkAssign}
-                              className="w-48"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex-1 overflow-auto custom-scrollbar">
-                        {viewMode === 'list' ? (
-                          <div className="p-6">
-                            <TaskList
-                              actionTaskId={actionTaskId}
-                              epics={epics}
-                              onDelete={(taskId) => {
-                                const task = tasks.find(t => t.id === taskId);
-                                void handleDeleteTask(taskId, task?.title ?? 'this task');
-                              }}
-                              onEditTask={(task) => setEditingTask(task)}
-                              onUpdateStatus={(task, status) => void handleUpdateTaskStatus(task, status)}
-                              onUpdateEpic={(task, epicId) => void handleUpdateTaskEpic(task, epicId)}
-                              projects={projects}
-                              tasks={activeEpicTasks}
-                              onSelectTask={(task) => setSelectedTaskId(task.id)}
-                              onCommentTask={handleOpenTaskComments}
-                              onToggleBlocked={handleToggleBlocked}
-                              selectedTaskId={selectedTaskId}
-                              selectedTaskIds={selectedTaskIds}
-                              onToggleSelection={handleToggleTaskSelection}
-                              loading={loading && tasks.length === 0}
-                            />
-                            {!loading && activeEpicTasks.length === 0 && (
-                              <div className="py-20 flex flex-col items-center opacity-30">
-                                <EmptyState description="No tasks scheduled for this epic." icon={Calendar} title="Empty Workspace" />
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="h-full">
-                            <KanbanBoard
-                              tasks={activeEpicTasks}
-                              onUpdateStatus={async (taskId, status) => {
-                                const task = tasks.find(t => t.id === taskId);
-                                if (task) await handleUpdateTaskStatus(task, status, true);
-                              }}
-                              onSelectTask={(task) => setSelectedTaskId(task.id)}
-                              onCommentTask={handleOpenTaskComments}
-                              onToggleBlocked={handleToggleBlocked}
-                              onDeleteTask={(taskId) => {
-                                const task = tasks.find(t => t.id === taskId);
-                                void handleDeleteTask(taskId, task?.title ?? 'this task');
-                              }}
-                              onEditTask={(task) => setEditingTask(task)}
-                              loading={loading && tasks.length === 0}
+                        {!loading && activeEpicTasks.length === 0 && (
+                          <div className="card mt-2">
+                            <EmptyState
+                              description={selectedEpic ? 'Nothing is scheduled in this epic for the selected day.' : 'Nothing is scheduled for the selected day. Add a task or pick another date.'}
+                              icon={Calendar}
+                              title="No tasks for this day"
+                              action={
+                                canManageActiveProject ? (
+                                  <button
+                                    className="btn btn-sm btn-secondary"
+                                    onClick={() => {
+                                      setTaskModalProjectId(selectedEpic?.projectId ?? activeProject?.id ?? null);
+                                      setIsTaskCreateModalOpen(true);
+                                    }}
+                                    type="button"
+                                  >
+                                    <Plus size={14} />
+                                    New task
+                                  </button>
+                                ) : undefined
+                              }
                             />
                           </div>
                         )}
                       </div>
-                    </>
-                  ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center opacity-40">
-                      <div className="p-6 rounded-full bg-olive-100  mb-4">
-                        <Folder size={48} className="text-olive-400" />
+                    ) : (
+                      <div className="h-full">
+                        <KanbanBoard
+                          tasks={activeEpicTasks}
+                          onUpdateStatus={async (taskId, status) => {
+                            const task = tasks.find(t => t.id === taskId);
+                            if (task) await handleUpdateTaskStatus(task, status, true);
+                          }}
+                          onSelectTask={(task) => setSelectedTaskId(task.id)}
+                          onCommentTask={handleOpenTaskComments}
+                          onToggleBlocked={handleToggleBlocked}
+                          onDeleteTask={(taskId) => {
+                            const task = tasks.find(t => t.id === taskId);
+                            void handleDeleteTask(taskId, task?.title ?? 'this task');
+                          }}
+                          onEditTask={(task) => setEditingTask(task)}
+                          loading={loading && tasks.length === 0}
+                        />
                       </div>
-                      <h4 className="text-lg font-bold text-olive-950 ">Select an Epic</h4>
-                      <p className="text-sm text-olive-500 max-w-xs mt-2">Choose an epic from the sidebar to view its execution plan and tasks.</p>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                </section>
 
-                {/* Column 3 — Task Inspector (Details) */}
+                {/* Task inspector */}
                 {selectedTaskId && activeTask && (
-                  <div className="flex flex-col w-[420px] shrink-0 h-full rounded-md border border-olive-200/60  bg-white/70  backdrop-blur-md shadow-sm overflow-hidden animate-slideInRight duration-500 z-10">
-                    <div className="flex items-center justify-between px-6 pt-6 bg-linear-to-b from-white to-olive-50/30   border-b border-olive-100 ">
-                      <div>
-                        <span className="text-[11px] uppercase tracking-[0.2em] font-black text-olive-600  opacity-80">Task Focus</span>
-                        <h3 className="text-[1.1rem] font-bold font-sans text-olive-950  m-0 mt-1 tracking-tight truncate max-w-[240px]">
-                          {activeTask.title}
-                        </h3>
+                  <aside className="flex flex-col w-[400px] shrink-0 h-full border-l border-olive-200 bg-white overflow-hidden animate-slideInRight z-10">
+                    <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className={`badge ${statusMeta(activeTask.status).badge}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusMeta(activeTask.status).dot}`} />
+                            {statusMeta(activeTask.status).label}
+                          </span>
+                          {activeTask.isBlocked && <span className="badge badge-red">Blocked</span>}
+                        </div>
+                        <h3 className="text-base font-semibold text-olive-950 m-0 leading-snug break-words">{activeTask.title}</h3>
                       </div>
                       <button
+                        aria-label="Close details"
                         onClick={() => setSelectedTaskId(null)}
-                        className="p-2 text-olive-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 "
-                        title="Close details"
+                        className="icon-btn shrink-0 -mr-1"
+                        type="button"
                       >
-                        <X size={20} />
-                      </button>
-                    </div>
-                    <div className="flex gap-6 mt-6 px-6 border-b border-olive-100 ">
-                      <button
-                        onClick={() => setSidePanelTab('subtasks')}
-                        className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all relative ${sidePanelTab === 'subtasks' ? 'text-olive-600' : 'text-olive-400 hover:text-olive-600'}`}
-                      >
-                        Subtasks
-                        {sidePanelTab === 'subtasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-olive-600 rounded-full" />}
-                      </button>
-                      <button
-                        onClick={() => setSidePanelTab('comments')}
-                        className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all relative ${sidePanelTab === 'comments' ? 'text-olive-600' : 'text-olive-400 hover:text-olive-600'}`}
-                      >
-                        Comments
-                        {sidePanelTab === 'comments' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-olive-600 rounded-full" />}
+                        <X size={18} />
                       </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto bg-white  p-6 flex flex-col min-h-0">
-                      {sidePanelTab === 'subtasks' ? (
-                        <div className="flex flex-col gap-5">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-bold text-olive-500 uppercase tracking-widest">Subtasks</h4>
-                            <button
-                              className="flex items-center justify-center w-8 h-8 bg-olive-600 hover:bg-olive-500 text-white rounded-lg shadow-sm transition-all transform active:scale-95 disabled:opacity-40"
-                              disabled={!activeTask.permissions.canUpdate}
-                              onClick={() => setSubtaskModalTask(activeTask)}
-                              title="New Subtask"
-                              type="button"
-                            >
-                              <Plus size={16} />
-                            </button>
-                          </div>
-                          {activeTask.subtasks.map(subtask => {
-                            const isEditingThisSubtask = editingSubtask?.task.id === activeTask.id && editingSubtask?.subtask.id === subtask.id;
-                            return (
-                              <div key={subtask.id} className="group relative bg-white  border border-olive-200/70  rounded-xl p-5 transition-all duration-300 shadow-sm hover:-tranolive-y-[2px] hover:border-olive-300 ">
-                                <div className="flex items-start justify-between gap-6">
-                                  <div className="flex items-start gap-4.5 flex-1 min-w-0">
-                                    <div className="mt-1 relative flex items-center justify-center">
-                                      <input
-                                        checked={subtask.status === 'DONE'}
-                                        className="peer w-6 h-6 accent-olive-600 cursor-pointer rounded-lg border-olive-300  transition-all shadow-sm"
-                                        disabled={!activeTask.permissions.canUpdate}
-                                        onChange={() => void handleUpdateSubtaskStatus(activeTask, subtask, subtask.status === 'DONE' ? 'TODO' : 'DONE')}
-                                        type="checkbox"
-                                      />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5 min-w-0">
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <span className={`text-[1rem] transition-all duration-300 ${subtask.status === 'DONE'
-                                          ? 'text-olive-400  line-through'
-                                          : 'text-olive-900  font-semibold tracking-tight'
-                                          }`}>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                      {activeTask.description && (
+                        <p className="px-5 m-0 text-[13px] leading-relaxed text-olive-600 whitespace-pre-wrap">{activeTask.description}</p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-1.5 px-5 mt-3">
+                        <SourceBadge source={activeTask.source} />
+                        <SlaIndicator task={activeTask} compact />
+                      </div>
+
+                      <div className="flex gap-2 px-5 mt-4">
+                        <button className="btn btn-sm btn-secondary flex-1" onClick={() => handleOpenTaskNote(activeTask)} type="button">
+                          <NotebookPen size={14} />
+                          Work notes
+                        </button>
+                        <button
+                          className={`btn btn-sm flex-1 ${activeTask.isBlocked ? 'btn-danger' : 'btn-secondary'}`}
+                          onClick={() => handleToggleBlocked(activeTask)}
+                          type="button"
+                        >
+                          <AlertCircle size={14} />
+                          {activeTask.isBlocked ? 'Unblock' : 'Mark blocked'}
+                        </button>
+                      </div>
+
+                      {/* Subtasks / comments */}
+                      <div className="flex gap-5 mt-5 px-5 border-b border-olive-200" role="tablist">
+                        {(['subtasks', 'comments'] as const).map((key) => (
+                          <button
+                            key={key}
+                            role="tab"
+                            aria-selected={sidePanelTab === key}
+                            onClick={() => setSidePanelTab(key)}
+                            className={`relative pb-2.5 text-[13px] transition-colors ${sidePanelTab === key ? 'text-olive-950 font-medium' : 'text-olive-500 hover:text-olive-800'}`}
+                            type="button"
+                          >
+                            {key === 'subtasks' ? 'Subtasks' : 'Comments'}
+                            {key === 'subtasks' && activeTask.subtasks.length > 0 && (
+                              <span className="ml-1.5 text-[11px] text-olive-400 tabular-nums">
+                                {activeTask.subtasks.filter(st => st.status === 'DONE').length}/{activeTask.subtasks.length}
+                              </span>
+                            )}
+                            {sidePanelTab === key && <span className="absolute -bottom-px left-0 right-0 h-0.5 bg-brand-600 rounded-full" />}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="px-5 py-4">
+                        {sidePanelTab === 'subtasks' ? (
+                          <div className="flex flex-col">
+                            {activeTask.subtasks.map(subtask => {
+                              const isEditingThisSubtask = editingSubtask?.task.id === activeTask.id && editingSubtask?.subtask.id === subtask.id;
+                              return (
+                                <div key={subtask.id} className="group py-2.5 border-b border-olive-100 last:border-b-0">
+                                  <div className="flex items-start gap-3">
+                                    <input
+                                      aria-label={`Mark ${subtask.title} ${subtask.status === 'DONE' ? 'not done' : 'done'}`}
+                                      checked={subtask.status === 'DONE'}
+                                      className="mt-0.5 w-4 h-4 accent-brand-600 cursor-pointer rounded shrink-0"
+                                      disabled={!activeTask.permissions.canUpdate}
+                                      onChange={() => void handleUpdateSubtaskStatus(activeTask, subtask, subtask.status === 'DONE' ? 'TODO' : 'DONE')}
+                                      type="checkbox"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className={`text-[13px] leading-snug ${subtask.status === 'DONE' ? 'text-olive-400 line-through' : 'text-olive-900'}`}>
                                           {subtask.title}
                                         </span>
                                         {subtask.assignedToUser && (
-                                          <UserAvatar
-                                            name={subtask.assignedToUser.name}
-                                            email={subtask.assignedToUser.email}
-                                            size="sm"
-                                          />
+                                          <UserAvatar name={subtask.assignedToUser.name} email={subtask.assignedToUser.email} size="sm" />
                                         )}
                                       </div>
                                       {!isEditingThisSubtask && subtask.description && (
-                                        <p className="text-olive-400  text-[0.82rem] leading-relaxed line-clamp-2 opacity-80">{subtask.description}</p>
+                                        <p className="text-olive-500 text-xs leading-relaxed line-clamp-2 m-0 mt-0.5">{subtask.description}</p>
                                       )}
                                       {!isEditingThisSubtask && subtask.note && (
-                                        <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-olive-50  rounded-xl text-olive-500  text-[0.78rem] font-medium italic border border-olive-100 ">
-                                          <MessageSquare size={14} className="shrink-0 text-olive-400" />
+                                        <p className="flex items-center gap-1.5 m-0 mt-1 text-xs text-olive-500">
+                                          <MessageSquare size={12} className="shrink-0 text-olive-400" />
                                           <span className="truncate">{subtask.note}</span>
-                                        </div>
+                                        </p>
                                       )}
+                                    </div>
+                                    <div className="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity shrink-0">
+                                      <button
+                                        aria-label={isEditingThisSubtask ? 'Cancel editing' : 'Edit subtask'}
+                                        className="icon-btn !w-7 !h-7 disabled:opacity-30"
+                                        disabled={!activeTask.permissions.canUpdate}
+                                        onClick={() => setEditingSubtask(isEditingThisSubtask ? null : { task: activeTask, subtask })}
+                                        title={isEditingThisSubtask ? 'Cancel' : 'Edit'}
+                                        type="button"
+                                      >
+                                        <Edit3 size={14} />
+                                      </button>
+                                      <button
+                                        aria-label="Subtask note"
+                                        className="icon-btn !w-7 !h-7"
+                                        onClick={() => handleOpenSubtaskNote(activeTask, subtask)}
+                                        title="Note"
+                                        type="button"
+                                      >
+                                        <FileText size={14} />
+                                      </button>
+                                      <button
+                                        aria-label="Delete subtask"
+                                        className="icon-btn !w-7 !h-7 hover:!text-red-600 hover:!bg-red-50 disabled:opacity-30"
+                                        disabled={!activeTask.permissions.canUpdate}
+                                        onClick={() => void handleDeleteSubtask(activeTask, subtask.id)}
+                                        title="Delete"
+                                        type="button"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 tranolive-x-2 group-hover:tranolive-x-0">
-                                    <button
-                                      className="p-2 rounded-xl hover:bg-olive-50  text-olive-400 hover:text-olive-600  transition-all disabled:opacity-40"
-                                      disabled={!activeTask.permissions.canUpdate}
-                                      onClick={() => setEditingSubtask(isEditingThisSubtask ? null : { task: activeTask, subtask })}
-                                      title={isEditingThisSubtask ? 'Cancel' : 'Edit Subtask'}
-                                      type="button"
-                                    >
-                                      <Edit3 size={16} />
-                                    </button>
-                                    <button
-                                      className="p-2 rounded-xl hover:bg-olive-50  text-olive-400 hover:text-olive-600  transition-all"
-                                      onClick={() => handleOpenSubtaskNote(activeTask, subtask)}
-                                      title="Subtask Note"
-                                      type="button"
-                                    >
-                                      <FileText size={16} />
-                                    </button>
-                                    <button
-                                      className="p-2 rounded-xl hover:bg-red-50  text-olive-400 hover:text-red-500  transition-all disabled:opacity-40"
-                                      disabled={!activeTask.permissions.canUpdate}
-                                      onClick={() => void handleDeleteSubtask(activeTask, subtask.id)}
-                                      title="Delete Subtask"
-                                      type="button"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
+                                  {isEditingThisSubtask && (
+                                    <div className="mt-3 ml-7">
+                                      <SubtaskInlineEdit
+                                        subtask={subtask}
+                                        onSave={(patch) => void handleUpdateSubtask(activeTask, subtask, patch)}
+                                        onCancel={() => setEditingSubtask(null)}
+                                        isSaving={actionTaskId === activeTask.id}
+                                        members={activeProjectMembers}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
-
-                                {/* Inline subtask edit form */}
-                                {isEditingThisSubtask && (
-                                  <div className="mt-5 pt-5 border-t border-olive-100 ">
-                                    <SubtaskInlineEdit
-                                      subtask={subtask}
-                                      onSave={(patch) => void handleUpdateSubtask(activeTask, subtask, patch)}
-                                      onCancel={() => setEditingSubtask(null)}
-                                      isSaving={actionTaskId === activeTask.id}
-                                      members={activeProjectMembers}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="flex-1 min-h-0 flex flex-col">
-                          <CommentSection taskId={activeTask.id} />
-                        </div>
-                      )}
-                      {/* Task detail footer */}
-                      <div className="mt-8 mb-4">
-                        <div className="bg-white  border border-olive-200/70  rounded-xl p-8 shadow-sm relative overflow-hidden group/detail">
-                          {/* Decorative Glow */}
-                          <div className="absolute -top-24 -right-24 w-48 h-48 bg-olive-500/5 rounded-full blur-3xl group-hover/detail:bg-olive-500/10 transition-all duration-700" />
-
-                          <h4 className="text-[1.05rem] font-bold font-sans text-olive-900  m-0 mb-6 flex items-center gap-3">
-                            <div className="p-2.5 bg-olive-50  rounded-lg">
-                              <Layout size={20} className="text-olive-600 " />
-                            </div>
-                            Task Properties
-                          </h4>
-
-                          {activeTask.description && (
-                            <div className="relative">
-                              <p className="text-olive-600  text-[0.92rem] leading-relaxed mb-8 pl-4 border-l-2 border-olive-100  italic">{activeTask.description}</p>
-                            </div>
-                          )}
-
-                          <div className="flex flex-wrap items-center gap-4 mb-10">
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-[0.72rem] font-black uppercase tracking-wider transition-all duration-500 shadow-sm ${statusPillCls[activeTask.status] ?? 'bg-olive-100 text-olive-600 border-olive-200'}`}>
-                              <CheckCircle size={12} />
-                              {activeTask.status.replace('_', ' ')}
-                            </div>
-                            <SourceBadge source={activeTask.source} />
-                            <SlaIndicator task={activeTask} compact />
-
+                              );
+                            })}
+                            {activeTask.subtasks.length === 0 && (
+                              <p className="text-[13px] text-olive-500 m-0 py-2">No subtasks yet. Break this task into smaller steps.</p>
+                            )}
                             <button
+                              className="mt-2 self-start flex items-center gap-1.5 h-8 px-2 -ml-2 rounded-md text-[13px] text-olive-600 hover:text-olive-950 hover:bg-olive-100 transition-colors disabled:opacity-40"
+                              disabled={!activeTask.permissions.canUpdate}
+                              onClick={() => setSubtaskModalTask(activeTask)}
                               type="button"
-                              onClick={() => handleToggleBlocked(activeTask)}
-                              className={[
-                                'flex items-center gap-2 px-4 py-2 rounded-lg border text-[0.72rem] font-black uppercase tracking-wider transition-all shadow-sm',
-                                activeTask.isBlocked
-                                  ? 'bg-red-500 border-red-600 text-white'
-                                  : 'bg-white border-olive-200 text-red-500 hover:bg-red-50'
-                              ].join(' ')}
                             >
-                              <AlertCircle size={12} />
-                              {activeTask.isBlocked ? 'Unblock Task' : 'Block Task'}
+                              <Plus size={15} />
+                              Add subtask
                             </button>
                           </div>
-
-                          <div className="grid gap-3 mb-8 p-4 rounded-xl bg-olive-50 border border-olive-200">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">Response due</span>
-                              <span className="text-olive-600">{activeTask.slaResponseDueAt ? new Date(activeTask.slaResponseDueAt).toLocaleString() : 'Not set'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">Resolution due</span>
-                              <span className="text-olive-600">{activeTask.slaResolutionDueAt ? new Date(activeTask.slaResolutionDueAt).toLocaleString() : 'Not set'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">First response</span>
-                              <span className="text-olive-600">{activeTask.firstResponseAt ? new Date(activeTask.firstResponseAt).toLocaleString() : 'Pending'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">Completed</span>
-                              <span className="text-olive-600">{activeTask.completedAt ? new Date(activeTask.completedAt).toLocaleString() : 'Pending'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">Paused</span>
-                              <span className="text-olive-600">{activeTask.slaPausedAt ? new Date(activeTask.slaPausedAt).toLocaleString() : 'No'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">Dynamic priority</span>
-                              <span className="text-olive-600">{activeTask.dynamicPriority} / {activeTask.dynamicPriorityScore}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-olive-700">Impact</span>
-                              <span className="text-olive-600">{activeTask.impactScore} impact, {activeTask.dependencyWeight} downstream</span>
-                            </div>
-                            {activeTask.priorityEscalationReason && (
-                              <div className="text-sm">
-                                <span className="font-bold text-olive-700">Escalation reason</span>
-                                <p className="m-0 mt-1 text-olive-600">{activeTask.priorityEscalationReason}</p>
-                              </div>
-                            )}
-
-                            <div className="pt-2">
-                              <button
-                                type="button"
-                                onClick={() => void handleEvaluatePriority(activeTask.id)}
-                                disabled={isEvaluatingPriority}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-olive-200 text-olive-700 rounded-lg text-sm font-bold hover:bg-olive-50 transition-colors disabled:opacity-50"
-                              >
-                                <Zap className="w-4 h-4 text-amber-500" />
-                                {isEvaluatingPriority ? 'Evaluating...' : 'Evaluate Dynamic Priority'}
-                              </button>
-                            </div>
+                        ) : (
+                          <div className="flex flex-col min-h-[240px]">
+                            <CommentSection taskId={activeTask.id} />
                           </div>
+                        )}
+                      </div>
 
-                          <button
-                            className="w-full group/btn relative flex items-center justify-center gap-3 px-6 py-4 bg-olive-900  text-white  rounded-xl font-bold text-[0.95rem] shadow-sm shadow-olive-900/20  hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 overflow-hidden"
-                            onClick={() => handleOpenTaskNote(activeTask)}
-                            type="button"
-                          >
-                            <NotebookPen size={20} className="transition-transform group-hover/btn:rotate-12" />
-                            Manage Work Notes
+                      {/* Timing & priority */}
+                      <div className="px-5 pb-6">
+                        <h4 className="section-label m-0 mb-2">Timing &amp; priority</h4>
+                        <dl className="m-0 rounded-lg border border-olive-200 divide-y divide-olive-100 text-[13px]">
+                          {[
+                            ['Response due', formatDateTime(activeTask.slaResponseDueAt) ?? 'Not set'],
+                            ['Resolution due', formatDateTime(activeTask.slaResolutionDueAt) ?? 'Not set'],
+                            ['First response', formatDateTime(activeTask.firstResponseAt) ?? 'Pending'],
+                            ['Completed', formatDateTime(activeTask.completedAt) ?? 'Pending'],
+                            ['SLA paused', formatDateTime(activeTask.slaPausedAt) ?? 'No'],
+                            ['Dynamic priority', `${activeTask.dynamicPriority} · ${activeTask.dynamicPriorityScore}`],
+                            ['Impact', `${activeTask.impactScore} impact · ${activeTask.dependencyWeight} downstream`],
+                          ].map(([label, value]) => (
+                            <div key={label} className="flex items-center justify-between gap-4 px-3 py-2">
+                              <dt className="text-olive-500">{label}</dt>
+                              <dd className="m-0 text-olive-900 text-right tabular-nums">{value}</dd>
+                            </div>
+                          ))}
+                          {activeTask.priorityEscalationReason && (
+                            <div className="px-3 py-2">
+                              <dt className="text-olive-500">Escalation reason</dt>
+                              <dd className="m-0 mt-0.5 text-olive-800">{activeTask.priorityEscalationReason}</dd>
+                            </div>
+                          )}
+                        </dl>
+                        <button
+                          className="btn btn-sm btn-secondary w-full mt-2.5"
+                          disabled={isEvaluatingPriority}
+                          onClick={() => void handleEvaluatePriority(activeTask.id)}
+                          type="button"
+                        >
+                          <Zap size={14} className="text-amber-500" />
+                          {isEvaluatingPriority ? 'Evaluating…' : 'Evaluate priority'}
+                        </button>
 
-                            {/* Inner Glow Effect */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -tranolive-x-full group-hover/btn:tranolive-x-full transition-transform duration-1000" />
-                          </button>
-
-                          <ApprovalSection
-                            projectId={activeTask.projectId || ''}
-                            taskId={activeTask.id}
-                            members={activeProjectMembers}
-                          />
-                        </div>
+                        <ApprovalSection
+                          projectId={activeTask.projectId || ''}
+                          taskId={activeTask.id}
+                          members={activeProjectMembers}
+                        />
                       </div>
                     </div>
-                  </div>
+                  </aside>
                 )}
               </div>
             </div>
           )}
         </main>
-      </div >
+      </div>
 
       {/* Modals & Overlays */}
       {
         isProjectCreateModalOpen ? (
-          <Modal onClose={() => setIsProjectCreateModalOpen(false)} title="Create Project">
+          <Modal onClose={() => setIsProjectCreateModalOpen(false)} title="New project">
             <ProjectForm onSubmit={handleCreateProject} />
           </Modal>
         ) : null
@@ -2640,11 +2543,11 @@ function DashboardPage(): JSX.Element {
           <>
             {/* Chat Drawer Backdrop */}
             <div
-              className="fixed inset-0 bg-olive-900/20 backdrop-blur-[2px] z-[2000] animate-in fade-in duration-300"
+              className="fixed inset-0 bg-olive-950/30 z-[2000] animate-fadeIn"
               onClick={() => setIsChatPanelOpen(false)}
             />
             {/* Chat Drawer Container */}
-            <div className="fixed top-0 right-0 h-full w-full md:w-1/2 lg:max-w-1/2 bg-white  z-[5001] shadow-2xl animate-in slide-in-from-right duration-500 overflow-hidden border-l border-olive-200  flex flex-col">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[520px] bg-white z-[5001] shadow-2xl animate-slideInRight overflow-hidden border-l border-olive-200 flex flex-col">
               <ChatPanel
                 project={activeProject}
                 members={activeProjectMembers}
@@ -2657,21 +2560,21 @@ function DashboardPage(): JSX.Element {
       }
       {
         editingProject ? (
-          <Modal onClose={() => setEditingProject(null)} title="Update Project">
+          <Modal onClose={() => setEditingProject(null)} title="Edit project">
             <ProjectForm initialDescription={editingProject.description} initialName={editingProject.name} onSubmit={handleUpdateProject} submitLabel="Update project" />
           </Modal>
         ) : null
       }
       {
         isEpicCreateModalOpen && activeProject ? (
-          <Modal onClose={() => setIsEpicCreateModalOpen(false)} title={`Create Epic for ${activeProject.name}`}>
+          <Modal onClose={() => setIsEpicCreateModalOpen(false)} title="New epic" description={activeProject.name}>
             <EpicForm onSubmit={handleCreateEpic} submitLabel="Create epic" />
           </Modal>
         ) : null
       }
       {
         editingEpic && activeProject ? (
-          <Modal onClose={() => setEditingEpic(null)} title={`Update Epic for ${activeProject.name}`}>
+          <Modal onClose={() => setEditingEpic(null)} title="Edit epic" description={activeProject.name}>
             <EpicForm
               initialDescription={editingEpic.description}
               initialName={editingEpic.name}
@@ -2684,7 +2587,7 @@ function DashboardPage(): JSX.Element {
       }
       {
         isTaskCreateModalOpen ? (
-          <Modal onClose={() => setIsTaskCreateModalOpen(false)} title="Create Task">
+          <Modal onClose={() => setIsTaskCreateModalOpen(false)} title="New task">
             <AddTaskForm
               epics={epics}
               initialProjectId={taskModalProjectId}
@@ -2700,8 +2603,8 @@ function DashboardPage(): JSX.Element {
           <Modal
             bodyClassName="!p-0"
             onClose={() => setIsProjectTeamModalOpen(false)}
-            panelClassName="!max-w-[820px]"
-            title={`Team for ${activeProject.name}`}
+            maxWidth="max-w-[640px]"
+            title="Team" description={activeProject.name}
           >
             <ProjectTeamPanel
               canManageTeam={canManageTeam}
@@ -2721,8 +2624,8 @@ function DashboardPage(): JSX.Element {
           <Modal
             bodyClassName="!p-0"
             onClose={() => setIsActivityHistoryOpen(false)}
-            panelClassName="!max-w-[720px]"
-            title={`Activity History — ${activeProject.name}`}
+            maxWidth="max-w-[680px]"
+            title="Activity" description={activeProject.name}
           >
             <ActivityHistoryPanel
               projectId={activeProject.id}
@@ -2773,7 +2676,7 @@ function DashboardPage(): JSX.Element {
       }
       {
         editingTask ? (
-          <Modal onClose={() => setEditingTask(null)} title={`Edit Task: ${editingTask.title}`}>
+          <Modal onClose={() => setEditingTask(null)} title="Edit task" description={editingTask.title}>
             <EditTaskForm
               epics={epics}
               allTasks={tasks}
@@ -2788,7 +2691,7 @@ function DashboardPage(): JSX.Element {
         subtaskModalTask ? (
           <Modal
             onClose={() => setSubtaskModalTask(null)}
-            title={`Create Subtask for ${subtaskModalTask.title}`}
+            title="Add subtasks" description={subtaskModalTask.title}
           >
             <SubtaskForm members={activeProjectMembers} onSubmit={handleCreateSubtask} />
           </Modal>
@@ -2807,12 +2710,12 @@ function DashboardPage(): JSX.Element {
             }
             deleteLabel={
               activeNoteEditor.kind === 'project'
-                ? 'Delete Note'
+                ? 'Delete note'
                 : activeNoteEditor.kind === 'epic'
-                  ? 'Delete Epic Note'
+                  ? 'Delete note'
                   : activeNoteEditor.kind === 'task'
-                    ? 'Delete Task Note'
-                    : 'Delete Sub-task Note'
+                    ? 'Clear notes'
+                    : 'Clear note'
             }
             entityLabel={
               activeNoteEditor.kind === 'project'
@@ -2826,19 +2729,19 @@ function DashboardPage(): JSX.Element {
             modalTitle={
               activeNoteEditor.kind === 'project'
                 ? activeNoteEditor.note
-                  ? 'Edit Project Note'
-                  : 'Create Project Note'
+                  ? 'Edit project note'
+                  : 'New project note'
                 : activeNoteEditor.kind === 'epic'
                   ? activeNoteEditor.note
-                    ? 'Edit Epic Note'
-                    : 'Create Epic Note'
+                    ? 'Edit epic note'
+                    : 'New epic note'
                   : activeNoteEditor.kind === 'task'
                     ? activeNoteEditor.task.note?.trim()
-                      ? 'Edit Task Note'
-                      : 'Create Task Note'
+                      ? 'Edit work notes'
+                      : 'Work notes'
                     : activeNoteEditor.subtask.note?.trim()
-                      ? 'Edit Sub-task Note'
-                      : 'Create Sub-task Note'
+                      ? 'Edit subtask note'
+                      : 'Subtask note'
             }
             note={
               activeNoteEditor.kind === 'project'
@@ -2866,42 +2769,29 @@ function DashboardPage(): JSX.Element {
         ) : null
       }
       {priorityEvaluationModalOpen && priorityEvaluationResult && (
-        <Modal onClose={() => setPriorityEvaluationModalOpen(false)} title="Priority Evaluation">
-          <div className="grid gap-4">
-            <div className="grid gap-2 text-sm">
-              <div className="flex justify-between items-center py-2 border-b border-olive-100">
-                <span className="font-bold text-olive-700">Base Priority</span>
-                <span className="text-olive-900 font-medium">{priorityEvaluationResult.basePriority}</span>
+        <Modal onClose={() => setPriorityEvaluationModalOpen(false)} title="Priority evaluation">
+          <dl className="m-0 rounded-lg border border-olive-200 divide-y divide-olive-100 text-[13px]">
+            {[
+              ['Base priority', priorityEvaluationResult.basePriority],
+              ['Dynamic priority', priorityEvaluationResult.dynamicPriority],
+              ['Dynamic score', priorityEvaluationResult.dynamicPriorityScore],
+              ['Urgency / impact', `${priorityEvaluationResult.urgencyScore} / ${priorityEvaluationResult.impactScore}`],
+              ['Downstream impact', `${priorityEvaluationResult.downstreamTaskCount} tasks (${priorityEvaluationResult.dependencyWeight} weight)`],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="flex items-center justify-between gap-4 px-3 py-2">
+                <dt className="text-olive-500">{label}</dt>
+                <dd className="m-0 font-medium text-olive-900 tabular-nums">{value}</dd>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-olive-100">
-                <span className="font-bold text-olive-700">Dynamic Priority</span>
-                <span className="text-olive-900 font-bold px-2 py-0.5 bg-olive-100 rounded">{priorityEvaluationResult.dynamicPriority}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-olive-100">
-                <span className="font-bold text-olive-700">Dynamic Score</span>
-                <span className="text-olive-900">{priorityEvaluationResult.dynamicPriorityScore}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-olive-100">
-                <span className="font-bold text-olive-700">Urgency / Impact</span>
-                <span className="text-olive-900">{priorityEvaluationResult.urgencyScore} / {priorityEvaluationResult.impactScore}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-olive-100">
-                <span className="font-bold text-olive-700">Downstream Impact</span>
-                <span className="text-olive-900">{priorityEvaluationResult.downstreamTaskCount} tasks ({priorityEvaluationResult.dependencyWeight} weight)</span>
-              </div>
-            </div>
-            <div className="bg-olive-50 p-3 rounded-lg border border-olive-200">
-              <h4 className="text-xs font-bold text-olive-800 uppercase tracking-wider mb-1">Reasoning</h4>
-              <p className="text-sm text-olive-600 m-0">{priorityEvaluationResult.reason}</p>
-            </div>
-            <div className="flex justify-end pt-2">
-              <button
-                className="px-4 py-2 bg-olive-900 text-white rounded-lg text-sm font-bold hover:bg-olive-800"
-                onClick={() => setPriorityEvaluationModalOpen(false)}
-              >
-                Close
-              </button>
-            </div>
+            ))}
+          </dl>
+          <div>
+            <h4 className="section-label m-0 mb-1.5">Reasoning</h4>
+            <p className="text-[13px] leading-relaxed text-olive-700 m-0">{priorityEvaluationResult.reason}</p>
+          </div>
+          <div className="flex justify-end">
+            <button className="btn btn-secondary" onClick={() => setPriorityEvaluationModalOpen(false)} type="button">
+              Done
+            </button>
           </div>
         </Modal>
       )}

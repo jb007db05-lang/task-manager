@@ -6,10 +6,7 @@ import {
   RefreshCcw,
   Shield,
   Smartphone,
-  Sparkles,
   Settings2,
-  UserCircle,
-  TimerReset,
   Eye,
   EyeOff
 } from 'lucide-react';
@@ -377,60 +374,56 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
   const primaryBtn = 'inline-flex items-center gap-1.5 px-3 py-1.5 bg-olive-800 text-white rounded text-xs font-semibold hover:bg-olive-900 disabled:opacity-50 transition-colors shadow-xs';
 
   return (
-    <div className="grid gap-4 p-1 max-w-5xl mx-auto">
+    <div className="grid gap-4">
       {/* Profile Section */}
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Account</span>
-            <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Profile Information</h2>
-            <p className="text-olive-500 m-0 text-xs">Update your personal details used across the workspace.</p>
+            <h2 className="m-0 text-[15px] font-semibold text-olive-950">Profile Information</h2>
+            <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Update your personal details used across the workspace.</p>
           </div>
-          <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-            <UserCircle size={16} />
-          </span>
         </div>
 
         <div className="grid gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-1">
-              <label className="text-xs font-semibold text-olive-900">First Name</label>
+              <label className="field-label !mb-0">First Name</label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded text-xs focus:outline-none focus:border-olive-500 transition-all text-olive-950"
+                className="input-base"
                 placeholder="Enter your first name"
               />
             </div>
             <div className="grid gap-1">
-              <label className="text-xs font-semibold text-olive-900">Last Name</label>
+              <label className="field-label !mb-0">Last Name</label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded text-xs focus:outline-none focus:border-olive-500 transition-all text-olive-950"
+                className="input-base"
                 placeholder="Enter your last name"
               />
             </div>
           </div>
 
           <div className="grid gap-1">
-            <label className="text-xs font-semibold text-olive-900">Email Address</label>
+            <label className="field-label !mb-0">Email Address</label>
             <input
               type="email"
               value={user?.email || ''}
               readOnly
-              className="w-full px-3 py-2 bg-olive-50 border border-olive-200 rounded text-xs text-olive-500 cursor-not-allowed"
+              className="input-base" disabled
             />
-            <p className="text-[11px] text-olive-400 m-0 mt-0.5">Email cannot be changed directly. Contact support for help.</p>
+            <p className="field-hint m-0">Email cannot be changed directly. Contact support for help.</p>
           </div>
 
           <div className="flex justify-end pt-1">
             <button
               onClick={handleUpdateProfile}
               disabled={isUpdatingProfile || (firstName === (user?.firstName || '') && lastName === (user?.lastName || ''))}
-              className="flex items-center gap-1.5 px-4 py-2 bg-olive-800 text-white rounded font-bold text-xs hover:bg-olive-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs"
+              className="btn btn-primary"
             >
               {isUpdatingProfile ? (
                  <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
@@ -447,23 +440,19 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Account Security</span>
-            <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Global AI Credentials</h2>
-            <p className="text-olive-500 m-0 text-xs">Configure API keys for your AI providers. These are encrypted and shared across all your projects.</p>
+            <h2 className="m-0 text-[15px] font-semibold text-olive-950">Global AI Credentials</h2>
+            <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Configure API keys for your AI providers. These are encrypted and shared across all your projects.</p>
           </div>
-          <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-            <KeyRound size={16} />
-          </span>
         </div>
 
         <div className="grid gap-4">
           {/* OpenAI API Key */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-olive-900">OpenAI API Key</label>
+            <label className="field-label !mb-0">OpenAI API Key</label>
             <div className="relative">
               <input
                 type={showOpenaiKey ? 'text' : 'password'}
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded text-xs text-olive-950 focus:outline-none focus:border-olive-500 transition-all pr-10"
+                className="input-base !pr-10"
                 placeholder={user?.openaiApiKeyConfigured ? '••••••••' : 'Enter OpenAI API key'}
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
@@ -480,11 +469,11 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
 
           {/* Anthropic API Key */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-olive-900">Anthropic Claude API Key</label>
+            <label className="field-label !mb-0">Anthropic Claude API Key</label>
             <div className="relative">
               <input
                 type={showAnthropicKey ? 'text' : 'password'}
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded text-xs text-olive-950 focus:outline-none focus:border-olive-500 transition-all pr-10"
+                className="input-base !pr-10"
                 placeholder={user?.anthropicApiKeyConfigured ? '••••••••' : 'Enter Anthropic API key'}
                 value={anthropicKey}
                 onChange={(e) => setAnthropicKey(e.target.value)}
@@ -501,11 +490,11 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
 
           {/* Gemini API Key */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-olive-900">Google Gemini API Key</label>
+            <label className="field-label !mb-0">Google Gemini API Key</label>
             <div className="relative">
               <input
                 type={showGeminiKey ? 'text' : 'password'}
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded text-xs text-olive-950 focus:outline-none focus:border-olive-500 transition-all pr-10"
+                className="input-base !pr-10"
                 placeholder={user?.geminiApiKeyConfigured ? '••••••••' : 'Enter Google Gemini API key'}
                 value={geminiKey}
                 onChange={(e) => setGeminiKey(e.target.value)}
@@ -524,7 +513,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
             <button
               onClick={handleSaveGlobalKeys}
               disabled={isSavingGlobalKeys || (openaiKey === (user?.openaiApiKeyConfigured ? '••••••••' : '') && anthropicKey === (user?.anthropicApiKeyConfigured ? '••••••••' : '') && geminiKey === (user?.geminiApiKeyConfigured ? '••••••••' : ''))}
-              className="flex items-center gap-1.5 px-4 py-2 bg-olive-800 text-white rounded font-bold text-xs hover:bg-olive-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs"
+              className="btn btn-primary"
             >
               {isSavingGlobalKeys ? (
                  <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
@@ -543,26 +532,22 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Operations</span>
-            <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">SLA Configuration</h2>
-            <p className="text-olive-500 m-0 text-xs">Set response and resolution targets by task priority.</p>
+            <h2 className="m-0 text-[15px] font-semibold text-olive-950">SLA Configuration</h2>
+            <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Set response and resolution targets by task priority.</p>
           </div>
-          <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-            <TimerReset size={16} />
-          </span>
         </div>
 
         <div className="flex flex-col gap-2">
           {slaConfigs.map((config) => (
             <div key={config.priority} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-olive-200 rounded bg-olive-50/50">
               <div className="min-w-[100px] shrink-0">
-                <span className="text-xs font-bold text-olive-900 uppercase tracking-wider">{config.priority}</span>
+                <span className="text-[13px] font-medium text-olive-900 capitalize">{config.priority.toLowerCase()}</span>
               </div>
               <div className="flex flex-wrap items-center gap-3 flex-1">
                 <label className="flex items-center gap-2 text-xs font-semibold text-olive-600">
                   <span>Response (h):</span>
                   <input
-                    className="bg-white border border-olive-200 rounded px-2 py-1.5 text-xs text-olive-950 w-20 focus:outline-none focus:border-olive-500"
+                    className="input-base !h-8 !w-20 !px-2 !text-[13px]"
                     min="0.01"
                     step="0.25"
                     type="number"
@@ -573,7 +558,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
                 <label className="flex items-center gap-2 text-xs font-semibold text-olive-600">
                   <span>Resolution (h):</span>
                   <input
-                    className="bg-white border border-olive-200 rounded px-2 py-1.5 text-xs text-olive-950 w-20 focus:outline-none focus:border-olive-500"
+                    className="input-base !h-8 !w-20 !px-2 !text-[13px]"
                     min="0.01"
                     step="0.25"
                     type="number"
@@ -601,13 +586,9 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Security</span>
-            <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Two-Factor Authentication (2FA)</h2>
-            <p className="text-olive-500 m-0 text-xs">Add an extra layer of security to your account by requiring a verification code sent via email upon login.</p>
+            <h2 className="m-0 text-[15px] font-semibold text-olive-950">Two-Factor Authentication (2FA)</h2>
+            <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Add an extra layer of security to your account by requiring a verification code sent via email upon login.</p>
           </div>
-          <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-            <Shield size={16} />
-          </span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-olive-50/50 border border-olive-200 rounded">
@@ -645,13 +626,9 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
         <SectionCard>
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Security</span>
-              <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Sync API Key</h2>
-              <p className="text-olive-500 m-0 text-xs">Your unique key for connecting external task tools.</p>
+              <h2 className="m-0 text-[15px] font-semibold text-olive-950">Sync API Key</h2>
+              <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Your unique key for connecting external task tools.</p>
             </div>
-            <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-              <Shield size={16} />
-            </span>
           </div>
 
           {/* Key display */}
@@ -685,13 +662,9 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
         <SectionCard>
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">Devices</span>
-              <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">Companion Access</h2>
-              <p className="text-olive-500 m-0 text-xs">Manage secure keys for mobile, desktop, or voice apps.</p>
+              <h2 className="m-0 text-[15px] font-semibold text-olive-950">Companion Access</h2>
+              <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Manage secure keys for mobile, desktop, or voice apps.</p>
             </div>
-            <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-              <Smartphone size={16} />
-            </span>
           </div>
 
           {canManagePrimarySecurity ? (
@@ -702,7 +675,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
                     <Smartphone size={14} />
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest m-0 mb-0.5">Registry</p>
+                    <p className="section-label m-0 mb-0.5">Registry</p>
                     <p className="text-xs font-semibold text-olive-950 m-0">
                       {devices.length} registered {devices.length === 1 ? 'device' : 'devices'}
                     </p>
@@ -719,16 +692,16 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
               </div>
 
               <div className="flex flex-col gap-1.5 pt-2 border-t border-olive-100">
-                <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest mb-1.5">New Device Key</p>
+                <p className="section-label mb-1.5">New device key</p>
                 <div className="grid grid-cols-2 gap-2">
                   <input
-                    className="bg-white border border-olive-200 rounded px-3 py-2 text-xs text-olive-950 transition-all focus:outline-none focus:border-olive-500"
+                    className="input-base !h-9 !w-auto"
                     onChange={(event) => setDeviceName(event.target.value)}
                     placeholder="e.g. Work Mobile"
                     value={deviceName}
                   />
                   <select
-                    className="bg-white border border-olive-200 rounded px-3 py-2 text-xs text-olive-950 transition-all focus:outline-none focus:border-olive-500"
+                    className="input-base !h-9 !w-auto"
                     onChange={(event) => setDeviceType(event.target.value)}
                     value={deviceType}
                   >
@@ -770,13 +743,9 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       <SectionCard>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-olive-600 text-[11px] tracking-[0.12em] uppercase font-bold">A.I.</span>
-            <h2 className="mt-0.5 mb-0.5 text-sm font-semibold text-olive-950">ChatGPT Integration</h2>
-            <p className="text-olive-500 m-0 text-xs">Configure a custom GPT to manage your tasks via voice or chat.</p>
+            <h2 className="m-0 text-[15px] font-semibold text-olive-950">ChatGPT Integration</h2>
+            <p className="text-olive-500 m-0 mt-0.5 text-[13px]">Configure a custom GPT to manage your tasks via voice or chat.</p>
           </div>
-          <span className="flex items-center justify-center w-8 h-8 bg-olive-100 rounded text-olive-750 shrink-0">
-            <Sparkles size={16} />
-          </span>
         </div>
 
         {/* Accordion steps */}
@@ -856,7 +825,7 @@ function SettingsPanel({ activeProject, onAiConfigChange }: SettingsPanelProps):
       {generatedCompanionKey && (
         <Modal onClose={() => setGeneratedCompanionKey(null)} title="Companion Device Key">
           <div className="grid gap-3">
-            <p className="text-olive-500 m-0 text-xs">
+            <p className="text-olive-500 m-0 mt-0.5 text-[13px]">
               Key for <strong className="text-olive-900">{generatedCompanionKey?.deviceName}</strong>. Copy it now; it won't be shown again.
             </p>
             <code className="block bg-olive-900 text-olive-100 text-[0.8rem] rounded p-3 break-all font-mono">

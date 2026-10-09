@@ -70,7 +70,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick }
       </div>
 
       {/* Weekdays */}
-      <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
+      <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-medium text-slate-400">
         <div>Sun</div>
         <div>Mon</div>
         <div>Tue</div>

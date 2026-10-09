@@ -109,7 +109,7 @@ export function EngagementFab(): JSX.Element {
                 </button>
               </div>
               <div className="p-2 max-h-[350px] overflow-y-auto">
-                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500">
                   Page Tours
                 </div>
                 <div className="space-y-1">
@@ -136,7 +136,7 @@ export function EngagementFab(): JSX.Element {
                   ))}
                 </div>
                 <div className="h-px bg-slate-100 my-2" />
-                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500">
                   User Surveys
                 </div>
                 <button
@@ -161,12 +161,12 @@ export function EngagementFab(): JSX.Element {
       </AnimatePresence>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 hover:rotate-6 relative group"
+        className="w-12 h-12 rounded-full bg-brand-700 hover:bg-brand-800 text-white shadow-lg flex items-center justify-center transition-all duration-300 hover:rotate-6 relative group"
         title="View Product Tours"
         id="btn-trigger-guides-manual"
       >
         <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full animate-pulse" />
-        <Compass className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+        <Compass className="w-5 h-5 transition-transform duration-300" />
       </button>
     </div>
   );

@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
-import UserAvatar from './UserAvatar';
 import NotificationBox, { Notification } from './NotificationBox';
+import { useInvitationInbox } from './InvitationNotificationPanel';
 
 interface TopbarProps {
   title: string;
   breadcrumbs?: React.ReactNode;
-  user: { name: string | null; email: string };
+  user?: { name: string | null; email: string };
   notifications: Notification[];
   isNotificationsOpen: boolean;
   onNotificationsToggle: () => void;
@@ -20,7 +20,6 @@ interface TopbarProps {
 const Topbar: React.FC<TopbarProps> = ({
   title,
   breadcrumbs,
-  user,
   notifications,
   isNotificationsOpen,
   onNotificationsToggle,
@@ -30,44 +29,59 @@ const Topbar: React.FC<TopbarProps> = ({
   onNotificationClick,
   rightContent
 }) => {
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const inbox = useInvitationInbox();
+  const bellRef = useRef<HTMLDivElement>(null);
+  const unreadCount = notifications.filter(n => !n.isRead).length + inbox.count;
+
+  useEffect(() => {
+    if (!isNotificationsOpen) return;
+    const onPointer = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) onNotificationsClose();
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onNotificationsClose();
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isNotificationsOpen, onNotificationsClose]);
 
   return (
-    <header className="relative z-50 flex items-center justify-between gap-4 px-6 h-[52px] shrink-0 bg-white border-b border-gray-200">
-      {/* Left — title + breadcrumbs */}
-      <div className="flex items-center gap-1.5 min-w-0">
+    <header className="relative z-40 flex items-center justify-between gap-4 px-6 h-14 shrink-0 bg-white/85 backdrop-blur border-b border-olive-200">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0 text-[13px]">
         {breadcrumbs ? (
-          <div className="flex items-center gap-1 text-[0.75rem] text-gray-400 min-w-0">
-            {breadcrumbs}
-            <span className="text-gray-300 mx-1">/</span>
-            <span className="text-gray-700 font-medium truncate">{title}</span>
-          </div>
+          <>
+            <div className="flex items-center gap-1.5 text-olive-500 min-w-0">{breadcrumbs}</div>
+            <span className="text-olive-300">/</span>
+            <span className="text-olive-900 font-medium truncate">{title}</span>
+          </>
         ) : (
-          <h1 className="text-[0.875rem] font-semibold text-gray-900 truncate">{title}</h1>
+          <h1 className="text-sm font-medium text-olive-900 truncate m-0">{title}</h1>
         )}
-      </div>
+      </nav>
 
-      {/* Right — actions */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         {rightContent}
 
-        {/* Bell */}
-        <div className="relative">
+        <div className="relative" ref={bellRef}>
           <button
-            className="flex items-center justify-center w-7 h-7 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+            aria-expanded={isNotificationsOpen}
+            className={`relative icon-btn !w-9 !h-9 ${isNotificationsOpen ? 'bg-olive-100 text-olive-900' : ''}`}
             onClick={onNotificationsToggle}
             type="button"
-            title="Notifications"
           >
-            <Bell className="w-4 h-4" />
+            <Bell size={17} strokeWidth={1.8} />
             {unreadCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-gray-800 text-[11px] font-bold text-white">
+              <span className="absolute top-1.5 right-1.5 min-w-[15px] h-[15px] px-1 rounded-full bg-brand-600 ring-2 ring-white text-[10px] font-semibold leading-[15px] text-white text-center">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
           {isNotificationsOpen && (
             <NotificationBox
+              inbox={inbox}
               notifications={notifications}
               onClose={onNotificationsClose}
               onMarkAsRead={onMarkAsRead}
@@ -75,15 +89,6 @@ const Topbar: React.FC<TopbarProps> = ({
               onNotificationClick={onNotificationClick}
             />
           )}
-        </div>
-
-        {/* User */}
-        <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-          <UserAvatar name={user.name} email={user.email} size="sm" showTooltip={false} />
-          <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-[0.75rem] font-medium text-gray-800">{user.name || 'User'}</span>
-            <span className="text-[11px] text-gray-400">{user.email}</span>
-          </div>
         </div>
       </div>
     </header>

@@ -56,21 +56,18 @@ function GoogleOAuthCallbackPage(): JSX.Element {
   }, [completeGoogleSignIn, location.pathname, location.search, navigate]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-white p-6 font-sans">
+    <main className="min-h-screen flex items-center justify-center bg-olive-50 p-6">
       {error ? (
-        <div className="max-w-sm text-center grid gap-4">
-          <p role="alert" className="m-0 text-sm font-medium text-red-600">
+        <div className="card max-w-sm w-full p-6 text-center grid gap-4">
+          <p role="alert" className="m-0 text-sm text-red-700">
             {error}
           </p>
-          <Link to="/login" replace className="text-sm font-bold text-olive-800 underline">
+          <Link to="/login" replace className="btn btn-secondary w-full">
             Back to sign in
           </Link>
         </div>
       ) : (
-        <div className="grid gap-3 justify-items-center text-sm text-olive-700">
-          <Loader />
-          <p className="m-0">Finishing Google sign-in…</p>
-        </div>
+        <Loader label="Finishing Google sign-in…" />
       )}
     </main>
   );

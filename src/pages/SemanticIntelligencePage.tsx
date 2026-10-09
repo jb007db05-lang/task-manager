@@ -1,3 +1,4 @@
+import PageHeader from '@/components/PageHeader';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
@@ -162,7 +163,7 @@ const Sparkline = ({ data }: { data: number[] }) => {
 
 const FactorBar = ({ label, share, color = 'var(--color-olive-700)' }: { label: string, share: number, color?: string }) => (
   <div className="space-y-1.5">
-    <div className="flex justify-between text-[11px] font-semibold uppercase tracking-wider">
+    <div className="flex justify-between text-[11px] font-semibold">
       <span className="text-olive-500 ">{label}</span>
       <span className="text-olive-700 ">{share}%</span>
     </div>
@@ -427,74 +428,59 @@ export default function SemanticIntelligencePage({
       <div className="flex h-[80vh] items-center justify-center">
         <div className="text-center">
           <Loader2 className="mx-auto animate-spin text-olive-700" size={40} />
-          <p className="mt-4 text-sm font-semibold text-olive-500 uppercase tracking-widest">Hydrating Semantic Layer</p>
+          <p className="mt-4 text-sm font-semibold text-olive-500">Hydrating Semantic Layer</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-olive-50 font-sans">
-      {/* Header Panel */}
-      <div className="sticky top-0 z-20 px-8 py-4 border-b border-olive-200/60 bg-white/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(63,98,18,0.04)]">
-        <div className="flex flex-wrap items-center justify-between gap-6 max-w-full mx-auto">
-          <div className="flex items-center justify-between w-full gap-3">
-            <div className="relative group">
-              <select
-                className="h-10 pl-10 pr-10 rounded-xl border border-olive-200 bg-white text-xs font-medium text-olive-700 shadow-sm appearance-none focus:ring-4 focus:ring-olive-700/5 focus:border-olive-400 outline-none transition-all cursor-pointer hover:border-olive-300"
-                onChange={(event) => setActiveProjectId(event.target.value)}
-                value={activeProjectId}
-              >
-                <option value={allProjectsValue}>All Workspaces</option>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
-              <Workflow className="absolute left-3.5 top-3 text-olive-500 group-hover:text-olive-700 transition-colors" size={14} />
-              <div className="absolute right-3.5 top-3.5 pointer-events-none text-olive-400">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="flex rounded-xl border border-olive-200 bg-olive-50/50 p-1 shadow-inner backdrop-blur-sm">
-              {timeRangeOptions.map((option) => (
-                <button
-                  className={[
-                    'h-8 px-4 text-[11px] font-medium uppercase tracking-widest rounded-lg transition-all duration-300',
-                    timeRange === option.value
-                      ? 'bg-white text-olive-800 shadow-md ring-1 ring-olive-100'
-                      : 'text-olive-500 hover:text-olive-800 hover:bg-white/50'
-                  ].join(' ')}
-                  key={option.value}
-                  onClick={() => setTimeRange(option.value)}
-                  type="button"
+    <div className="min-h-full">
+      <div className="px-8 pt-8">
+        <PageHeader
+          title="Intelligence"
+          description="Health, risk and momentum across your projects — with the reasoning behind each signal."
+          actions={
+            <>
+              <div className="relative">
+                <Workflow className="absolute left-2.5 top-1/2 -translate-y-1/2 text-olive-400 pointer-events-none" size={14} />
+                <select
+                  aria-label="Project"
+                  className="input-base !h-9 !w-auto !pl-8 !pr-8 !text-[13px]"
+                  onChange={(event) => setActiveProjectId(event.target.value)}
+                  value={activeProjectId}
                 >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-
-            <button
-              className={[
-                'flex h-10 items-center gap-2 rounded-xl px-5 text-xs font-medium transition-all duration-300 transform active:scale-95 group',
-                loading
-                  ? 'bg-olive-100 text-olive-400 cursor-not-allowed border border-olive-200'
-                  : 'bg-olive-900 text-white shadow-lg shadow-olive-900/20 hover:bg-black hover:shadow-black/25'
-              ].join(' ')}
-              disabled={loading}
-              onClick={() => void loadIntelligence()}
-              type="button"
-            >
-              {loading ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />}
-              <span className="tracking-widest uppercase">Sync</span>
-            </button>
-          </div>
-
-        </div>
+                  <option value={allProjectsValue}>All projects</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center p-0.5 rounded-lg bg-olive-100 border border-olive-200/70" role="tablist" aria-label="Time range">
+                {timeRangeOptions.map((option) => (
+                  <button
+                    aria-selected={timeRange === option.value}
+                    role="tab"
+                    className={`h-8 px-3 rounded-md text-[13px] transition-colors ${
+                      timeRange === option.value ? 'bg-white shadow-xs text-olive-950 font-medium' : 'text-olive-500 hover:text-olive-800'
+                    }`}
+                    key={option.value}
+                    onClick={() => setTimeRange(option.value)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <button className="btn btn-secondary !h-9" disabled={loading} onClick={() => void loadIntelligence()} type="button">
+                {loading ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+                Refresh
+              </button>
+            </>
+          }
+        />
       </div>
 
       <div className="p-8 space-y-8 animate-fadeIn">
@@ -519,12 +505,12 @@ export default function SemanticIntelligencePage({
 
             return (
               <section
-                className="group relative rounded-2xl border border-olive-200 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1  "
+                className="group relative rounded-2xl border border-olive-200 bg-white p-6 shadow-sm transition-all hover:shadow-xl  "
                 key={metric}
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 ">
+                    <p className="text-[11px] font-medium text-olive-400">
                       {result?.label ?? metric.replace(/_/g, ' ')}
                     </p>
                     <h4 className="text-3xl font-semibold text-olive-800  tabular-nums">
@@ -544,12 +530,12 @@ export default function SemanticIntelligencePage({
                   <div className="space-y-1">
                     <p className="text-xs font-medium text-olive-500  capitalize">{hint}</p>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-olive-100 px-1.5 py-0.5 text-[11px] font-medium uppercase text-olive-500  ">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-olive-100 px-1.5 py-0.5 text-[11px] font-medium text-olive-500">
                         <ShieldCheck size={10} />
                         {result?.semantic?.stability ?? definition?.stability ?? 'STABLE'}
                       </span>
                       {definition?.AIVisibility === 'safe' && (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium uppercase text-emerald-700  ">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
                           AI-SAFE
                         </span>
                       )}
@@ -560,7 +546,7 @@ export default function SemanticIntelligencePage({
 
                 {definition?.drilldownSupport && (
                   <button
-                    className="mt-6 w-full flex h-9 items-center justify-center gap-2 rounded-lg border border-olive-100 bg-olive-50 text-[11px] font-medium uppercase tracking-widest text-olive-800 hover:bg-olive-50    "
+                    className="mt-6 w-full flex h-9 items-center justify-center gap-2 rounded-lg border border-olive-100 bg-olive-50 text-[11px] font-medium text-olive-800 hover:bg-olive-50"
                     disabled={drilldownLoading === metric}
                     onClick={() => void openDrilldown(metric)}
                     type="button"
@@ -589,7 +575,7 @@ export default function SemanticIntelligencePage({
                     </h4>
                   </div>
                   <div className={[
-                    'flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-widest ring-1 ring-inset',
+                    'flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium ring-1 ring-inset',
                     reasoning.status === 'at_risk'
                       ? 'bg-red-50 text-red-700 ring-red-200'
                       : reasoning.status === 'watch'
@@ -616,7 +602,7 @@ export default function SemanticIntelligencePage({
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="rounded-2xl bg-olive-50/50 p-6  border border-olive-100 ">
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-olive-400 mb-4">Semantic Context</p>
+                    <p className="text-[11px] font-medium text-olive-400 mb-4">Semantic Context</p>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(reasoning.semanticInterpretation ?? {}).map(([key, value]) => (
                         <span className="rounded-lg bg-white px-3 py-1.5 text-[11px] font-semibold text-olive-700 shadow-sm border border-olive-100   " key={key}>
@@ -627,7 +613,7 @@ export default function SemanticIntelligencePage({
                     </div>
                   </div>
                   <div className="rounded-2xl bg-olive-50/50 p-6  border border-olive-100 ">
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-olive-400 mb-4">Governance Recommendations</p>
+                    <p className="text-[11px] font-medium text-olive-400 mb-4">Governance Recommendations</p>
                     <div className="space-y-3">
                       {(reasoning.recommendations ?? []).slice(0, 3).map((rec, i) => (
                         <div key={i} className="flex items-start gap-3 group">
@@ -643,7 +629,7 @@ export default function SemanticIntelligencePage({
               </div>
 
               <div className="w-full xl:w-96 border-t xl:border-t-0 xl:border-l border-olive-200  bg-olive-50/30  p-8">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 mb-8">Intelligence Vectors</p>
+                <p className="text-[11px] font-medium text-olive-400 mb-8">Intelligence Vectors</p>
                 <div className="space-y-8">
                   {[
                     { label: 'Delivery Risk', value: reasoning.scores.deliveryRisk, color: '#ef4444' },
@@ -653,7 +639,7 @@ export default function SemanticIntelligencePage({
                   ].map((item) => (
                     <div key={item.label} className="group flex items-center justify-between">
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-olive-600  group-hover:text-olive-800  transition-colors uppercase tracking-tight">
+                        <p className="text-xs font-medium text-olive-600  group-hover:text-olive-800  transition-colors">
                           {item.label}
                         </p>
                         <div className="h-1.5 w-40 rounded-full bg-olive-100  overflow-hidden">
@@ -686,7 +672,7 @@ export default function SemanticIntelligencePage({
                 </div>
                 <h4 className="text-lg font-semibold text-olive-800 ">Operational Anomalies</h4>
               </div>
-              <span className="text-[11px] font-medium uppercase tracking-widest text-olive-400">Threshold: 2.5σ</span>
+              <span className="text-[11px] font-medium text-olive-400">Threshold: 2.5σ</span>
             </div>
 
             <div className="space-y-4">
@@ -702,10 +688,10 @@ export default function SemanticIntelligencePage({
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-olive-800  uppercase tracking-tight">
+                          <p className="text-sm font-semibold text-olive-800">
                             {anomaly.metric.replace(/_/g, ' ')}
                           </p>
-                          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-olive-200  text-olive-500  uppercase">
+                          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-olive-200  text-olive-500">
                             {anomaly.category}
                           </span>
                         </div>
@@ -721,12 +707,12 @@ export default function SemanticIntelligencePage({
                         <div className="text-2xl font-semibold text-red-600  tracking-tighter">
                           {anomaly.score}
                         </div>
-                        <p className="text-[11px] font-medium text-olive-400 uppercase tracking-widest">Severity</p>
+                        <p className="text-[11px] font-medium text-olive-400">Severity</p>
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-1.5">
                       {(anomaly.affectedWorkflows ?? []).map((w) => (
-                        <span key={w} className="text-[11px] font-medium uppercase px-2 py-1 rounded-md bg-white border border-olive-100 text-olive-500  ">
+                        <span key={w} className="text-[11px] font-medium px-2 py-1 rounded-md bg-white border border-olive-100 text-olive-500">
                           {w.replace(/_/g, ' ')}
                         </span>
                       ))}
@@ -753,16 +739,16 @@ export default function SemanticIntelligencePage({
               {trends.slice(0, 5).map((trend) => (
                 <div className="group flex items-center justify-between p-4 rounded-2xl border border-olive-100 hover:border-olive-200 transition-colors  " key={trend.metric}>
                   <div className="space-y-1">
-                    <h5 className="text-sm font-semibold text-olive-800  uppercase tracking-tight">
+                    <h5 className="text-sm font-semibold text-olive-800">
                       {trend.metric.replace(/_/g, ' ')}
                     </h5>
                     <p className="text-xs font-medium text-olive-500 ">{trend.interpretation}</p>
                     <div className="flex items-center gap-3 pt-2">
-                      <div className="flex items-center gap-1 text-[11px] font-medium text-olive-400 uppercase">
+                      <div className="flex items-center gap-1 text-[11px] font-medium text-olive-400">
                         <Activity size={10} />
                         Accel: {trend.acceleration ?? 0}
                       </div>
-                      <div className="flex items-center gap-1 text-[11px] font-medium text-emerald-600  uppercase">
+                      <div className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
                         <ShieldCheck size={10} />
                         Confidence {trend.confidence}%
                       </div>
@@ -770,7 +756,7 @@ export default function SemanticIntelligencePage({
                   </div>
                   <div className="text-right space-y-2">
                     <span className={[
-                      'inline-block px-3 py-1 rounded-full text-[11px] font-medium uppercase tracking-widest',
+                      'inline-block px-3 py-1 rounded-full text-[11px] font-medium',
                       trend.direction === 'up' ? 'bg-emerald-50 text-emerald-700' :
                         trend.direction === 'down' ? 'bg-red-50 text-red-700' :
                           'bg-olive-100 text-olive-600',
@@ -796,7 +782,7 @@ export default function SemanticIntelligencePage({
                 </div>
                 <h4 className="text-lg font-semibold text-olive-800 tracking-tight">Predictive Forecasting</h4>
               </div>
-              <div className="text-[11px] font-bold text-olive-400 uppercase tracking-widest border-b border-olive-100 pb-1">
+              <div className="text-[11px] font-bold text-olive-400 border-b border-olive-100 pb-1">
                 Protocol: Semantic Projection
               </div>
             </div>
@@ -806,9 +792,9 @@ export default function SemanticIntelligencePage({
                 <div className="grid grid-cols-3 gap-1 divide-x divide-olive-100 border border-olive-100 rounded-2xl overflow-hidden bg-olive-50/30">
                   {forecast.horizons.map((h: OperationalForecast['horizons'][number]) => (
                     <div key={h.days} className="p-6 text-center bg-white transition-colors hover:bg-olive-50/50">
-                      <p className="text-[11px] font-bold text-olive-400 uppercase tracking-[0.2em] mb-4">{h.days}D Projection</p>
+                      <p className="text-[11px] font-bold text-olive-400 mb-4">{h.days}D Projection</p>
                       <div className="text-4xl font-light text-olive-900 tabular-nums tracking-tighter mb-1">{h.projectedValue}</div>
-                      <span className={['text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md', h.trajectory === 'degrading' ? 'text-red-600 bg-red-50' : 'text-emerald-600 bg-emerald-50'].join(' ')}>
+                      <span className={['text-[11px] font-bold px-2 py-0.5 rounded-md', h.trajectory === 'degrading' ? 'text-red-600 bg-red-50' : 'text-emerald-600 bg-emerald-50'].join(' ')}>
                         {h.trajectory}
                       </span>
                       <div className="mt-6 flex items-center justify-between gap-2 px-2">
@@ -824,11 +810,11 @@ export default function SemanticIntelligencePage({
                 <div className="p-8 rounded-2xl bg-olive-50/30 border border-olive-100">
                   <div className="flex items-center gap-2 mb-8 opacity-60">
                     <Bot size={14} className="text-olive-700" />
-                    <p className="text-[11px] font-bold text-olive-500 uppercase tracking-[0.3em]">Causal Momentum Matrix</p>
+                    <p className="text-[11px] font-bold text-olive-500">Causal Momentum Matrix</p>
                   </div>
                   <div className="grid lg:grid-cols-[1fr_200px] gap-12">
                     <div className="space-y-6">
-                      <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest">Active Risk Drivers</p>
+                      <p className="text-[11px] font-bold text-olive-400">Active Risk Drivers</p>
                       <div className="grid gap-5">
                         {forecast.riskDrivers.map((d: OperationalForecast['riskDrivers'][number]) => (
                           <FactorBar key={d.key} label={d.label} share={d.value} color="var(--color-olive-600)" />
@@ -836,8 +822,8 @@ export default function SemanticIntelligencePage({
                       </div>
                     </div>
                     <div className="flex flex-col justify-center items-center text-center p-6 bg-white rounded-xl border border-olive-100">
-                      <div className="text-3xl font-bold text-olive-900 tabular-nums uppercase tracking-tighter mb-1">{forecast.momentum}</div>
-                      <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest">State Vector</p>
+                      <div className="text-3xl font-bold text-olive-900 tabular-nums mb-1">{forecast.momentum}</div>
+                      <p className="text-[11px] font-bold text-olive-400">State Vector</p>
                       <p className="text-[11px] text-olive-500 mt-4 leading-relaxed font-medium">
                         Current trajectory has <span className="text-olive-900 font-bold">{forecast.propagationRisk}%</span> propagation probability.
                       </p>
@@ -846,7 +832,7 @@ export default function SemanticIntelligencePage({
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center text-olive-300 font-mono text-[11px] uppercase tracking-widest">Initialising Forecast Engine...</div>
+              <div className="py-20 text-center text-olive-300 font-mono text-[11px]">Initialising Forecast Engine...</div>
             )}
           </section>
 
@@ -875,7 +861,7 @@ export default function SemanticIntelligencePage({
                     key={opt.id}
                     onClick={() => runSimulation(opt.id as OperationalSimulation['intervention']['type'])}
                     disabled={simulating}
-                    className="group flex items-center justify-between h-10 px-4 rounded-lg border border-olive-100 bg-olive-50/30 hover:bg-white hover:border-olive-400 text-[11px] font-bold uppercase tracking-widest text-olive-600 transition-all active:scale-[0.99] disabled:opacity-50"
+                    className="group flex items-center justify-between h-10 px-4 rounded-lg border border-olive-100 bg-olive-50/30 hover:bg-white hover:border-olive-400 text-[11px] font-bold text-olive-600 transition-all active:scale-[0.99] disabled:opacity-50"
                   >
                     <span>{opt.label}</span>
                     <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
@@ -887,22 +873,22 @@ export default function SemanticIntelligencePage({
                 <div className="mt-8 p-6 rounded-xl bg-olive-900 text-white border border-olive-800">
                   <div className="flex items-center justify-between mb-8">
                     <div>
-                      <p className="text-[11px] font-bold text-olive-400 uppercase tracking-widest mb-1">Simulated Output</p>
+                      <p className="text-[11px] font-bold text-olive-400 mb-1">Simulated Output</p>
                       <h5 className="text-base font-bold tracking-tight capitalize">{simulation.intervention.type.replace(/_/g, ' ')}</h5>
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold text-white tabular-nums tracking-tighter">{simulation.simulatedValue}</div>
-                      <p className="text-[11px] font-bold text-olive-500 uppercase tracking-widest">Projected Score</p>
+                      <p className="text-[11px] font-bold text-olive-500">Projected Score</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
                     <div>
                       <div className="text-lg font-bold text-emerald-400 tabular-nums">-{simulation.impact}</div>
-                      <p className="text-[8px] font-bold uppercase tracking-widest text-olive-500">Risk Delta</p>
+                      <p className="text-[11px] font-bold text-olive-500">Risk Delta</p>
                     </div>
                     <div>
                       <div className="text-lg font-bold text-olive-300 tabular-nums">{simulation.confidence}%</div>
-                      <p className="text-[8px] font-bold uppercase tracking-widest text-olive-500">Certainty</p>
+                      <p className="text-[11px] font-bold text-olive-500">Certainty</p>
                     </div>
                   </div>
                 </div>
@@ -911,14 +897,14 @@ export default function SemanticIntelligencePage({
               {!simulation && !simulating && (
                 <div className="py-12 flex flex-col items-center justify-center text-center border border-dashed border-olive-100 rounded-xl opacity-40">
                   <RefreshCw size={24} className="text-olive-300 mb-4" />
-                  <p className="text-[11px] font-bold text-olive-400 uppercase tracking-[0.2em]">Ready for simulation input</p>
+                  <p className="text-[11px] font-bold text-olive-400">Ready for simulation input</p>
                 </div>
               )}
 
               {simulating && (
                 <div className="py-12 flex flex-col items-center justify-center text-center">
                   <Loader2 size={24} className="animate-spin text-olive-600 mb-4" />
-                  <p className="text-[11px] font-bold text-olive-600 uppercase tracking-widest">Computing causal delta...</p>
+                  <p className="text-[11px] font-bold text-olive-600">Computing causal delta...</p>
                 </div>
               )}
             </div>
@@ -937,7 +923,7 @@ export default function SemanticIntelligencePage({
                 <h4 className="text-lg font-semibold text-olive-800 ">Explainability Graph</h4>
               </div>
               {explanation && (
-                <div className="px-3 py-1 rounded-full bg-emerald-50  text-[11px] font-medium text-emerald-700  uppercase tracking-widest">
+                <div className="px-3 py-1 rounded-full bg-emerald-50  text-[11px] font-medium text-emerald-700">
                   {explanation.confidence}% Confidence
                 </div>
               )}
@@ -953,7 +939,7 @@ export default function SemanticIntelligencePage({
 
                 <div className="grid gap-8 lg:grid-cols-2">
                   <div className="space-y-6">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400">Contribution Factors</p>
+                    <p className="text-[11px] font-medium text-olive-400">Contribution Factors</p>
                     <div className="space-y-5">
                       {(explanation.contributorWeights ?? explanation.factors).slice(0, 5).map((f) => (
                         <FactorBar key={f.key} label={f.label} share={f.contributionShare ?? f.value} color={f.key.includes('risk') ? '#ef4444' : 'var(--color-olive-600)'} />
@@ -963,7 +949,7 @@ export default function SemanticIntelligencePage({
                 </div>
 
                 <div className="pt-6 border-t border-olive-100 ">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 mb-4">Reasoning Trace</p>
+                  <p className="text-[11px] font-medium text-olive-400 mb-4">Reasoning Trace</p>
                   <div className="grid gap-2">
                     {explanation.reasoningChain.map((step, i) => (
                       <div key={i} className="flex gap-3 text-xs text-olive-500 ">
@@ -977,7 +963,7 @@ export default function SemanticIntelligencePage({
             ) : (
               <div className="py-20 text-center">
                 <Loader2 size={32} className="mx-auto text-olive-200 animate-spin mb-4" />
-                <p className="text-sm font-semibold text-olive-400 uppercase tracking-widest">Awaiting Causal Input</p>
+                <p className="text-sm font-semibold text-olive-400">Awaiting Causal Input</p>
               </div>
             )}
           </section>
@@ -993,7 +979,7 @@ export default function SemanticIntelligencePage({
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-olive-50 border border-olive-100">
                 <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[11px] font-medium uppercase tracking-widest text-olive-500">Live Stream</span>
+                <span className="text-[11px] font-medium text-olive-500">Live Stream</span>
               </div>
             </div>
 
@@ -1003,7 +989,7 @@ export default function SemanticIntelligencePage({
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <p className="text-base font-semibold leading-tight text-olive-900">{replayNarrative}</p>
                     {replayConfidence && (
-                      <div className="px-2.5 py-1 rounded-lg bg-olive-100 border border-olive-200 text-[11px] font-medium uppercase tracking-widest text-olive-600">
+                      <div className="px-2.5 py-1 rounded-lg bg-olive-100 border border-olive-200 text-[11px] font-medium text-olive-600">
                         {replayConfidence}% Conf
                       </div>
                     )}
@@ -1019,7 +1005,7 @@ export default function SemanticIntelligencePage({
                           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                             {chain.stages.map((stage, i) => (
                               <div key={i} className="flex items-center gap-2 flex-shrink-0">
-                                <span className="px-2 py-0.5 rounded-md bg-olive-50 text-[11px] font-medium uppercase tracking-widest text-olive-500 border border-olive-100">
+                                <span className="px-2 py-0.5 rounded-md bg-olive-50 text-[11px] font-medium text-olive-500 border border-olive-100">
                                   {stage.replace(/_/g, ' ')}
                                 </span>
                                 {i < chain.stages.length - 1 && <ArrowRight size={10} className="text-olive-200" />}
@@ -1039,7 +1025,7 @@ export default function SemanticIntelligencePage({
                 {timeline.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center opacity-60">
                     <img src={noDataImg} alt="No events" className="" />
-                    <p className="text-xs font-medium text-olive-400 uppercase tracking-widest">Awaiting events...</p>
+                    <p className="text-xs font-medium text-olive-400">Awaiting events...</p>
                   </div>
                 ) : (
                   timeline.map((event) => {
@@ -1059,10 +1045,10 @@ export default function SemanticIntelligencePage({
                           <div className="flex flex-wrap items-start justify-between gap-4">
                             <div className="space-y-1">
                               <div className="flex items-center gap-3">
-                                <h5 className="text-sm font-semibold text-olive-900 uppercase tracking-tight">
+                                <h5 className="text-sm font-semibold text-olive-900">
                                   {event.eventName.replace(/_/g, ' ')}
                                 </h5>
-                                <span className="text-[11px] font-medium text-olive-400 tabular-nums uppercase">
+                                <span className="text-[11px] font-medium text-olive-400 tabular-nums">
                                   {new Date(event.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
@@ -1071,7 +1057,7 @@ export default function SemanticIntelligencePage({
 
                             {event.operationalImpact?.score && (
                               <div className={[
-                                'px-2 py-1 rounded text-[11px] font-medium uppercase tracking-widest border',
+                                'px-2 py-1 rounded text-[11px] font-medium border',
                                 event.operationalImpact.score > 70 ? 'bg-red-50 text-red-700 border-red-100' :
                                   event.operationalImpact.score > 40 ? 'bg-amber-50 text-amber-700 border-amber-100' :
                                     'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -1083,7 +1069,7 @@ export default function SemanticIntelligencePage({
 
                           <div className="mt-4 flex flex-wrap gap-1.5">
                             {(event.semanticTags ?? event.causalSignals ?? []).map((tag) => (
-                              <span key={tag} className="px-2 py-0.5 rounded bg-olive-50 text-[11px] font-medium text-olive-500 border border-olive-100 uppercase tracking-tight">
+                              <span key={tag} className="px-2 py-0.5 rounded bg-olive-50 text-[11px] font-medium text-olive-500 border border-olive-100">
                                 {tag.replace(/_/g, ' ')}
                               </span>
                             ))}
@@ -1118,7 +1104,7 @@ export default function SemanticIntelligencePage({
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-semibold text-olive-800  tabular-nums">{drilldown.pagination.total}</p>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400">Contributing Entities</p>
+                  <p className="text-[11px] font-medium text-olive-400">Contributing Entities</p>
                 </div>
               </div>
 
@@ -1131,11 +1117,11 @@ export default function SemanticIntelligencePage({
                       </h5>
                       <p className="text-xs text-olive-500  leading-snug">{row.reason}</p>
                       <div className="flex items-center gap-3 pt-1">
-                        <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white  text-olive-500 border border-olive-100  uppercase tracking-tight">
+                        <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-white  text-olive-500 border border-olive-100">
                           {row.status}
                         </span>
                         <span className={[
-                          'text-[11px] font-medium px-2 py-0.5 rounded uppercase tracking-tight',
+                          'text-[11px] font-medium px-2 py-0.5 rounded',
                           row.priority === 'high' ? 'bg-red-50 text-red-700' :
                             row.priority === 'medium' ? 'bg-amber-50 text-amber-700' :
                               'bg-olive-100 text-olive-600',
@@ -1166,14 +1152,14 @@ export default function SemanticIntelligencePage({
               {perUserRows.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <img src={noDataImg} alt="No activity" className="w-72 opacity-20 grayscale" />
-                  <p className="text-xs font-medium text-olive-400 uppercase tracking-widest">No User Activity Detected</p>
+                  <p className="text-xs font-medium text-olive-400">No User Activity Detected</p>
                 </div>
               ) : (
                 perUserRows.map((row) => (
                   <div className="group space-y-2" key={row.userId}>
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-olive-100 text-[11px] font-medium uppercase text-olive-500 ">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-olive-100 text-[11px] font-medium text-olive-500">
                           {row.name ? row.name.slice(0, 2) : row.userId.slice(0, 2)}
                         </div>
                         <span className="font-semibold text-olive-700  group-hover:text-olive-700 transition-colors">
@@ -1204,9 +1190,9 @@ export default function SemanticIntelligencePage({
 
             <div className="space-y-4">
               <div className="p-5 rounded-2xl bg-olive-50  border border-olive-100  group">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 mb-3 group-hover:text-olive-700 transition-colors">Governed Asset</p>
+                <p className="text-[11px] font-medium text-olive-400 mb-3 group-hover:text-olive-700 transition-colors">Governed Asset</p>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-olive-800  uppercase tracking-tight">
+                  <p className="text-sm font-semibold text-olive-800">
                     Delivery Risk • {governance?.semanticMaturityLevel?.replace(/_/g, ' ') ?? 'Semantic Metric'}
                   </p>
                   <ShieldCheck size={16} className="text-emerald-500" />
@@ -1214,10 +1200,10 @@ export default function SemanticIntelligencePage({
               </div>
 
               <div className="p-5 rounded-2xl bg-olive-50  border border-olive-100 ">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 mb-4">Source Signal Lineage</p>
+                <p className="text-[11px] font-medium text-olive-400 mb-4">Source Signal Lineage</p>
                 <div className="flex flex-wrap gap-2">
                   {(lineage?.lineage.sourceEvents ?? []).slice(0, 8).map((ev) => (
-                    <span key={ev} className="px-2 py-1 rounded bg-white text-[11px] font-medium uppercase tracking-tighter text-olive-500 border border-olive-100  ">
+                    <span key={ev} className="px-2 py-1 rounded bg-white text-[11px] font-medium text-olive-500 border border-olive-100">
                       {ev.replace(/_/g, ' ')}
                     </span>
                   ))}
@@ -1226,17 +1212,17 @@ export default function SemanticIntelligencePage({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-5 rounded-2xl bg-olive-50  border border-olive-100 ">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 mb-2">Stability</p>
-                  <p className="text-xs font-medium text-olive-700  uppercase tracking-widest">{governance?.lifecycleState ?? 'STABLE'}</p>
+                  <p className="text-[11px] font-medium text-olive-400 mb-2">Stability</p>
+                  <p className="text-xs font-medium text-olive-700">{governance?.lifecycleState ?? 'STABLE'}</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-olive-50  border border-olive-100 ">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-olive-400 mb-2">AI Visibility</p>
-                  <p className="text-xs font-medium text-emerald-600  uppercase tracking-widest">{governance?.aiVisibility ?? 'SAFE'}</p>
+                  <p className="text-[11px] font-medium text-olive-400 mb-2">AI Visibility</p>
+                  <p className="text-xs font-medium text-emerald-600">{governance?.aiVisibility ?? 'SAFE'}</p>
                 </div>
               </div>
 
               <div className="p-5 rounded-2xl bg-white text-white group cursor-help">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/40 mb-3 group-hover:text-emerald-400 transition-colors">Semantic Freshness Policy</p>
+                <p className="text-[11px] font-medium text-white/40 mb-3 group-hover:text-emerald-400 transition-colors">Semantic Freshness Policy</p>
                 <div className="flex items-center gap-3">
                   <RefreshCw size={14} className="animate-spin-slow" />
                   <p className="text-xs font-medium">{governance?.freshnessPolicy?.replace(/_/g, ' ') ?? 'EVENT DRIVEN REALTIME'}</p>

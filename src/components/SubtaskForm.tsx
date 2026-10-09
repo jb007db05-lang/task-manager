@@ -28,7 +28,7 @@ const createDraft = (): SubtaskDraft => ({
   assignedToUserId: null
 });
 
-const inputCls = 'w-full bg-white/82  border border-olive-200  rounded-md text-olive-950  px-4 py-3.5 transition-all duration-200 focus:outline-none focus:border-olive-500  focus:ring-2 focus:ring-olive-500/10';
+const inputCls = 'input-base';
 
 function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
   const [drafts, setDrafts] = useState<SubtaskDraft[]>([createDraft()]);
@@ -89,29 +89,29 @@ function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
   };
 
   return (
-    <form className="grid gap-[18px] mt-6" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
       {/* Builder cards */}
       <div className="grid gap-4">
         {drafts.map((draft, index) => (
           <div
             key={draft.id}
-            className="bg-olive-50/92  border border-olive-200/60  rounded-lg grid gap-3.5 p-4"
+            className="border border-olive-200 rounded-xl grid gap-3 p-4"
           >
             {/* Head */}
             <div className="flex items-center justify-between gap-3">
-              <strong className="text-olive-900  text-sm">Sub-task {index + 1}</strong>
+              <strong className="text-olive-900 text-[13px] font-medium">Subtask {index + 1}</strong>
               <button
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-white  border border-red-200  text-red-600  rounded hover:bg-red-50  disabled:opacity-50 transition-colors"
+                className="icon-btn !w-7 !h-7 hover:!text-red-600 hover:!bg-red-50 disabled:opacity-30" aria-label="Remove subtask"
                 disabled={submitting || drafts.length === 1}
                 onClick={() => handleRemoveDraft(draft.id)}
                 type="button"
               >
-                <Trash2 size={14} /> Remove
+                <Trash2 size={14} />
               </button>
             </div>
 
-            <label className="grid gap-2 text-sm font-medium text-olive-700 ">
-              <span>Sub-task title</span>
+            <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
+              <span>Title</span>
               <input
                 className={inputCls}
                 onChange={(event) => updateDraft(draft.id, 'title', event.target.value)}
@@ -121,7 +121,7 @@ function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-medium text-olive-700 ">
+            <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
               <span>Description</span>
               <input
                 className={inputCls}
@@ -132,8 +132,8 @@ function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-medium text-olive-700 ">
-              <span>Internal Note</span>
+            <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
+              <span>Internal note</span>
               <input
                 className={inputCls}
                 onChange={(event) => updateDraft(draft.id, 'note', event.target.value)}
@@ -143,7 +143,7 @@ function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-medium text-olive-700 ">
+            <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
               <span>Status</span>
               <select
                 className={inputCls}
@@ -158,11 +158,11 @@ function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
               </select>
             </label>
 
-            <label className="grid gap-2 text-sm font-medium text-olive-700 ">
-              <span>Assign To</span>
+            <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
+              <span>Assignee</span>
               <div className="flex items-center gap-3">
                 <select
-                  className={`${inputCls} !py-2.5`}
+                  className={inputCls}
                   onChange={(event) => updateDraft(draft.id, 'assignedToUserId', event.target.value || null)}
                   value={draft.assignedToUserId || ''}
                 >
@@ -190,23 +190,23 @@ function SubtaskForm({ onSubmit, members }: SubtaskFormProps): JSX.Element {
       {/* Actions */}
       <div className="flex justify-between gap-3">
         <button
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-white  border border-olive-200  rounded text-olive-700  text-sm hover:bg-olive-50  disabled:opacity-50 transition-colors"
+          className="btn btn-ghost -ml-2"
           disabled={submitting}
           onClick={handleAddDraft}
           type="button"
         >
-          <Plus size={16} /> Add another sub-task
+          <Plus size={16} /> Add another
         </button>
         <button
-          className="px-4 py-2 bg-olive-900  text-white rounded text-sm font-medium hover:bg-olive-800  disabled:opacity-50 transition-colors"
+          className="btn btn-primary"
           disabled={submitting}
           type="submit"
         >
-          {submitting ? 'Creating sub-tasks...' : 'Create sub-tasks'}
+          {submitting ? 'Creating…' : drafts.length > 1 ? `Create ${drafts.length} subtasks` : 'Create subtask'}
         </button>
       </div>
 
-      {errorMessage ? <p className="text-red-600  m-0 text-[0.9rem]">{errorMessage}</p> : null}
+      {errorMessage ? <p className="text-red-600 m-0 text-[13px]">{errorMessage}</p> : null}
     </form>
   );
 }

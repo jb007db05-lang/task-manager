@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, MessageCircle, UserPlus, X, ExternalLink, Clock } from 'lucide-react';
+import { Bell, MessageCircle, UserPlus } from 'lucide-react';
+import InvitationNotificationPanel, { formatRelative, type InvitationInbox } from './InvitationNotificationPanel';
 
 export interface Notification {
   id: string;
@@ -14,148 +15,110 @@ export interface Notification {
 
 interface NotificationBoxProps {
   notifications: Notification[];
+  inbox?: InvitationInbox;
   onClose: () => void;
   onMarkAsRead: (id: string) => void;
   onClearAll: () => void;
   onNotificationClick: (notification: Notification) => void;
 }
 
+const typeIcon = {
+  message: MessageCircle,
+  team_join: UserPlus,
+  system: Bell,
+};
+
 const NotificationBox: React.FC<NotificationBoxProps> = ({
   notifications,
-  onClose,
+  inbox,
   onMarkAsRead,
   onClearAll,
   onNotificationClick,
 }) => {
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length + (inbox?.count ?? 0);
+  const isEmpty = notifications.length === 0 && (inbox?.count ?? 0) === 0;
 
   return (
-    <div
-      className="absolute right-0 mt-3 w-[380px] bg-white  rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)]  border border-olive-200  overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300"
-      style={{ zIndex: 9999 }}
-    >
-      {/* Header */}
-      <div className="px-5 py-4 bg-olive-50  border-b border-olive-200  flex items-center justify-between">
+    <div className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-olive-200 overflow-hidden animate-modalIn z-[60]">
+      <div className="flex items-center justify-between px-4 h-12 border-b border-olive-100">
         <div className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-olive-600 " />
-          <h3 className="text-sm font-bold text-olive-950  uppercase tracking-wider">
-            Notifications
-          </h3>
-          {unreadCount > 0 && (
-            <span className="px-2 py-0.5 bg-olive-100  text-olive-600  text-[11px] font-bold rounded-full">
-              {unreadCount} New
-            </span>
-          )}
+          <h3 className="text-sm font-semibold text-olive-900 m-0">Notifications</h3>
+          {unreadCount > 0 && <span className="badge badge-green !h-5 !px-1.5 text-[11px]">{unreadCount} new</span>}
         </div>
-        <div className="flex items-center gap-2">
-          {notifications.length > 0 && (
-            <button
-              onClick={onClearAll}
-              className="text-[11px] font-bold text-olive-500 hover:text-olive-600  transition-colors uppercase tracking-tight"
-            >
-              Clear All
-            </button>
-          )}
+        {!isEmpty && (
           <button
-            onClick={onClose}
-            className="p-1.5 text-olive-400 hover:text-olive-600  transition-colors"
+            onClick={() => {
+              onClearAll();
+              inbox?.clearAll();
+            }}
+            className="text-xs font-medium text-olive-500 hover:text-olive-900 transition-colors"
+            type="button"
           >
-            <X className="w-4 h-4" />
+            Clear all
           </button>
-        </div>
+        )}
       </div>
 
-      {/* List */}
-      <div className="max-h-[480px] overflow-y-auto custom-scrollbar">
-        {notifications.length === 0 ? (
+      <div className="max-h-[460px] overflow-y-auto custom-scrollbar">
+        {inbox && <InvitationNotificationPanel inbox={inbox} />}
+
+        {isEmpty ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <div className="w-16 h-16 bg-olive-100  rounded-full flex items-center justify-center mb-4">
-              <Bell className="w-8 h-8 text-olive-300 " />
+            <div className="w-10 h-10 rounded-full bg-olive-100 text-olive-400 flex items-center justify-center mb-3">
+              <Bell size={18} />
             </div>
-            <p className="text-olive-950  font-bold mb-1">All caught up!</p>
-            <p className="text-olive-500  text-sm">
-              No new notifications at the moment.
-            </p>
+            <p className="text-sm font-medium text-olive-900 m-0">You're all caught up</p>
+            <p className="text-xs text-olive-500 mt-1 m-0">New messages and team updates will appear here.</p>
           </div>
         ) : (
-          <div className="divide-y divide-olive-100 ">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                onClick={() => onNotificationClick(notification)}
-                className={[
-                  'p-5 transition-all cursor-pointer relative group',
-                  notification.isRead
-                    ? 'bg-transparent opacity-80'
-                    : 'bg-olive-50/30',
-                  'hover:bg-olive-50',
-                ].join(' ')}
-              >
-                {!notification.isRead && (
-                  <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-olive-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
-                )}
-
-                <div className="flex gap-4">
-                  <div className={[
-                    'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm',
-                    notification.type === 'message' ? 'bg-olive-100 text-olive-600' :
-                    notification.type === 'team_join' ? 'bg-green-100 text-green-600' :
-                    'bg-olive-100 text-olive-600',
-                  ].join(' ')}>
-                    {notification.type === 'message' ? <MessageCircle size={20} /> :
-                      notification.type === 'team_join' ? <UserPlus size={20} /> :
-                        <Bell size={20} />}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="text-sm font-bold text-olive-950  leading-tight">
-                        {notification.title}
-                      </h4>
-                      <div className="flex items-center gap-1 text-[11px] text-olive-400  font-medium shrink-0">
-                        <Clock size={10} />
-                        {new Date(notification.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
+          <ul className="divide-y divide-olive-100 m-0 p-0 list-none">
+            {notifications.map((notification) => {
+              const Icon = typeIcon[notification.type] ?? Bell;
+              return (
+                <li key={notification.id}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onNotificationClick(notification)}
+                    onKeyDown={(e) => e.key === 'Enter' && onNotificationClick(notification)}
+                    className="group relative flex gap-3 px-4 py-3 hover:bg-olive-50 transition-colors"
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        notification.type === 'team_join' ? 'bg-brand-50 text-brand-700' : 'bg-olive-100 text-olive-600'
+                      }`}
+                    >
+                      <Icon size={15} />
                     </div>
-                    <p className="text-xs text-olive-600  line-clamp-2 leading-relaxed">
-                      {notification.message}
-                    </p>
-
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-olive-500  uppercase tracking-widest flex items-center gap-1">
-                        View details <ExternalLink size={10} />
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <h4 className={`text-[13px] m-0 truncate ${notification.isRead ? 'font-normal text-olive-700' : 'font-medium text-olive-900'}`}>
+                          {notification.title}
+                        </h4>
+                        <span className="text-[11px] text-olive-400 shrink-0">{formatRelative(notification.timestamp)}</span>
+                      </div>
+                      <p className="text-xs text-olive-500 line-clamp-2 m-0 mt-0.5 leading-relaxed">{notification.message}</p>
                       {!notification.isRead && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             onMarkAsRead(notification.id);
                           }}
-                          className="text-[11px] font-bold text-olive-400 hover:text-olive-600  transition-colors uppercase"
+                          className="mt-1.5 text-[11px] font-medium text-brand-700 hover:text-brand-800"
+                          type="button"
                         >
                           Mark as read
                         </button>
                       )}
                     </div>
+                    {!notification.isRead && <span className="absolute right-4 bottom-4 w-1.5 h-1.5 rounded-full bg-brand-500" />}
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
-
-      {/* Footer */}
-      {notifications.length > 0 && (
-        <div className="px-5 py-3 bg-olive-50  border-t border-olive-200  text-center">
-          <button
-            onClick={onClose}
-            className="text-xs font-bold text-olive-500 hover:text-olive-700   transition-colors"
-          >
-            Close Notifications
-          </button>
-        </div>
-      )}
     </div>
   );
 };

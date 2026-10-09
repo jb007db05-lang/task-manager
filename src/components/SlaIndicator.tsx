@@ -8,11 +8,19 @@ interface SlaIndicatorProps {
 }
 
 const stateClass: Record<TaskSlaState, string> = {
-  HEALTHY: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  NEAR_BREACH: 'bg-amber-50 text-amber-700 border-amber-200',
-  BREACHED: 'bg-red-50 text-red-700 border-red-200',
-  PAUSED: 'bg-olive-100 text-olive-600 border-olive-200',
-  COMPLETED: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  HEALTHY: 'badge-green',
+  NEAR_BREACH: 'badge-amber',
+  BREACHED: 'badge-red',
+  PAUSED: 'badge-slate',
+  COMPLETED: 'badge-green'
+};
+
+const stateLabel: Record<TaskSlaState, string> = {
+  HEALTHY: 'On track',
+  NEAR_BREACH: 'Due soon',
+  BREACHED: 'SLA breached',
+  PAUSED: 'SLA paused',
+  COMPLETED: 'SLA met'
 };
 
 const formatRemaining = (dueAt: string | null): string => {
@@ -41,24 +49,35 @@ function SlaIndicator({ compact = false, task }: SlaIndicatorProps): JSX.Element
   const remaining = formatRemaining(task.slaResolutionDueAt);
   const pct = progressPercent(task);
 
+  const label = stateLabel[state] ?? state;
+
+  if (compact) {
+    return (
+      <span className={`badge ${stateClass[state]} !h-5 !text-[11px]`} title={`Resolution ${remaining}`}>
+        {state === 'PAUSED' ? <PauseCircle size={11} /> : breached ? <ShieldAlert size={11} /> : <Clock3 size={11} />}
+        {label}
+      </span>
+    );
+  }
+
   return (
     <div className="grid gap-1.5 min-w-0">
-      <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-black uppercase tracking-wider ${stateClass[state]}`}>
-        {state === 'PAUSED' ? <PauseCircle size={12} /> : breached ? <ShieldAlert size={12} /> : <Clock3 size={12} />}
-        <span>{state.replace('_', ' ')}</span>
-        {!compact && <span className="opacity-70">Resolution {remaining}</span>}
+      <div className="flex items-center justify-between gap-3 text-xs">
+        <span className="inline-flex items-center gap-1.5 text-olive-700">
+          {state === 'PAUSED' ? <PauseCircle size={13} /> : breached ? <ShieldAlert size={13} className="text-red-600" /> : <Clock3 size={13} className="text-olive-400" />}
+          {label}
+        </span>
+        <span className="text-olive-500 tabular-nums">Resolution {remaining}</span>
       </div>
-      {!compact && (
-        <div className="h-1.5 bg-olive-100 rounded-full overflow-hidden">
-          <div
-            className={[
-              'h-full rounded-full transition-all',
-              breached ? 'bg-red-500' : state === 'NEAR_BREACH' ? 'bg-amber-500' : 'bg-emerald-500'
-            ].join(' ')}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      )}
+      <div className="h-1 bg-olive-100 rounded-full overflow-hidden">
+        <div
+          className={[
+            'h-full rounded-full transition-all',
+            breached ? 'bg-red-500' : state === 'NEAR_BREACH' ? 'bg-amber-500' : 'bg-brand-500'
+          ].join(' ')}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
     </div>
   );
 }

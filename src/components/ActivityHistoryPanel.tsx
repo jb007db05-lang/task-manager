@@ -8,7 +8,6 @@ import {
   UserMinus,
   ArrowRightLeft,
   Loader2,
-  Filter,
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
@@ -32,14 +31,6 @@ const ENTITY_LABELS: Record<string, string> = {
   note: 'Note'
 };
 
-const ENTITY_COLORS: Record<string, string> = {
-  project: 'bg-olive-500',
-  epic: 'bg-purple-500',
-  task: 'bg-olive-600',
-  subtask: 'bg-teal-500',
-  note: 'bg-amber-500'
-};
-
 const ACTION_ICONS: Record<string, typeof Plus> = {
   created: Plus,
   updated: Pencil,
@@ -54,14 +45,14 @@ const ACTION_ICONS: Record<string, typeof Plus> = {
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  created: 'text-green-600 bg-green-50',
-  updated: 'text-olive-600 bg-olive-50',
+  created: 'text-brand-700 bg-brand-50',
+  updated: 'text-olive-600 bg-olive-100',
   deleted: 'text-red-600 bg-red-50',
-  assigned: 'text-purple-600 bg-purple-50',
-  status_changed: 'text-amber-600 bg-amber-50',
-  member_added: 'text-teal-600 bg-teal-50',
-  member_removed: 'text-rose-600 bg-rose-50',
-  approved: 'text-emerald-600 bg-emerald-50',
+  assigned: 'text-blue-600 bg-blue-50',
+  status_changed: 'text-amber-700 bg-amber-50',
+  member_added: 'text-brand-700 bg-brand-50',
+  member_removed: 'text-red-600 bg-red-50',
+  approved: 'text-brand-700 bg-brand-50',
   rejected: 'text-red-600 bg-red-50',
   escalated: 'text-red-600 bg-red-50'
 };
@@ -102,7 +93,6 @@ function formatTime(dateString: string): string {
 
 export default function ActivityHistoryPanel({
   projectId,
-  projectName,
 }: ActivityHistoryPanelProps) {
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,207 +185,119 @@ export default function ActivityHistoryPanel({
   }
 
   return (
-    <div className="flex flex-col h-full max-h-[75vh]">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-olive-200 ">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-olive-50  rounded-xl">
-            <History className="w-5 h-5 text-olive-600 " />
-          </div>
-          <div>
-            <h3 className="text-[0.95rem] font-bold text-olive-950 ">
-              Activity History
-            </h3>
-            <p className="text-[0.7rem] text-olive-500  font-medium">
-              {projectName}
-            </p>
-          </div>
-        </div>
+    <div className="flex flex-col h-full max-h-[72vh]">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-6 py-3 border-b border-olive-100">
+        <select
+          aria-label="Filter by type"
+          value={entityFilter}
+          onChange={(e) => {
+            setEntityFilter(e.target.value);
+            setPage(1);
+          }}
+          className="input-base !h-8 !w-auto !text-[13px] !pr-8"
+        >
+          {FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
-        {/* Right controls */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleVerifyChain}
-            disabled={verifying}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-olive-50 hover:bg-olive-100 text-olive-700 text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
-          >
+        <div className="flex items-center gap-1.5">
+          <button onClick={handleVerifyChain} disabled={verifying} className="btn btn-sm btn-secondary" type="button" title="Check that no log entry has been altered">
             {verifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-            Verify Chain
+            Verify integrity
           </button>
-          
-          <button
-            onClick={openRetentionModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-olive-50 hover:bg-olive-100 text-olive-700 text-xs font-bold rounded-lg transition-colors"
-          >
+          <button onClick={openRetentionModal} className="btn btn-sm btn-secondary" type="button">
             <Scale className="w-3.5 h-3.5" />
-            Retention Policy
+            Retention
           </button>
-
-          <div className="w-px h-5 bg-olive-200 mx-1"></div>
-
-          {/* Entity type filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-olive-400" />
-            <select
-              value={entityFilter}
-              onChange={(e) => {
-                setEntityFilter(e.target.value);
-                setPage(1);
-              }}
-              className="text-xs font-semibold bg-olive-100  border border-olive-200  rounded-lg px-3 py-1.5 text-olive-700  focus:outline-none focus:ring-2 focus:ring-olive-500/30"
-            >
-              {FILTER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
-
-      {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 text-olive-400 animate-spin" />
+          <div className="grid gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex gap-3">
+                <div className="skeleton !rounded-full w-7 h-7" />
+                <div className="flex-1 grid gap-1.5"><div className="skeleton h-3.5 w-2/3" /><div className="skeleton h-3 w-1/3" /></div>
+              </div>
+            ))}
           </div>
         ) : activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-olive-400 ">
-            <History className="w-12 h-12 mb-3 opacity-40" />
-            <p className="text-sm font-medium">No activity yet</p>
-            <p className="text-xs mt-1">Changes to this project will appear here</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <History className="w-6 h-6 mb-2 text-olive-300" />
+            <p className="text-sm font-medium text-olive-900 m-0">No activity yet</p>
+            <p className="text-[13px] text-olive-500 mt-1 mb-0">Changes to this project will show up here.</p>
           </div>
         ) : (
           <div className="space-y-6">
             {groupedActivities.map((group) => (
               <div key={group.label}>
-                {/* Date separator */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1 h-px bg-olive-200 " />
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-olive-400  select-none whitespace-nowrap">
-                    {group.label}
-                  </span>
-                  <div className="flex-1 h-px bg-olive-200 " />
-                </div>
-
-                {/* Activity items */}
-                <div className="space-y-1">
+                <h4 className="section-label m-0 mb-2">{group.label}</h4>
+                <ol className="relative m-0 p-0 list-none">
+                  <span className="absolute left-[13px] top-2 bottom-2 w-px bg-olive-200" aria-hidden="true" />
                   {group.items.map((activity) => {
                     const IconComponent = ACTION_ICONS[activity.action] || Pencil;
                     const colorClass = ACTION_COLORS[activity.action] || ACTION_COLORS.updated;
-                    const entityColor = ENTITY_COLORS[activity.entityType] || 'bg-olive-500';
 
                     return (
-                      <div
-                        key={activity.id}
-                        className="group flex items-start gap-3.5 px-4 py-3 rounded-xl hover:bg-olive-50  transition-all duration-200"
-                      >
-                        {/* Icon */}
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${colorClass} transition-transform group-hover:scale-105`}>
+                      <li key={activity.id} className="relative flex items-start gap-3 py-2">
+                        <div className={`relative z-[1] flex-shrink-0 w-7 h-7 rounded-full ring-4 ring-white flex items-center justify-center ${colorClass}`}>
                           <IconComponent className="w-3.5 h-3.5" />
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[0.82rem] font-bold text-olive-900 ">
-                              {activity.userName}
-                            </span>
-                            <span className="text-[0.78rem] text-olive-500 ">
-                              {activity.description}
-                            </span>
-                          </div>
-
-                          {/* Entity badge + timestamp */}
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.62rem] font-bold uppercase tracking-wider text-white ${entityColor}`}>
-                              {ENTITY_LABELS[activity.entityType]}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.62rem] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
-                              <ShieldCheck size={10} />
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <p className="m-0 text-[13px] text-olive-600 leading-snug">
+                            <span className="font-medium text-olive-950">{activity.userName}</span>{' '}
+                            {activity.description}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-olive-400">
+                            <span>{formatTime(activity.createdAt)}</span>
+                            <span>·</span>
+                            <span className="capitalize">{ENTITY_LABELS[activity.entityType]}</span>
+                            <span className="ml-auto font-mono text-[11px]" title={`Hash ${activity.immutableHash || 'pending'}${activity.retentionUntil ? ` · retained until ${new Date(activity.retentionUntil).toLocaleDateString()}` : ''}`}>
                               #{activity.sequence}
                             </span>
-                            {activity.entityName && (
-                              <span className="text-[0.72rem] text-olive-500  truncate max-w-[200px]">
-                                {activity.entityName}
-                              </span>
-                            )}
-                            <span className="text-[0.62rem] text-olive-400  ml-auto whitespace-nowrap">
-                              {formatTime(activity.createdAt)}
-                            </span>
+                            {activity.legalHold && <span className="badge badge-red !h-4 !text-[10px]">Legal hold</span>}
                           </div>
 
-                          {/* Field changes */}
                           {activity.changes.length > 0 && (
-                            <div className="mt-2 space-y-1">
+                            <div className="mt-2 rounded-lg border border-olive-200 divide-y divide-olive-100 text-xs">
                               {activity.changes.slice(0, 3).map((change, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center gap-2 text-[0.7rem] text-olive-500  bg-olive-50  rounded-lg px-3 py-1.5"
-                                >
-                                  <span className="font-bold text-olive-600  capitalize">
-                                    {change.field}:
-                                  </span>
-                                  {change.oldValue && (
-                                    <span className="line-through text-red-400 truncate max-w-[120px]">
-                                      {change.oldValue}
-                                    </span>
-                                  )}
-                                  {change.oldValue && change.newValue && (
-                                    <span className="text-olive-300 ">→</span>
-                                  )}
-                                  {change.newValue && (
-                                    <span className="text-green-600  truncate max-w-[120px]">
-                                      {change.newValue}
-                                    </span>
-                                  )}
+                                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 min-w-0">
+                                  <span className="text-olive-500 capitalize shrink-0">{change.field}</span>
+                                  {change.oldValue && <span className="line-through text-olive-400 truncate max-w-[140px]">{change.oldValue}</span>}
+                                  {change.oldValue && change.newValue && <span className="text-olive-300">→</span>}
+                                  {change.newValue && <span className="text-olive-900 truncate max-w-[160px]">{change.newValue}</span>}
                                 </div>
                               ))}
                               {activity.changes.length > 3 && (
-                                <span className="text-[11px] text-olive-400 italic pl-3">
-                                  +{activity.changes.length - 3} more changes
-                                </span>
+                                <div className="px-3 py-1.5 text-olive-400">+{activity.changes.length - 3} more changes</div>
                               )}
                             </div>
                           )}
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.62rem] text-olive-400">
-                            <span className="font-mono">hash {(activity.immutableHash || 'pending-migration').slice(0, 16)}</span>
-                            {activity.legalHold && <span className="text-red-500 font-bold">legal hold</span>}
-                            {activity.retentionUntil && <span>retains until {new Date(activity.retentionUntil).toLocaleDateString()}</span>}
-                          </div>
                         </div>
-                      </div>
+                      </li>
                     );
                   })}
-                </div>
+                </ol>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-3 border-t border-olive-200  bg-olive-50/50 ">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-olive-600  hover:bg-olive-100  rounded-lg disabled:opacity-40 transition-colors"
-          >
+        <div className="flex items-center justify-between px-6 h-12 border-t border-olive-100">
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="btn btn-sm btn-ghost" type="button">
             <ChevronLeft className="w-3.5 h-3.5" />
-            Previous
+            Newer
           </button>
-          <span className="text-[0.7rem] font-bold text-olive-500  uppercase tracking-wider">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-olive-600  hover:bg-olive-100  rounded-lg disabled:opacity-40 transition-colors"
-          >
-            Next
+          <span className="text-xs text-olive-500 tabular-nums">Page {page} of {totalPages}</span>
+          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="btn btn-sm btn-ghost" type="button">
+            Older
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -403,53 +305,50 @@ export default function ActivityHistoryPanel({
 
       {/* Retention Policy Modal */}
       {retentionModalOpen && (
-        <Modal onClose={() => setRetentionModalOpen(false)} title="Legal Retention Policy">
+        <Modal onClose={() => setRetentionModalOpen(false)} title="Retention policy" description="How long activity logs are kept for compliance.">
           <div className="grid gap-5">
-            <p className="text-sm text-olive-500 m-0">
-              Configure how long activity logs are retained for compliance. Enabling legal hold prevents deletion regardless of retention days.
-            </p>
-            
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-olive-900">Retention Days</label>
+              <label className="field-label !mb-0">Retention period (days)</label>
               <input
                 type="number"
                 min="0"
                 value={retentionDaysInput}
                 onChange={(e) => setRetentionDaysInput(e.target.value)}
-                placeholder="e.g. 2555 for 7 years (leave empty for infinite)"
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded-lg focus:outline-none focus:border-olive-500 text-sm"
+                placeholder="Leave empty to keep forever"
+                className="input-base"
               />
             </div>
             
-            <div className="flex items-center gap-3 p-3 bg-olive-50 border border-olive-200 rounded-lg">
+            <div className="flex items-start gap-3 p-3 bg-olive-50 border border-olive-200 rounded-lg">
               <input
                 type="checkbox"
                 id="legalHold"
                 checked={legalHoldInput}
                 onChange={(e) => setLegalHoldInput(e.target.checked)}
-                className="w-4 h-4 text-olive-600 bg-white border-olive-300 rounded focus:ring-olive-500"
+                className="w-4 h-4 mt-0.5 accent-brand-600"
               />
-              <label htmlFor="legalHold" className="text-sm font-bold text-red-600 cursor-pointer">
-                Enable Legal Hold
+              <label htmlFor="legalHold" className="cursor-pointer">
+                <span className="block text-[13px] font-medium text-olive-900">Legal hold</span>
+                <span className="block text-xs text-olive-500">Prevents deletion of any log entry, regardless of the retention period.</span>
               </label>
             </div>
 
             <div className="flex gap-3 justify-end pt-2">
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium text-olive-600 hover:bg-olive-50 border border-olive-200 rounded-lg transition-colors"
+                className="btn btn-secondary"
                 onClick={() => setRetentionModalOpen(false)}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-bold text-white bg-olive-900 hover:bg-olive-800 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="btn btn-primary"
                 onClick={saveRetentionPolicy}
                 disabled={savingRetention}
               >
                 {savingRetention ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                {savingRetention ? 'Saving...' : 'Save Policy'}
+                {savingRetention ? 'Saving…' : 'Save policy'}
               </button>
             </div>
           </div>

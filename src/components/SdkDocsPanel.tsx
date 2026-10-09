@@ -15,6 +15,23 @@ const QUICK_START_SNIPPET = "import { initTracker } from '@jamesbond007db05/even
 
 const ERROR_HANDLING_SNIPPET = "import {\n  initTracker,\n  normalizeSdkError,\n  SDKValidationError\n} from '@jamesbond007db05/events-sdk';\n\ntry {\n  const tracker = initTracker({ apiKey: 'your_api_key_here' });\n  await tracker.track('checkout_completed', { amount: 199 });\n} catch (error) {\n  const normalized = normalizeSdkError(error);\n  console.error(normalized.code, normalized.message);\n\n  if (error instanceof SDKValidationError) {\n    // show friendly validation feedback\n  }\n}";
 
+const IDENTITY_SNIPPET = "// Attach to every event from now on (persisted across reloads)\nEngagement.register({ app_version: '3.2.0', plan: 'free' });\nEngagement.registerOnce({ first_referrer: document.referrer });\n\n// Anonymous visitor: events are keyed by the device id\nawait Engagement.track('pricing_viewed', { tier: 'team' });\n\n// After sign-in: later events are keyed by the user id\nawait Engagement.identify('user_42', { name: 'Ada', plan: 'pro' });\nconsole.log(Engagement.getDistinctId()); // 'user_42'\n\n// Send queued events now (e.g. before navigating away)\nawait Engagement.flush();\n\n// On logout: forget the user, clear super properties, new device id\nEngagement.reset();";
+
+const FUNCTION_REFERENCE: Array<[string, string]> = [
+  ['init(config)', 'Starts the runtime with your SDK key (sdk_… live or sdk_test_… sandbox).'],
+  ['track(eventName, properties?)', 'Records an event. Super properties are merged in; call-site properties win.'],
+  ['identify(userId, traits?)', 'Associates this device with a user and merges traits into their profile.'],
+  ['register(properties)', 'Sets super properties attached to every later event.'],
+  ['registerOnce(properties)', 'Sets super properties only where no value exists yet.'],
+  ['unregister(name)', 'Removes one super property.'],
+  ['getSuperProperties()', 'Returns the current super properties.'],
+  ['getDistinctId()', 'The id events are attributed to: the user id, or the device id when anonymous.'],
+  ['flush()', 'Sends queued events immediately instead of waiting for the batch interval.'],
+  ['reset()', 'Call on logout: clears the user and super properties and starts a new device id and session.'],
+  ['refresh()', 'Re-evaluates which guides, surveys and checklists should show.'],
+  ['debug(enabled)', 'Logs every request and decision to the console.'],
+];
+
 const ENGAGEMENT_SNIPPET = "import { Engagement } from '@jamesbond007db05/events-sdk';\n\n// Initialize the Engagement Runtime\nEngagement.init({\n  apiKey: 'sdk_...', // or your sandbox key: sdk_test_...\n  userId: 'user_123',\n  debug: false\n});\n\n// Trigger a custom event (evaluated immediately for checklist/tour triggers)\nawait Engagement.track('user_onboarded_step1');\n\n// Fetch/refresh eligible flows manually (usually handled automatically on SPA routes)\nawait Engagement.refresh();";
 
 function SdkDocsPanel(): JSX.Element {
@@ -29,52 +46,48 @@ function SdkDocsPanel(): JSX.Element {
   };
 
   return (
-    <div className="grid gap-6 p-2">
-      <SectionCard className="overflow-hidden p-0">
-        <div className="bg-white/80 px-6 py-5 backdrop-blur  ">
-          <PageHeader
-            title="Events SDK Documentation"
-            description="Production-ready guide for installation, initialization, public API, and validation utilities."
-            actions={
-              <a
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-olive-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-olive-800  "
-                href="https://www.npmjs.com/package/@jamesbond007db05/events-sdk"
-                rel="noreferrer"
-                target="_blank"
-              >
-                Package
-                <ExternalLink size={15} />
-              </a>
-            }
-          />
-        </div>
-      </SectionCard>
+    <div className="grid gap-6">
+      <PageHeader
+        title="Documentation"
+        description="Install the Events SDK, initialize it once, and start sending events, guides and surveys."
+        actions={
+          <a
+            className="btn btn-secondary"
+            href="https://www.npmjs.com/package/@jamesbond007db05/events-sdk"
+            rel="noreferrer"
+            target="_blank"
+          >
+            View on npm
+            <ExternalLink size={14} />
+          </a>
+        }
+      />
 
       <SectionCard className="grid gap-6" id="getting-started">
         <div>
-          <p className="mb-2 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-olive-600 ">Getting Started</p>
-          <h2 className="m-0 text-2xl font-bold text-olive-950 ">Install, initialize, ship events</h2>
+          <p className="section-label mb-2 text-brand-700">Getting started</p>
+          <h2 className="m-0 text-xl font-semibold tracking-tight text-olive-950">Install, initialize, ship events</h2>
         </div>
         <div className="w-full flex flex-col">
           <div className="space-y-4">
-            <div className="rounded-2xl border border-olive-200 bg-olive-50 p-4  ">
-              <h3 className="m-0 text-base font-bold text-olive-950 ">1. Install package</h3>
-              <p className="mb-0 mt-2 text-sm leading-6 text-olive-600  pb-3">
+            <div className="rounded-xl border border-olive-200 p-4">
+              <h3 className="m-0 text-[15px] font-semibold text-olive-950">1. Install package</h3>
+              <p className="mb-0 mt-2 text-sm leading-6 text-olive-600 pb-3">
                 Use npm in your frontend app. SDK ships browser-focused tracking APIs.
               </p>
               <CodePanel copiedId={copiedId} id="install" onCopy={handleCopy} title="Installation">
                 {INSTALL_SNIPPET}
               </CodePanel>
             </div>
-            <div className="rounded-2xl border border-olive-200 bg-olive-50 p-4  ">
-              <h3 className="m-0 text-base font-bold text-olive-950 ">2. Create API key</h3>
-              <p className="mb-0 mt-2 text-sm leading-6 text-olive-600 ">
+            <div className="rounded-xl border border-olive-200 p-4">
+              <h3 className="m-0 text-[15px] font-semibold text-olive-950">2. Create API key</h3>
+              <p className="mb-0 mt-2 text-sm leading-6 text-olive-600">
                 Open Event Tracking in app, provision a node, copy secret key once, then store it in your app config.
               </p>
             </div>
-            <div className="rounded-2xl border border-olive-200 bg-olive-50 p-4  ">
-              <h3 className="m-0 text-base font-bold text-olive-950 ">3. Initialize once</h3>
-              <p className="mb-0 mt-2 text-sm leading-6 text-olive-600 ">
+            <div className="rounded-xl border border-olive-200 p-4">
+              <h3 className="m-0 text-[15px] font-semibold text-olive-950">3. Initialize once</h3>
+              <p className="mb-0 mt-2 text-sm leading-6 text-olive-600">
                 Call initTracker() or Engagement.init() once at app bootstrap.
               </p>
             </div>
@@ -84,8 +97,8 @@ function SdkDocsPanel(): JSX.Element {
 
       <SectionCard className="grid gap-6" id="quick-start">
         <div className="grid gap-2">
-          <h2 className="m-0 text-xl font-bold text-olive-950 ">Quick Start</h2>
-          <p className="m-0 text-sm leading-6 text-olive-600 ">
+          <h2 className="m-0 text-lg font-semibold tracking-tight text-olive-950">Quick Start</h2>
+          <p className="m-0 text-sm leading-6 text-olive-600">
             Copy-paste setup for most browser apps.
           </p>
         </div>
@@ -96,8 +109,8 @@ function SdkDocsPanel(): JSX.Element {
 
       <SectionCard className="grid gap-6" id="engagement-runtime">
         <div className="grid gap-2">
-          <h2 className="m-0 text-xl font-bold text-olive-950 ">In-App Engagement Engine</h2>
-          <p className="m-0 text-sm leading-6 text-olive-600 ">
+          <h2 className="m-0 text-lg font-semibold tracking-tight text-olive-950">In-App Engagement Engine</h2>
+          <p className="m-0 text-sm leading-6 text-olive-600">
             Automatically deliver Modals, Banners, NPS Surveys, Checklist onboarding widgets and Tours directly to targeted users.
           </p>
         </div>
@@ -106,19 +119,55 @@ function SdkDocsPanel(): JSX.Element {
         </CodePanel>
       </SectionCard>
 
-      <div className="space-y-5" id="functions">
+      <SectionCard className="grid gap-6" id="identity">
         <div className="grid gap-2">
-          <h2 className="m-0 text-2xl font-bold text-olive-950 ">Function Reference</h2>
-          <p className="m-0 text-sm leading-6 text-olive-600 ">
-            Full public API coverage.
+          <h2 className="m-0 text-lg font-semibold tracking-tight text-olive-950">Identity, super properties &amp; ingestion rules</h2>
+          <p className="m-0 text-sm leading-6 text-olive-600">
+            Every event carries a <code className="font-mono text-[13px]">deviceId</code> (anonymous, per browser) and a{' '}
+            <code className="font-mono text-[13px]">distinctId</code> — the user id once you call <code className="font-mono text-[13px]">identify()</code>,
+            otherwise the device id. Super properties are attached to every event that follows.
           </p>
         </div>
-      </div>
+        <CodePanel copiedId={copiedId} id="identity-code" onCopy={handleCopy} title="Identity & super properties">
+          {IDENTITY_SNIPPET}
+        </CodePanel>
+        <ul className="m-0 pl-5 grid gap-1.5 text-sm leading-6 text-olive-600 list-disc">
+          <li><strong className="font-medium text-olive-900">/track</strong> and <strong className="font-medium text-olive-900">/batch</strong> accept events up to 5 days old and at most 1 hour in the future.</li>
+          <li>Send older history to <code className="font-mono text-[13px]">POST /api/import</code> (same body as /batch; every event needs an <code className="font-mono text-[13px]">eventId</code> and a <code className="font-mono text-[13px]">timestamp</code>).</li>
+          <li>Events are de-duplicated by <code className="font-mono text-[13px]">eventId</code> (also accepted as <code className="font-mono text-[13px]">insertId</code> or <code className="font-mono text-[13px]">$insert_id</code>), so retries are safe.</li>
+          <li>Browser, OS, URL, referrer, screen, library version and processing time are added automatically as default properties.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard className="grid gap-5" id="functions">
+        <div className="grid gap-2">
+          <h2 className="m-0 text-lg font-semibold tracking-tight text-olive-950">Function reference</h2>
+          <p className="m-0 text-sm leading-6 text-olive-600">Available on both <code className="font-mono text-[13px]">Engagement</code> and the tracker returned by <code className="font-mono text-[13px]">initTracker()</code>.</p>
+        </div>
+        <div className="overflow-x-auto rounded-xl border border-olive-200">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-olive-50 border-b border-olive-200 text-xs text-olive-500">
+                <th className="text-left font-medium px-4 h-10">Function</th>
+                <th className="text-left font-medium px-4 h-10">What it does</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FUNCTION_REFERENCE.map(([signature, description]) => (
+                <tr key={signature} className="border-b border-olive-100 last:border-0 align-top">
+                  <td className="px-4 py-3 font-mono text-[13px] text-olive-900 whitespace-nowrap">{signature}</td>
+                  <td className="px-4 py-3 text-olive-600">{description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
 
       <SectionCard className="grid gap-6" id="examples">
         <div className="grid gap-2">
-          <h2 className="m-0 text-xl font-bold text-olive-950 ">Real-World Examples</h2>
-          <p className="m-0 text-sm leading-6 text-olive-600 ">
+          <h2 className="m-0 text-lg font-semibold tracking-tight text-olive-950">Real-World Examples</h2>
+          <p className="m-0 text-sm leading-6 text-olive-600">
             Practical patterns you can drop into app code.
           </p>
         </div>
@@ -134,8 +183,8 @@ function SdkDocsPanel(): JSX.Element {
 
       <SectionCard className="grid gap-6" id="errors">
         <div className="grid gap-2">
-          <h2 className="m-0 text-xl font-bold text-olive-950 ">Common Errors and Solutions</h2>
-          <p className="m-0 text-sm leading-6 text-olive-600 ">
+          <h2 className="m-0 text-lg font-semibold tracking-tight text-olive-950">Common Errors and Solutions</h2>
+          <p className="m-0 text-sm leading-6 text-olive-600">
             Use normalized errors in UI and logs.
           </p>
         </div>
@@ -152,11 +201,11 @@ function SdkDocsPanel(): JSX.Element {
               ['Tracker not initialized', 'Call initTracker() before getTracker().'],
             ].map(([code, fix]) => (
               <div
-                className="rounded-2xl border border-olive-200 bg-olive-50 p-4  "
+                className="rounded-xl border border-olive-200 p-4"
                 key={code}
               >
                 <strong className="font-mono text-sm text-olive-950 ">{code}</strong>
-                <p className="mb-0 mt-2 text-sm leading-6 text-olive-600 ">{fix}</p>
+                <p className="mb-0 mt-2 text-sm leading-6 text-olive-600">{fix}</p>
               </div>
             ))}
           </div>
@@ -180,9 +229,9 @@ function CodePanel({
   onCopy: (text: string, id: string) => Promise<void>;
 }): JSX.Element {
   return (
-    <div className="overflow-hidden rounded-2xl border border-olive-200 ">
-      <div className="flex items-center justify-between gap-3 border-b border-olive-200 bg-olive-50 px-4 py-3  ">
-        <strong className="text-sm text-olive-950 ">{title}</strong>
+    <div className="overflow-hidden rounded-xl border border-olive-200">
+      <div className="flex items-center justify-between gap-3 border-b border-olive-200 bg-olive-50 px-4 h-10">
+        <strong className="text-[13px] font-medium text-olive-800">{title}</strong>
         <button
           className="inline-flex items-center gap-2 rounded-lg border border-olive-200 bg-white px-3 py-1.5 text-xs font-semibold text-olive-600 transition-colors hover:bg-olive-50    "
           onClick={() => void onCopy(children, id)}
@@ -192,7 +241,7 @@ function CodePanel({
           {copiedId === id ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="overflow-x-auto bg-slate-800 p-4 text-[0.82rem] leading-7 text-white">
+      <pre className="m-0 overflow-x-auto bg-olive-950 p-4 font-mono text-[13px] leading-6 text-olive-100">
         <code>{children}</code>
       </pre>
     </div>

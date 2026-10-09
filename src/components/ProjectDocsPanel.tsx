@@ -147,7 +147,7 @@ export const ProjectDocsPanel: React.FC<ProjectDocsPanelProps> = ({ projectId })
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
+                <span className="text-xs font-medium text-blue-400">
                   {doc.type}
                 </span>
                 {doc.aiGenerated && (
@@ -253,7 +253,7 @@ export const ProjectDocsPanel: React.FC<ProjectDocsPanelProps> = ({ projectId })
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-medium text-slate-400 mb-1">
                   Title
                 </label>
                 <input
@@ -266,7 +266,7 @@ export const ProjectDocsPanel: React.FC<ProjectDocsPanelProps> = ({ projectId })
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-medium text-slate-400 mb-1">
                   Document Type
                 </label>
                 <select
@@ -284,7 +284,7 @@ export const ProjectDocsPanel: React.FC<ProjectDocsPanelProps> = ({ projectId })
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-medium text-slate-400 mb-1">
                   Content (Markdown)
                 </label>
                 <textarea

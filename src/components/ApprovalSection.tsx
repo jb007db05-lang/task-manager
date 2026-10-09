@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, ShieldAlert, CheckCircle2, XCircle, Plus, Loader2 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, CheckCircle2, XCircle, Plus, Loader2, Clock3 } from 'lucide-react';
 import { listApprovals, createApproval, decideApproval, type ApprovalWorkflow, type ApprovalAction } from '@/services/approvals';
 import type { ProjectMember } from '@/types/project';
 import { useAuth } from '@/context/AuthContext';
@@ -89,74 +89,62 @@ export default function ApprovalSection({ projectId, taskId, members }: Approval
     );
   };
 
+  const statusBadge = (status: string) =>
+    status === 'APPROVED' ? 'badge-green' : status === 'REJECTED' ? 'badge-red' : 'badge-amber';
+
   return (
-    <div className="mt-8 border-t border-olive-200 pt-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-olive-900 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-olive-600" />
-          Approval Workflows
-        </h3>
-        <button
-          onClick={() => setRequestModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-olive-700 bg-olive-50 hover:bg-olive-100 rounded-lg transition-colors"
-        >
-          <Plus className="w-3 h-3" />
-          Request Approval
+    <div className="mt-6">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="section-label m-0">Approvals</h4>
+        <button onClick={() => setRequestModalOpen(true)} className="btn btn-sm btn-ghost !h-7 -mr-2" type="button">
+          <Plus className="w-3.5 h-3.5" />
+          Request
         </button>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-4">
-          <Loader2 className="w-5 h-5 text-olive-400 animate-spin" />
-        </div>
+        <div className="skeleton h-12" />
       ) : approvals.length === 0 ? (
-        <p className="text-xs text-olive-500 italic text-center py-2">No approval workflows for this task.</p>
+        <p className="text-[13px] text-olive-500 m-0">No approvals requested for this task.</p>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-2">
           {approvals.map((approval) => {
-            const isPendingForMe = approval.status === 'PENDING' && 
+            const isPendingForMe = approval.status === 'PENDING' &&
               approval.signOffChain.some(s => s.approverUserId === user?.id && s.status === 'PENDING');
-            
+
             return (
-              <div key={approval.id} className="p-3 bg-white border border-olive-200 rounded-lg text-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-olive-900">{ACTION_LABELS[approval.action] || approval.action}</span>
-                  <span className={`text-[11px] px-2 py-0.5 rounded uppercase font-bold tracking-wider ${
-                    approval.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                    approval.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                    'bg-amber-100 text-amber-700'
-                  }`}>
-                    {approval.status}
+              <div key={approval.id} className="p-3 border border-olive-200 rounded-lg text-[13px]">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-medium text-olive-900 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-olive-400" />
+                    {ACTION_LABELS[approval.action] || approval.action}
+                  </span>
+                  <span className={`badge ${statusBadge(approval.status)} !h-5 !text-[11px] capitalize`}>
+                    {approval.status.toLowerCase()}
                   </span>
                 </div>
-                <p className="text-xs text-olive-600 mb-3">{approval.reason}</p>
-                
-                <div className="space-y-1 mb-3">
+                {approval.reason && <p className="text-olive-600 m-0 mb-2">{approval.reason}</p>}
+
+                <ol className="m-0 p-0 list-none space-y-1">
                   {approval.signOffChain.map((step) => {
-                    const memberName = members.find(m => m.userId === step.approverUserId)?.user.name || 'Unknown User';
+                    const memberName = members.find(m => m.userId === step.approverUserId)?.user.name || 'Unknown user';
                     return (
-                      <div key={step.order} className="flex items-center gap-2 text-xs text-olive-500">
-                        {step.status === 'APPROVED' ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> :
+                      <li key={step.order} className="flex items-center gap-2 text-xs text-olive-600">
+                        {step.status === 'APPROVED' ? <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" /> :
                          step.status === 'REJECTED' ? <XCircle className="w-3.5 h-3.5 text-red-500" /> :
-                         <Loader2 className="w-3.5 h-3.5 text-amber-500" />}
+                         <Clock3 className="w-3.5 h-3.5 text-amber-500" />}
                         <span>{memberName}</span>
-                      </div>
+                      </li>
                     );
                   })}
-                </div>
+                </ol>
 
                 {isPendingForMe && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-olive-100 mt-2">
-                    <button
-                      onClick={() => handleDecision(approval.id, 'APPROVED')}
-                      className="flex-1 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded-md transition-colors"
-                    >
+                  <div className="flex items-center gap-2 pt-2.5 mt-2.5 border-t border-olive-100">
+                    <button onClick={() => handleDecision(approval.id, 'APPROVED')} className="btn btn-sm btn-primary flex-1" type="button">
                       Approve
                     </button>
-                    <button
-                      onClick={() => handleDecision(approval.id, 'REJECTED')}
-                      className="flex-1 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-md transition-colors"
-                    >
+                    <button onClick={() => handleDecision(approval.id, 'REJECTED')} className="btn btn-sm btn-secondary flex-1" type="button">
                       Reject
                     </button>
                   </div>
@@ -168,14 +156,14 @@ export default function ApprovalSection({ projectId, taskId, members }: Approval
       )}
 
       {requestModalOpen && (
-        <Modal onClose={() => setRequestModalOpen(false)} title="Request Approval">
+        <Modal onClose={() => setRequestModalOpen(false)} title="Request approval" description="Approvers sign off in the order you select them.">
           <div className="grid gap-4">
             <div className="grid gap-1">
-              <label className="text-sm font-semibold text-olive-900">Action Type</label>
+              <label className="field-label !mb-0">Action</label>
               <select
                 value={action}
                 onChange={(e) => setAction(e.target.value as ApprovalAction)}
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded-lg text-sm focus:outline-none focus:border-olive-500"
+                className="input-base"
               >
                 {Object.entries(ACTION_LABELS).map(([key, label]) => (
                   <option key={key} value={key}>{label}</option>
@@ -184,27 +172,28 @@ export default function ApprovalSection({ projectId, taskId, members }: Approval
             </div>
 
             <div className="grid gap-1">
-              <label className="text-sm font-semibold text-olive-900">Reason</label>
+              <label className="field-label !mb-0">Reason</label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Why is this approval needed?"
-                className="w-full px-3 py-2 bg-white border border-olive-200 rounded-lg text-sm focus:outline-none focus:border-olive-500 min-h-[80px]"
+                className="input-base min-h-[80px]"
               />
             </div>
 
             <div className="grid gap-1">
-              <label className="text-sm font-semibold text-olive-900 mb-1">Select Approvers (ordered)</label>
-              <div className="max-h-40 overflow-y-auto border border-olive-200 rounded-lg bg-white custom-scrollbar">
+              <label className="field-label !mb-0">Approvers</label>
+              <div className="max-h-44 overflow-y-auto border border-olive-200 rounded-lg bg-white custom-scrollbar">
                 {members.map(member => (
-                  <label key={member.userId} className="flex items-center gap-3 p-2 hover:bg-olive-50 cursor-pointer border-b border-olive-100 last:border-0">
+                  <label key={member.userId} className="flex items-center gap-3 px-3 py-2 hover:bg-olive-50 cursor-pointer border-b border-olive-100 last:border-0">
                     <input
                       type="checkbox"
                       checked={selectedApprovers.includes(member.userId)}
                       onChange={() => toggleApprover(member.userId)}
-                      className="w-4 h-4 text-olive-600 bg-white border-olive-300 rounded focus:ring-olive-500"
+                      className="w-4 h-4 accent-brand-600"
                     />
-                    <span className="text-sm text-olive-800">{member.user.name || member.user.email}</span>
+                    <span className="text-[13px] text-olive-800 flex-1">{member.user.name || member.user.email}</span>
+                    {selectedApprovers.includes(member.userId) && <span className="text-[11px] text-olive-500 tabular-nums">#{selectedApprovers.indexOf(member.userId) + 1}</span>}
                   </label>
                 ))}
               </div>
@@ -213,7 +202,7 @@ export default function ApprovalSection({ projectId, taskId, members }: Approval
             <div className="flex gap-3 justify-end pt-2">
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium text-olive-600 hover:bg-olive-50 border border-olive-200 rounded-lg transition-colors"
+                className="btn btn-secondary"
                 onClick={() => setRequestModalOpen(false)}
               >
                 Cancel
@@ -222,10 +211,10 @@ export default function ApprovalSection({ projectId, taskId, members }: Approval
                 type="button"
                 onClick={handleRequestApproval}
                 disabled={submittingRequest || selectedApprovers.length === 0}
-                className="px-4 py-2 text-sm font-bold text-white bg-olive-900 hover:bg-olive-800 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="btn btn-primary"
               >
                 {submittingRequest ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
-                {submittingRequest ? 'Submitting...' : 'Request'}
+                {submittingRequest ? 'Requesting…' : 'Request approval'}
               </button>
             </div>
           </div>

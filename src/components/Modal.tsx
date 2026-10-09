@@ -1,6 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { MdClose } from "react-icons/md";
+import { X } from 'lucide-react';
+
+/** Open modals, newest last — Escape only closes the top one. */
+const modalStack: symbol[] = [];
 
 interface ModalProps {
   backdropClassName?: string;
@@ -9,10 +12,11 @@ interface ModalProps {
   onClose: () => void;
   panelClassName?: string;
   title: string;
+  description?: string;
   maxWidth?: string;
 }
 
-function Modal({ backdropClassName, bodyClassName, children, onClose, panelClassName, title, maxWidth = 'max-w-[540px]' }: ModalProps): JSX.Element {
+function Modal({ backdropClassName, bodyClassName, children, onClose, panelClassName, title, description, maxWidth = 'max-w-[560px]' }: ModalProps): JSX.Element {
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -26,6 +30,23 @@ function Modal({ backdropClassName, bodyClassName, children, onClose, panelClass
     };
   }, []);
 
+  const idRef = useRef(Symbol('modal'));
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const id = idRef.current;
+    modalStack.push(id);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && modalStack[modalStack.length - 1] === id) onCloseRef.current();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      modalStack.splice(modalStack.indexOf(id), 1);
+    };
+  }, []);
+
   if (portalTarget == null) {
     return <></>;
   }
@@ -33,39 +54,41 @@ function Modal({ backdropClassName, bodyClassName, children, onClose, panelClass
   return createPortal(
     <div
       aria-modal="true"
+      aria-label={title}
       className={[
-        'fixed inset-0 z-[1000] flex items-center justify-center',
-        'bg-olive-900/40 backdrop-blur-sm p-5',
+        'fixed inset-0 z-[1000] flex items-start sm:items-center justify-center',
+        'bg-olive-950/40 backdrop-blur-[2px] p-4 sm:p-6 overflow-y-auto animate-fadeIn',
         backdropClassName ?? ''
       ].join(' ')}
-      onClick={onClose}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
       role="dialog"
     >
       <div
         className={[
-          'relative w-full max-h-[90vh] overflow-y-auto',
+          'relative w-full max-h-[calc(100vh-3rem)] flex flex-col my-auto',
           maxWidth,
-          'bg-white border border-olive-200',
-          'rounded-lg shadow-xl',
+          'bg-white rounded-2xl shadow-2xl ring-1 ring-olive-950/5',
           'animate-modalIn',
           panelClassName ?? ''
         ].join(' ')}
-        onClick={(event) => event.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-olive-200 bg-olive-50 rounded-t-lg">
-          <h2 className="text-[1.1rem] font-semibold m-0 text-olive-950">{title}</h2>
+        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-olive-100 shrink-0">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold m-0 text-olive-950 tracking-tight">{title}</h2>
+            {description ? <p className="text-[13px] text-olive-500 mt-0.5 mb-0">{description}</p> : null}
+          </div>
           <button
-            aria-label="Close modal"
-            className="h-8 px-3 text-[0.8rem] bg-white border border-olive-200 rounded text-olive-700 hover:bg-olive-50 transition-colors"
+            aria-label="Close"
+            className="icon-btn -mr-2 -mt-1 shrink-0"
             onClick={onClose}
             type="button"
           >
-            <MdClose size={20} />
+            <X size={18} />
           </button>
         </div>
-        {/* Body */}
-        <div className={['p-6 grid gap-5', bodyClassName ?? ''].join(' ')}>{children}</div>
+        <div className={['p-6 grid gap-5 overflow-y-auto', bodyClassName ?? ''].join(' ')}>{children}</div>
       </div>
     </div>,
     portalTarget

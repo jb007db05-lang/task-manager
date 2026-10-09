@@ -182,7 +182,7 @@ function ProjectAiSettingsModal({ projectId, isAdmin, onClose }: ProjectAiSettin
             <div className={`flex flex-col gap-4 transition-opacity ${config.enabled ? 'opacity-100' : 'opacity-60 pointer-events-none select-none'}`}>
               {/* Provider Selection */}
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] font-bold text-olive-500 uppercase tracking-widest pl-1">AI Model Provider</label>
+                <label className="text-[0.7rem] font-bold text-olive-500 pl-1">AI Model Provider</label>
                 <select
                   className="bg-white border border-olive-200 rounded-lg px-3 py-2 text-sm text-olive-950 focus:outline-none focus:ring-1 focus:ring-olive-500 disabled:bg-olive-50"
                   value={config.provider}
@@ -197,7 +197,7 @@ function ProjectAiSettingsModal({ projectId, isAdmin, onClose }: ProjectAiSettin
 
               {/* Model Selection Preset Dropdown */}
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] font-bold text-olive-500 uppercase tracking-widest pl-1">Model Name</label>
+                <label className="text-[0.7rem] font-bold text-olive-500 pl-1">Model Name</label>
                 <select
                   className="bg-white border border-olive-200 rounded-lg px-3 py-2 text-sm text-olive-950 focus:outline-none focus:ring-1 focus:ring-olive-500 disabled:bg-olive-50"
                   value={config.modelName}
@@ -212,7 +212,7 @@ function ProjectAiSettingsModal({ projectId, isAdmin, onClose }: ProjectAiSettin
 
               {/* API Key Input */}
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] font-bold text-olive-500 uppercase tracking-widest pl-1">API Key</label>
+                <label className="text-[0.7rem] font-bold text-olive-500 pl-1">API Key</label>
                 {config.apiKey === '••••••••' && !isReplacingKey ? (
                   <div className="flex gap-2 items-center">
                     <div className="relative flex-1">
@@ -276,7 +276,7 @@ function ProjectAiSettingsModal({ projectId, isAdmin, onClose }: ProjectAiSettin
 
               {/* Custom Endpoint Base URL Override */}
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] font-bold text-olive-500 uppercase tracking-widest pl-1">
+                <label className="text-[0.7rem] font-bold text-olive-500 pl-1">
                   API Base URL Override <span className="text-[11px] font-normal text-olive-400 italic">(Optional)</span>
                 </label>
                 <input

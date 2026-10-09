@@ -196,7 +196,7 @@ function AiPlanningWorkspacePanel({ project, onArtifactsCreated, onGoToSettings 
           ['Team', context?.team.length ?? 0]
         ].map(([label, value]) => (
           <div className="rounded-lg border border-olive-200 bg-olive-50 p-3" key={label}>
-            <div className="text-xs font-semibold uppercase tracking-wide text-olive-500">{label}</div>
+            <div className="text-xs font-medium text-olive-500">{label}</div>
             <div className="mt-1 text-xl font-bold text-olive-950">{value}</div>
           </div>
         ))}
@@ -315,7 +315,7 @@ function AiPlanningWorkspacePanel({ project, onArtifactsCreated, onGoToSettings 
         <div className="max-h-[260px] min-h-[140px] space-y-2 overflow-y-auto rounded bg-olive-50 p-3">
           {workspace?.messages.length ? workspace.messages.map((item) => (
             <div className={`max-w-[88%] rounded-lg px-3 py-2 text-sm ${item.role === 'USER' ? 'ml-auto bg-olive-700 text-white' : 'bg-white text-olive-950 shadow-sm'}`} key={item.id}>
-              <div className="mb-1 text-[11px] font-bold uppercase tracking-wide opacity-70">{item.role === 'USER' ? 'You' : 'AI planner'}</div>
+              <div className="mb-1 text-[11px] font-bold opacity-70">{item.role === 'USER' ? 'You' : 'AI planner'}</div>
               <div className="whitespace-pre-wrap">{item.content}</div>
             </div>
           )) : <p className="text-sm text-olive-500">Describe goal, users, scope, constraints, and required outcomes.</p>}
@@ -350,11 +350,11 @@ function AiPlanningWorkspacePanel({ project, onArtifactsCreated, onGoToSettings 
           <pre className="max-h-[180px] overflow-auto whitespace-pre-wrap rounded bg-olive-50 p-3 text-xs text-olive-800">{draft.plan.documentation}</pre>
           <div className="grid gap-2 md:grid-cols-2">
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wide text-olive-500">Milestones mapped to epics</h4>
+              <h4 className="text-xs font-medium text-olive-500">Milestones mapped to epics</h4>
               {draft.plan.milestones.map((milestone) => <div className="mt-1 text-sm text-olive-800" key={milestone.name}>- {milestone.name}</div>)}
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wide text-olive-500">Tasks and subtasks</h4>
+              <h4 className="text-xs font-medium text-olive-500">Tasks and subtasks</h4>
               {draft.plan.tasks.map((task) => <div className="mt-1 text-sm text-olive-800" key={task.title}>- {task.title} ({task.subtasks.length})</div>)}
             </div>
           </div>

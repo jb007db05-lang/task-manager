@@ -1,9 +1,12 @@
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
+import { useConfirm } from '@/context/ConfirmationContext';
 import { useEffect, useState } from 'react';
 import {
   AlertCircle, CheckCircle2, Clock, Copy, Eye, EyeOff, Globe,
   KeyRound, Loader2, Plus, RefreshCw, Server,
-  Shield, Trash2, WifiOff, Zap, ChevronDown, ChevronRight, Code2,
-  Settings, BookOpen, Target, Activity, FlaskConical, Rocket
+  Trash2, WifiOff, Zap, ChevronDown, ChevronRight, Code2,
+  Settings, BookOpen, Target, Activity, FlaskConical, Rocket, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { SdkIntegration, SdkEnvironment, SdkIntegrationMode } from '@/lib/sdk-integrations/api';
@@ -110,23 +113,23 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     } finally { setLoading(false); }
   };
 
-  const inputCls = 'rounded bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-sm focus:shadow-sm transition-shadow';
+  const inputCls = 'input-base';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-xs px-4">
-      <div className="w-full max-w-lg rounded-md bg-white shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2"><Globe size={18} /> New SDK Integration</h2>
-          <p className="text-sm text-slate-300 mt-0.5">Connect an external website to the Engagement Platform</p>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-olive-950/40 backdrop-blur-[2px] px-4 animate-fadeIn">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-olive-950/5 overflow-hidden animate-modalIn">
+        <div className="px-6 pt-5 pb-4 border-b border-olive-100">
+          <h2 className="text-base font-semibold text-olive-950 m-0">New integration</h2>
+          <p className="text-[13px] text-olive-500 mt-0.5 mb-0">Connect an external website to the engagement platform.</p>
         </div>
         <div className="p-6 grid gap-4 overflow-y-auto max-h-[70vh]">
           {err && <div className="flex items-center gap-2 rounded bg-red-50 px-4 py-2.5 text-sm text-red-700 shadow-sm"><AlertCircle size={15} className="shrink-0" />{err}</div>}
           <div className="grid gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Mode *</span>
+            <span className="text-[13px] font-medium text-olive-700">Mode *</span>
             <div role="radiogroup" aria-label="Integration mode" className="grid grid-cols-2 gap-2">
               {MODE_OPTIONS.map(opt => {
                 const active = mode === opt.value;
-                const accent = opt.value === 'sandbox' ? 'ring-amber-500 bg-amber-50/60' : 'ring-indigo-500 bg-indigo-50/60';
+                const accent = opt.value === 'sandbox' ? 'ring-amber-400 bg-amber-50/60' : 'ring-brand-500 bg-brand-50/60';
                 return (
                   <button
                     key={opt.value}
@@ -134,7 +137,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
                     role="radio"
                     aria-checked={active}
                     onClick={() => { setMode(opt.value); setErr(null); }}
-                    className={`text-left rounded p-3 shadow-sm transition-all ${active ? `ring-2 ${accent}` : 'bg-white hover:bg-slate-50'}`}
+                    className={`text-left rounded-lg p-3 border transition-colors ${active ? `border-transparent ring-2 ${accent}` : 'border-olive-200 bg-white hover:bg-olive-50'}`}
                   >
                     <span className={`flex items-center gap-1.5 text-sm font-bold ${opt.value === 'sandbox' ? 'text-amber-700' : 'text-indigo-700'}`}>
                       {opt.icon}{opt.label}
@@ -146,12 +149,12 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             </div>
           </div>
           <label className="grid gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Integration Name *</span>
+            <span className="text-[13px] font-medium text-olive-700">Integration Name *</span>
             <input className={inputCls} placeholder={isSandbox ? 'e.g. Local Dev' : 'e.g. Production Website'} value={name} onChange={e => setName(e.target.value)} />
           </label>
           {!isSandbox && (
             <label className="grid gap-1.5">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Environment *</span>
+              <span className="text-[13px] font-medium text-olive-700">Environment *</span>
               <select className={inputCls} value={env} onChange={e => setEnv(e.target.value as SdkEnvironment)}>
                 <option value="production">Production</option>
                 <option value="staging">Staging</option>
@@ -160,25 +163,25 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             </label>
           )}
           <label className="grid gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Application URL *</span>
+            <span className="text-[13px] font-medium text-olive-700">Application URL *</span>
             <input className={inputCls} placeholder={isSandbox ? 'http://localhost:5173' : 'https://app.company.com'} value={domain} onChange={e => setDomain(e.target.value)} />
             <span className="text-[11px] text-slate-400">
               {isSandbox ? 'localhost URLs are allowed. Any localhost port can use the sandbox key.' : 'localhost is not allowed for production. Use a sandbox integration to test locally.'}
             </span>
           </label>
           <label className="grid gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Additional Allowed Origins (optional, comma-separated)</span>
+            <span className="text-[13px] font-medium text-olive-700">Additional Allowed Origins (optional, comma-separated)</span>
             <input className={inputCls} placeholder={isSandbox ? 'https://preview.company.dev' : 'https://origin2.com, https://*.company.com'} value={origins} onChange={e => setOrigins(e.target.value)} />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Description (optional)</span>
+            <span className="text-[13px] font-medium text-olive-700">Description (optional)</span>
             <textarea className={`${inputCls} resize-none h-20`} placeholder="Brief description of this integration" value={desc} onChange={e => setDesc(e.target.value)} />
           </label>
         </div>
-        <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
-          <button onClick={onClose} type="button" className="px-4 py-2 rounded text-sm font-semibold text-slate-600 hover:bg-slate-50 shadow-xs">Cancel</button>
-          <button onClick={() => void submit()} type="button" disabled={loading} className="px-5 py-2 rounded bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 disabled:opacity-60 flex items-center gap-2 shadow-sm hover:shadow-sm transition-all">
-            {loading && <Loader2 size={14} className="animate-spin" />} Create {isSandbox ? 'Sandbox' : 'Integration'}
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-olive-100 bg-olive-50/60">
+          <button onClick={onClose} type="button" className="btn btn-secondary">Cancel</button>
+          <button onClick={() => void submit()} type="button" disabled={loading} className="btn btn-primary">
+            {loading && <Loader2 size={14} className="animate-spin" />} Create {isSandbox ? 'sandbox' : 'integration'}
           </button>
         </div>
       </div>
@@ -190,20 +193,23 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
 function KeyRevealModal({ sdkKey, name, onClose }: { sdkKey: string; name: string; onClose: () => void }) {
   const [visible, setVisible] = useState(false);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-xs px-4">
-      <div className="w-full max-w-md rounded-md bg-white shadow-sm">
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-5 rounded-t-2xl">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2"><KeyRound size={18} /> SDK Key Generated</h2>
-          <p className="text-sm text-emerald-100 mt-0.5">For <span className="font-bold">{name}</span></p>
+    <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-olive-950/40 backdrop-blur-[2px] px-4 animate-fadeIn">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-olive-950/5 animate-modalIn">
+        <div className="px-6 pt-5 pb-4 border-b border-olive-100 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center"><KeyRound size={17} /></div>
+          <div>
+            <h2 className="text-base font-semibold text-olive-950 m-0">Your SDK key is ready</h2>
+            <p className="text-[13px] text-olive-500 m-0">For <span className="font-medium text-olive-800">{name}</span></p>
+          </div>
         </div>
         <div className="p-6 grid gap-4">
-          <div className="rounded bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2 shadow-xs">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-[13px] text-amber-900 flex items-start gap-2">
             <AlertCircle size={15} className="mt-0.5 shrink-0" />
             <span>This key will not be shown again. Copy it now and store it securely.</span>
           </div>
-          <div className="rounded bg-slate-50 px-4 py-3 shadow-inner">
+          <div className="rounded-lg border border-olive-200 bg-olive-50 px-4 py-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">{sdkKey.startsWith('sdk_test_') ? 'Sandbox SDK Key' : 'Public SDK Key'}</span>
+              <span className="text-[13px] font-medium text-olive-700">{sdkKey.startsWith('sdk_test_') ? 'Sandbox SDK Key' : 'Public SDK Key'}</span>
               <div className="flex items-center gap-3">
                 <button onClick={() => setVisible(!visible)} type="button" title={visible ? 'Hide key' : 'Show key'} className="text-slate-400 hover:text-slate-600">{visible ? <EyeOff size={14} /> : <Eye size={14} />}</button>
                 <CopyBtn text={sdkKey} />
@@ -213,7 +219,7 @@ function KeyRevealModal({ sdkKey, name, onClose }: { sdkKey: string; name: strin
           </div>
         </div>
         <div className="flex justify-end px-6 pb-6">
-          <button onClick={onClose} type="button" className="px-5 py-2 rounded bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 shadow-sm">Done</button>
+          <button onClick={onClose} type="button" className="btn btn-primary">I’ve saved my key</button>
         </div>
       </div>
     </div>
@@ -225,22 +231,22 @@ function InstallGuide({ integration }: { integration: SdkIntegration }) {
   const [open, setOpen] = useState(false);
   const masked = integration.sdkKeyMasked;
   return (
-    <div className="rounded bg-slate-50/60 overflow-hidden shadow-sm">
+    <div className="rounded-lg border border-olive-200 overflow-hidden">
       <button
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-100/50 transition-colors text-sm font-bold text-slate-700"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-olive-50 transition-colors text-[13px] font-medium text-olive-800"
         onClick={() => setOpen(!open)} type="button"
       >
         <span className="flex items-center gap-2"><Code2 size={15} />SDK Installation Guide</span>
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
       </button>
       {open && (
-        <div className="p-5 grid gap-4 bg-white shadow-xs">
+        <div className="p-4 grid gap-4 bg-white border-t border-olive-100">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">1. Install the SDK</p>
+            <p className="text-[13px] font-medium text-olive-700">1. Install the SDK</p>
             <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`npm install @jamesbond007db05/events-sdk`}</pre>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">2. Initialize</p>
+            <p className="text-[13px] font-medium text-olive-700">2. Initialize</p>
             <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`import { Engagement } from '@jamesbond007db05/events-sdk';
 
 Engagement.init({
@@ -249,7 +255,7 @@ Engagement.init({
 });`}</pre>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">3. Track an event</p>
+            <p className="text-[13px] font-medium text-olive-700">3. Track an event</p>
             <pre className="bg-slate-900 text-emerald-300 rounded px-4 py-3 text-xs overflow-auto shadow-inner">{`await Engagement.track('signup_completed');`}</pre>
           </div>
           <div className="rounded bg-sky-50 px-4 py-3 text-xs text-sky-700 shadow-xs">
@@ -264,19 +270,20 @@ Engagement.init({
 // ---------- Details modal ----------
 function DetailsModal({ integration, onClose, onRefresh }: { integration: SdkIntegration; onClose: () => void; onRefresh: () => Promise<void> }) {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const [newKey, setNewKey] = useState<string | null>(null);
   const act = async (fn: () => Promise<unknown>) => { setBusy(true); try { await fn(); await onRefresh(); } finally { setBusy(false); } };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-xs px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-olive-950/40 backdrop-blur-[2px] px-4 animate-fadeIn" onClick={onClose}>
       {newKey && <KeyRevealModal sdkKey={newKey} name={integration.name} onClose={() => setNewKey(null)} />}
-      <div className="w-full max-w-lg rounded-md bg-white shadow-sm overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-slate-900 px-6 py-4 flex items-start justify-between gap-4">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-olive-950/5 overflow-hidden animate-modalIn" onClick={e => e.stopPropagation()}>
+        <div className="px-6 pt-5 pb-4 border-b border-olive-100 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-white">{integration.name}</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{integration.domain}</p>
+            <h2 className="text-base font-semibold text-olive-950 m-0">{integration.name}</h2>
+            <p className="text-[13px] text-olive-500 mt-0.5 mb-0">{integration.domain}</p>
           </div>
-          <button onClick={onClose} type="button" className="text-slate-400 hover:text-white mt-0.5">✕</button>
+          <button aria-label="Close" onClick={onClose} type="button" className="icon-btn -mr-2 -mt-1"><X size={18} /></button>
         </div>
         <div className="p-5 grid gap-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-2">
@@ -289,14 +296,14 @@ function DetailsModal({ integration, onClose, onRefresh }: { integration: SdkInt
               { label: 'Latest Origin', value: integration.latestOrigin ?? '—' },
             ].map(({ label, value }) => (
               <div key={label} className="rounded bg-slate-50 p-3">
-                <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-0.5">{label}</p>
+                <p className="text-[11px] text-slate-400 mb-0.5">{label}</p>
                 <p className="text-xs text-slate-700 truncate">{value}</p>
               </div>
             ))}
           </div>
           {integration.allowedOrigins?.length > 0 && (
             <div className="rounded bg-slate-50 p-3">
-              <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-0.5">Allowed Origins</p>
+              <p className="text-[11px] text-slate-400 mb-0.5">Allowed Origins</p>
               <p className="text-xs text-slate-700 break-all">{integration.allowedOrigins.join(', ')}</p>
             </div>
           )}
@@ -323,7 +330,7 @@ function DetailsModal({ integration, onClose, onRefresh }: { integration: SdkInt
               ? <button onClick={() => act(() => enableIntegration(integration.id))} disabled={busy} type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-50 text-xs text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"><Zap size={12} />Enable</button>
               : <button onClick={() => act(() => disableIntegration(integration.id))} disabled={busy || integration.status === 'revoked'} type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-50 text-xs text-amber-700 hover:bg-amber-100 disabled:opacity-50"><WifiOff size={12} />Disable</button>
             }
-            <button onClick={() => { if (window.confirm(`Delete "${integration.name}"?`)) void act(() => deleteIntegration(integration.id)); }} disabled={busy} type="button"
+            <button onClick={async () => { if (await confirm({ title: 'Delete integration', message: `Delete "${integration.name}"? Sites using its key will stop sending data.`, confirmText: 'Delete', type: 'danger' })) void act(() => deleteIntegration(integration.id)); }} disabled={busy} type="button"
               className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded bg-red-50 text-xs text-red-600 hover:bg-red-100 disabled:opacity-50">
               <Trash2 size={12} />Delete
             </button>
@@ -345,7 +352,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
     <>
       {showDetails && <DetailsModal integration={integration} onClose={() => setShowDetails(false)} onRefresh={onRefresh} />}
       <div
-        className={`rounded-md bg-white shadow-sm hover:shadow-sm transition-all duration-200 flex flex-col overflow-hidden cursor-pointer group border-t-[3px] ${integration.mode === 'sandbox' ? SANDBOX_BORDER : ENV_BORDER[integration.environment]} ${integration.status === 'disabled' || integration.status === 'revoked' ? 'opacity-70' : ''}`}
+        className={`card hover:border-olive-300 hover:shadow-md transition-[border-color,box-shadow] duration-200 flex flex-col overflow-hidden cursor-pointer group border-t-[3px] ${integration.mode === 'sandbox' ? SANDBOX_BORDER : ENV_BORDER[integration.environment]} ${integration.status === 'disabled' || integration.status === 'revoked' ? 'opacity-70' : ''}`}
         onClick={() => navigate(`/sdk-integrations/${integration.id}/overview`)}
         role="button"
         tabIndex={0}
@@ -359,7 +366,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
             <Badge cls={sm.cls}>{sm.icon}{sm.label}</Badge>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 truncate group-hover:text-slate-900 transition-colors" title={integration.name}>{integration.name}</h3>
+            <h3 className="text-[15px] font-semibold text-olive-950 truncate m-0" title={integration.name}>{integration.name}</h3>
             <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5 truncate"><Globe size={11} className="shrink-0" />{integration.domain}</p>
           </div>
           {integration.description && <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{integration.description}</p>}
@@ -367,16 +374,16 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
           <div className="flex items-center gap-2 mt-auto pt-1" onClick={e => e.stopPropagation()}>
             <div className="relative">
               <button onClick={() => setShowDropdown(!showDropdown)} type="button"
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-xs text-slate-600 transition-colors">
+                className="btn btn-sm btn-secondary !h-7">
                 Configure <ChevronDown size={12} className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
               </button>
               {showDropdown && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
-                  <div className="absolute left-0 mt-1 w-36 rounded bg-white shadow-sm py-1 z-20">
+                  <div className="absolute left-0 mt-1 w-40 rounded-xl bg-white shadow-lg ring-1 ring-olive-950/[0.07] p-1 z-20 animate-modalIn">
                     {[{label:'Overview',icon:<Settings size={12}/>,tab:'overview'},{label:'Guides',icon:<BookOpen size={12}/>,tab:'guides'},{label:'Surveys',icon:<Target size={12}/>,tab:'surveys'},{label:'Events',icon:<Activity size={12}/>,tab:'events'}].map(item => (
                       <button key={item.label} onClick={() => { setShowDropdown(false); navigate(`/sdk-integrations/${integration.id}/${item.tab}`); }} type="button"
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                        className="w-full flex items-center gap-2 px-2.5 h-8 rounded-md text-left text-[13px] text-olive-700 hover:bg-olive-100 hover:text-olive-950">
                         <span className="text-slate-400">{item.icon}</span>{item.label}
                       </button>
                     ))}
@@ -385,7 +392,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
               )}
             </div>
             <button onClick={() => setShowDetails(true)} type="button"
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 px-2 py-1 rounded hover:bg-slate-50 transition-colors ml-auto">
+              className="btn btn-sm btn-ghost !h-7 ml-auto">
               Details <ChevronRight size={12} />
             </button>
           </div>
@@ -398,7 +405,7 @@ function IntegrationCard({ integration, onRefresh }: { integration: SdkIntegrati
             { label: 'SDK Version', value: integration.sdkVersion ?? '—' },
           ].map(({ label, value }) => (
             <div key={label} className="px-2 text-center">
-              <p className="text-[11px] uppercase tracking-wider text-slate-400">{label}</p>
+              <p className="text-[11px] text-slate-400">{label}</p>
               <p className="text-[11px] text-slate-600 mt-0.5 truncate">{value}</p>
             </div>
           ))}
@@ -446,7 +453,7 @@ export default function SdkIntegrationsPage() {
   };
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className=" px-8 pt-8 pb-16">
       {showCreate && (
         <CreateModal
           onClose={() => setShowCreate(false)}
@@ -459,98 +466,78 @@ export default function SdkIntegrationsPage() {
       )}
       {newKey && <KeyRevealModal sdkKey={newKey.key} name={newKey.name} onClose={() => setNewKey(null)} />}
 
-      {/* Header */}
-      <div className="bg-white px-8 py-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <Shield className="text-white" size={18} />
-              </div>
-              <div>
-                <h2 className="m-0 text-xl font-semibold text-slate-800">SDK Integrations</h2>
-                <p className="m-0 text-xs text-slate-400">Connect websites · Generate keys · Manage auth</p>
-              </div>
+      <PageHeader
+        title="SDK integrations"
+        description="Connect your websites, issue SDK keys and monitor their health."
+        actions={
+          <button onClick={() => setShowCreate(true)} type="button" className="btn btn-primary">
+            <Plus size={16} />New integration
+          </button>
+        }
+      />
+
+      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 rounded-xl border border-olive-200 bg-white overflow-hidden divide-x divide-olive-100">
+        {[
+          { label: 'Total', value: stats.total, icon: <Globe size={15} />, iconCls: 'text-olive-400' },
+          { label: 'Connected', value: stats.connected, icon: <CheckCircle2 size={15} />, iconCls: 'text-brand-600' },
+          { label: 'Pending', value: stats.pending, icon: <Clock size={15} />, iconCls: 'text-amber-500' },
+          { label: 'Inactive', value: stats.disabled, icon: <WifiOff size={15} />, iconCls: 'text-red-500' },
+        ].map(({ label, value, icon, iconCls }) => (
+          <div key={label} className="px-4 py-3.5 flex items-center gap-3">
+            <span className={iconCls}>{icon}</span>
+            <div>
+              <p className="m-0 text-[17px] font-semibold text-olive-950 leading-tight tabular-nums">{value}</p>
+              <p className="m-0 text-xs text-olive-500">{label}</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowCreate(true)} type="button"
-            className="flex items-center gap-2 rounded bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 shadow-sm hover:shadow-sm transition-all"
-          >
-            <Plus size={16} />New Integration
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Total', value: stats.total, icon: <Globe size={14} />, iconCls: 'text-slate-500', bg: 'bg-slate-50', txt: 'text-slate-700' },
-            { label: 'Connected', value: stats.connected, icon: <CheckCircle2 size={14} />, iconCls: 'text-emerald-500', bg: 'bg-emerald-50', txt: 'text-emerald-700' },
-            { label: 'Pending', value: stats.pending, icon: <Clock size={14} />, iconCls: 'text-amber-500', bg: 'bg-amber-50', txt: 'text-amber-700' },
-            { label: 'Inactive', value: stats.disabled, icon: <WifiOff size={14} />, iconCls: 'text-rose-400', bg: 'bg-rose-50', txt: 'text-rose-600' },
-          ].map(({ label, value, icon, iconCls, bg, txt }) => (
-            <div key={label} className={`rounded ${bg} px-4 py-3.5 flex items-center gap-3`}>
-              <span className={iconCls}>{icon}</span>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-slate-400">{label}</p>
-                <p className={`text-xl font-semibold ${txt} leading-tight mt-0.5`}>{value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 px-8 py-4 bg-white/60 shadow-xs">
+      <div className="flex flex-wrap items-center gap-2 mt-6 mb-4">
         <input
-          className="rounded bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/10 shadow-xs focus:shadow-sm w-56 transition-shadow"
-          placeholder="Search integrations…" value={search} onChange={e => setSearch(e.target.value)}
+          aria-label="Search integrations"
+          className="input-base !h-8 !w-60 !text-[13px]"
+          placeholder="Search integrations" value={search} onChange={e => setSearch(e.target.value)}
         />
-        <select className="rounded bg-white px-3 py-2 text-sm focus:outline-none shadow-xs text-slate-700 font-semibold" value={filterEnv} onChange={e => setFilterEnv(e.target.value as typeof filterEnv)}>
-          <option value="all">All Environments</option>
+        <select aria-label="Environment" className="input-base !h-8 !w-auto !text-[13px]" value={filterEnv} onChange={e => setFilterEnv(e.target.value as typeof filterEnv)}>
+          <option value="all">Any environment</option>
           <option value="sandbox">Sandbox</option>
           <option value="production">Production</option>
           <option value="staging">Staging</option>
           <option value="development">Development</option>
         </select>
-        <select className="rounded bg-white px-3 py-2 text-sm focus:outline-none shadow-xs text-slate-700 font-semibold" value={filterStatus} onChange={e => setFilterStatus(e.target.value as typeof filterStatus)}>
-          <option value="all">All Statuses</option>
+        <select aria-label="Status" className="input-base !h-8 !w-auto !text-[13px]" value={filterStatus} onChange={e => setFilterStatus(e.target.value as typeof filterStatus)}>
+          <option value="all">Any status</option>
           <option value="pending">Pending</option>
           <option value="connected">Connected</option>
           <option value="disabled">Disabled</option>
           <option value="revoked">Revoked</option>
         </select>
-        <span className="text-xs text-slate-400 font-semibold ml-auto">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+        <span className="text-xs text-olive-500 ml-auto">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Content */}
-      <div className="p-8">
+      <div>
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-slate-400 font-semibold">
-            <Loader2 className="animate-spin mr-2" size={20} />Loading integrations…
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[0, 1, 2].map((i) => <div key={i} className="skeleton h-40" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="rounded-md bg-white p-10 max-w-sm shadow-sm">
-              <Server size={40} className="text-slate-300 mx-auto mb-4" />
-              <h3 className="text-base font-bold text-slate-700 mb-2">
-                {integrations.length === 0 ? 'No integrations yet' : 'No results'}
-              </h3>
-              <p className="text-sm text-slate-455 mb-5 leading-relaxed">
-                {integrations.length === 0
-                  ? 'Create your first SDK integration to connect an external website to the Engagement Platform.'
-                  : 'Try adjusting your search or filters.'}
-              </p>
-              {integrations.length === 0 && (
-                <button onClick={() => setShowCreate(true)} type="button"
-                  className="flex items-center gap-2 mx-auto rounded bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 shadow-sm">
-                  <Plus size={15} />Create Integration
+          <div className="card">
+            <EmptyState
+              icon={Server}
+              title={integrations.length === 0 ? 'No integrations yet' : 'No matching integrations'}
+              description={integrations.length === 0
+                ? 'Create an integration to connect an external website and start sending events, guides and surveys.'
+                : 'Try a different search or clear the filters.'}
+              action={integrations.length === 0 ? (
+                <button onClick={() => setShowCreate(true)} type="button" className="btn btn-primary">
+                  <Plus size={15} />Create integration
                 </button>
-              )}
-            </div>
+              ) : undefined}
+            />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map(i => (
               <IntegrationCard key={i.id} integration={i} onRefresh={load} />
             ))}

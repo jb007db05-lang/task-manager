@@ -224,7 +224,7 @@ export const PromptDeploymentModal: React.FC<PromptDeploymentModalProps> = ({
                         promptService.bindFeature(workspaceId, prompt._id, featureKey || null),
                       )
                     }
-                    className="px-3.5 py-1.5 rounded-lg bg-olive-900 hover:bg-black text-white text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-3.5 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {busyAction === "bind" ? "Saving..." : "Save"}
                   </button>
@@ -525,7 +525,7 @@ export const PromptDeploymentModal: React.FC<PromptDeploymentModalProps> = ({
                         <span className="flex items-center gap-2 shrink-0">
                           <span className="text-[11px] text-olive-500">{new Date(v.createdAt).toLocaleDateString()}</span>
                           <span
-                            className={`text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${STATUS_STYLES[status]}`}
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${STATUS_STYLES[status]}`}
                           >
                             {status}
                           </span>

@@ -12,7 +12,7 @@ import {
   type DataEnvironment
 } from '@/lib/sdk-integrations/api';
 import EngagementPage from './EngagementPage';
-import EventTrackingPage from './EventTrackingPage';
+import EventsExplorer from '@/components/events/EventsExplorer';
 import SandboxPanel from '@/components/SandboxPanel';
 import {
   Activity,
@@ -202,7 +202,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
         <p className="mt-2 text-sm text-slate-500">{error || 'The requested SDK integration could not be loaded.'}</p>
         <button
           onClick={() => navigate('/sdk-integrations')}
-          className="mt-5 rounded bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
+          className="mt-5 rounded bg-brand-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-brand-800 transition-colors"
         >
           Back to List
         </button>
@@ -234,15 +234,15 @@ const SdkIntegrationDetailPage: React.FC = () => {
               <div className="flex items-center gap-3 flex-wrap">
                 <span className={`w-2.5 h-2.5 rounded-full bg-gradient-to-br ${envGradient[integration.environment] ?? 'from-slate-400 to-slate-600'} shrink-0`} />
                 <h2 className="m-0 text-xl font-semibold text-slate-900">{integration.name}</h2>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${statusColors[integration.status]}`}>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[integration.status]}`}>
                   {integration.status}
                 </span>
                 {isSandboxMode ? (
-                  <span className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white uppercase bg-gradient-to-r from-amber-500 to-orange-500">
+                  <span className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white bg-gradient-to-r from-amber-500 to-orange-500">
                     Sandbox
                   </span>
                 ) : (
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium text-white uppercase bg-gradient-to-r ${envGradient[integration.environment] ?? 'from-slate-600 to-slate-800'}`}>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium text-white bg-gradient-to-r ${envGradient[integration.environment] ?? 'from-slate-600 to-slate-800'}`}>
                     {integration.environment}
                   </span>
                 )}
@@ -277,12 +277,6 @@ const SdkIntegrationDetailPage: React.FC = () => {
                   ))}
                 </div>
               )}
-              <button
-                onClick={() => navigate('/sdk-integrations')}
-                className="rounded bg-slate-100 px-4 py-2 text-sm text-slate-600 hover:bg-slate-200 transition-colors"
-              >
-                ← Back to Integrations
-              </button>
             </div>
           </div>
         </div>
@@ -295,7 +289,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
             {/* Left 2 Columns: Config & Keys */}
             <div className="lg:col-span-2 space-y-8">
               {/* SDK Key Panel */}
-              <div className="rounded-md bg-white p-4 shadow-sm border-l-4 border-indigo-500">
+              <div className="card p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 rounded bg-indigo-50 flex items-center justify-center">
                     <Code className="h-4 w-4 text-indigo-600" />
@@ -340,7 +334,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={handleRegenerateKey}
-                    className="rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-800 transition-colors"
+                    className="rounded bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-800 transition-colors"
                   >
                     Regenerate Key
                   </button>
@@ -358,7 +352,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
               <SandboxPanel integration={integration} onChange={setIntegration} />
 
               {/* Edit Details Form */}
-              <div className="rounded bg-white p-5 shadow-sm border-l-4 border-violet-500">
+              <div className="card p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded bg-violet-50 flex items-center justify-center">
@@ -379,7 +373,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                 {isEditing ? (
                   <form onSubmit={handleSaveChanges} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
                         Integration Name
                       </label>
                       <input
@@ -393,7 +387,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        <label className="block text-xs font-medium text-slate-500 mb-1">
                           Primary Domain
                         </label>
                         <input
@@ -406,7 +400,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                         />
                       </div>
                       {!isSandboxMode && <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        <label className="block text-xs font-medium text-slate-500 mb-1">
                           Environment
                         </label>
                         <select
@@ -422,7 +416,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
                         Allowed CORS Origins (comma-separated URLs)
                       </label>
                       <input
@@ -435,7 +429,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
                         Description
                       </label>
                       <textarea
@@ -450,7 +444,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                       <button
                         type="submit"
                         disabled={saving}
-                        className="rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-800 transition-colors disabled:opacity-50"
+                        className="rounded bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-800 transition-colors disabled:opacity-50"
                       >
                         {saving ? 'Saving...' : 'Save Changes'}
                       </button>
@@ -470,11 +464,11 @@ const SdkIntegrationDetailPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Primary Domain</span>
+                        <span className="block text-xs font-medium text-slate-400">Primary Domain</span>
                         <span className="text-sm font-semibold text-slate-800">{integration.domain}</span>
                       </div>
                       <div>
-                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Mode</span>
+                        <span className="block text-xs font-medium text-slate-400">Mode</span>
                         <span className="text-sm font-semibold text-slate-800 capitalize">
                           {isSandboxMode ? 'Sandbox' : `Production · ${integration.environment}`}
                         </span>
@@ -482,7 +476,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Allowed Origins</span>
+                      <span className="block text-xs font-medium text-slate-400">Allowed Origins</span>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {integration.allowedOrigins.length > 0 ? (
                           integration.allowedOrigins.map((origin) => (
@@ -497,7 +491,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Description</span>
+                      <span className="block text-xs font-medium text-slate-400">Description</span>
                       <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap">{integration.description || 'No description provided.'}</p>
                     </div>
                   </div>
@@ -508,7 +502,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
             {/* Right Column: Connection Diagnostics & Control */}
             <div className="space-y-8">
               {/* Health Diagnostics Panel */}
-              <div className="rounded-md bg-white p-4 shadow-sm border-l-4 border-emerald-500">
+              <div className="card p-5">
                 <div className="flex items-center gap-2 mb-5">
                   <div className="w-8 h-8 rounded bg-emerald-50 flex items-center justify-center">
                     <Activity className="h-4 w-4 text-emerald-600" />
@@ -541,44 +535,40 @@ const SdkIntegrationDetailPage: React.FC = () => {
               </div>
 
               {/* Danger Zone */}
-              <div className="rounded-md bg-rose-50/50 p-4 shadow-sm">
+              <div className="card p-5 !border-red-200">
                 <div className="flex items-center gap-2 mb-4">
-                  <ShieldAlert className="h-5 w-5 text-rose-600" />
-                  <h3 className="m-0 text-lg font-bold text-rose-900">Danger Zone</h3>
+                  <ShieldAlert className="h-4 w-4 text-red-600" />
+                  <h3 className="m-0 text-[15px] font-semibold text-olive-950">Danger zone</h3>
                 </div>
 
-                <p className="text-xs text-rose-705 mb-4 leading-relaxed font-medium">
-                  Temporarily disable administrative operations or permanently delete this entire integration context.
+                <p className="text-[13px] text-olive-500 mb-4 leading-relaxed">
+                  Pause this integration temporarily, or delete it permanently. Sites using its key will stop receiving content.
                 </p>
 
                 <div className="space-y-3">
                   <button
                     onClick={handleToggleStatus}
-                    className={`w-full rounded px-4 py-2.5 text-sm font-bold shadow transition-colors flex items-center justify-center gap-2 ${
-                      integration.status === 'disabled'
-                        ? 'bg-emerald-600 text-white hover:bg-emerald-500'
-                        : 'bg-amber-600 text-white hover:bg-amber-500'
-                    }`}
+                    className={`btn w-full ${integration.status === 'disabled' ? 'btn-primary' : 'btn-secondary'}`}
                   >
                     {integration.status === 'disabled' ? (
                       <>
                         <Play className="h-4 w-4" />
-                        Enable Integration
+                        Enable integration
                       </>
                     ) : (
                       <>
                         <Pause className="h-4 w-4" />
-                        Disable Integration
+                        Disable integration
                       </>
                     )}
                   </button>
 
                   <button
                     onClick={handleDelete}
-                    className="w-full rounded bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-rose-500 transition-colors flex items-center justify-center gap-2"
+                    className="btn btn-secondary w-full !text-red-600 hover:!bg-red-50 hover:!border-red-200"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Delete Integration
+                    Delete integration
                   </button>
                 </div>
               </div>
@@ -599,9 +589,7 @@ const SdkIntegrationDetailPage: React.FC = () => {
         )}
 
         {activeTab === 'events' && (
-          <div className="rounded-md bg-white  shadow-sm overflow-hidden">
-            <EventTrackingPage sdkIntegrationId={integrationId} hideHeader={true} environment={effectiveEnvironment} onOpenDocs={() => navigate('/sdk-docs')} />
-          </div>
+          integrationId ? <EventsExplorer integrationId={integrationId} environment={effectiveEnvironment} /> : null
         )}
       </div>
     </div>

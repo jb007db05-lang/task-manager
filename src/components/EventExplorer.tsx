@@ -86,7 +86,7 @@ const EventExplorer: React.FC<EventExplorerProps> = ({ selectedKeyId }) => {
       cell: info => {
         const name = info.getValue();
         return (
-          <span className={`text-[0.7rem] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${name.startsWith('page') ? 'bg-olive-500/10 text-olive-600' :
+          <span className={`text-[0.7rem] px-2 py-0.5 rounded-md font-medium ${name.startsWith('page') ? 'bg-olive-500/10 text-olive-600' :
             name.startsWith('identify') ? 'bg-emerald-500/10 text-emerald-600' :
               'bg-olive-500/10 text-olive-700'
             }`}>
@@ -171,7 +171,7 @@ const EventExplorer: React.FC<EventExplorerProps> = ({ selectedKeyId }) => {
     <div className="bg-white  rounded-xl border border-olive-200/80  shadow-sm overflow-hidden flex flex-col h-full">
       <div className="p-6 border-b border-olive-100  flex flex-col md:flex-row md:items-center justify-between gap-4 bg-olive-50/30 ">
         <div>
-          <span className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-olive-600 ">
+          <span className="text-[0.68rem] font-bold text-olive-600">
             Observation Log
           </span>
           <h3 className="font-sans font-bold text-[1.1rem] text-olive-950  mt-1">Event Explorer</h3>
@@ -199,7 +199,7 @@ const EventExplorer: React.FC<EventExplorerProps> = ({ selectedKeyId }) => {
           <div className="px-8 py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <p className="text-[0.63rem] font-bold uppercase tracking-[0.2em] text-olive-400 mb-3 flex items-center gap-2">
+                <p className="text-[0.63rem] font-bold text-olive-400 mb-3 flex items-center gap-2">
                   <Code size={12} />
                   Payload Properties
                 </p>
@@ -210,25 +210,25 @@ const EventExplorer: React.FC<EventExplorerProps> = ({ selectedKeyId }) => {
                 </div>
               </div>
               <div>
-                <p className="text-[0.63rem] font-bold uppercase tracking-[0.2em] text-olive-400 mb-3 flex items-center gap-2">
+                <p className="text-[0.63rem] font-bold text-olive-400 mb-3 flex items-center gap-2">
                   <Globe size={12} />
                   Environment Details
                 </p>
                 <div className="bg-white  rounded-lg p-5 border border-olive-200  font-medium space-y-3 shadow-sm">
                   <div className="flex justify-between border-b border-olive-100  pb-2">
-                    <span className="text-[11px] text-olive-500 uppercase tracking-wider">Library</span>
+                    <span className="text-[11px] text-olive-500">Library</span>
                     <span className="text-[0.75rem] font-bold text-olive-950 ">{event.context?.library?.name} v{event.context?.library?.version}</span>
                   </div>
                   <div className="flex justify-between border-b border-olive-100  pb-2">
-                    <span className="text-[11px] text-olive-500 uppercase tracking-wider">Screen</span>
+                    <span className="text-[11px] text-olive-500">Screen</span>
                     <span className="text-[0.75rem] font-bold text-olive-950 ">{event.context?.device?.screen || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between border-b border-olive-100  pb-2">
-                    <span className="text-[11px] text-olive-500 uppercase tracking-wider">Language</span>
+                    <span className="text-[11px] text-olive-500">Language</span>
                     <span className="text-[0.75rem] font-bold text-olive-950 ">{event.context?.device?.language || 'N/A'}</span>
                   </div>
                   <div className="pt-2">
-                    <span className="text-[11px] text-olive-500 uppercase tracking-wider block mb-1">Page URL</span>
+                    <span className="text-[11px] text-olive-500 block mb-1">Page URL</span>
                     <span className="text-[0.72rem] font-bold text-olive-600  break-all">{event.context?.page?.url || 'N/A'}</span>
                   </div>
                 </div>

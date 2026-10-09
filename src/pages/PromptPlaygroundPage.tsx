@@ -227,8 +227,8 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
     const contentMsgs = verDoc
       ? verDoc.messages || []
       : prompt.messages && prompt.messages.length > 0
-      ? prompt.messages
-      : [];
+        ? prompt.messages
+        : [];
     const schema = verDoc ? verDoc.variables || [] : prompt.variables || [];
 
     setBody(contentBody);
@@ -541,8 +541,8 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
       const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
       setErrorMsg(
         errorObj.response?.data?.message ||
-          errorObj.message ||
-          "Failed to execute prompt through AI service provider.",
+        errorObj.message ||
+        "Failed to execute prompt through AI service provider.",
       );
     } finally {
       setIsExecuting(false);
@@ -655,43 +655,28 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
   const runB = runHistory.find((r) => r.id === compareRunIdB) || runHistory[1] || runHistory[0];
 
   return (
-    <div className="h-full flex flex-col bg-olive-50 text-olive-950 font-sans overflow-hidden">
+    <div className="h-full flex flex-col bg-olive-50 text-olive-950 overflow-hidden">
       {/* Top Workspace Header Bar */}
-      <header className="px-6 py-3.5 bg-white border-b border-olive-200 shadow-xs flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-olive-900 text-white shadow-md shadow-olive-900/10">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-lg font-bold text-olive-950">Prompt Playground</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-olive-100 text-olive-800 border border-olive-200 uppercase tracking-wider font-mono">
-                Full-Page Workspace
-              </span>
-            </div>
-            <p className="text-xs text-olive-600">
-              Isolated prompt development, runtime testing, variable resolution & output comparison.
-            </p>
-          </div>
+      <header className="px-6 h-16 bg-white border-b border-olive-200 flex items-center justify-between shrink-0">
+        <div className="min-w-0">
+          <h1 className="text-[17px] font-semibold tracking-tight text-olive-950 m-0">Playground</h1>
+          <p className="text-[13px] text-olive-500 m-0">Test prompts, fill in variables and compare model outputs side by side.</p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleStartNewPrompt}
-            className="px-3.5 py-2 rounded-xl bg-olive-100 hover:bg-olive-200 border border-olive-300 text-olive-900 text-xs font-bold flex items-center gap-2 transition shadow-xs cursor-pointer"
+            className="btn btn-sm btn-secondary"
           >
-            <Plus className="w-4 h-4 text-olive-800" /> New Prompt
+            <Plus className="w-4 h-4" /> New prompt
           </button>
 
           <button
             type="button"
             onClick={() => setIsParametersDrawerOpen(!isParametersDrawerOpen)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold border flex items-center gap-2 transition shadow-xs relative ${
-              isParametersDrawerOpen
-                ? "bg-olive-900 text-white border-olive-900 shadow-md"
-                : "bg-white text-olive-800 border-olive-200 hover:bg-olive-100"
-            }`}
+            aria-pressed={isParametersDrawerOpen}
+            className={`btn btn-sm relative ${isParametersDrawerOpen ? "btn-dark" : "btn-secondary"}`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span>Parameters</span>
@@ -747,7 +732,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
 
           {/* Folders & Prompts List */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar text-xs">
-            <div className="flex items-center justify-between text-[11px] font-bold text-olive-500 uppercase tracking-wider px-2">
+            <div className="flex items-center justify-between text-[11px] font-bold text-olive-500 px-2">
               <span>Folders & Templates</span>
               <span className="font-mono">{filteredPrompts.length} prompts</span>
             </div>
@@ -809,11 +794,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                                   key={p._id}
                                   type="button"
                                   onClick={() => handleSelectPrompt(p._id)}
-                                  className={`w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between transition group ${
-                                    isSelected
+                                  className={`w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between transition group ${isSelected
                                       ? "bg-olive-900 text-white shadow-sm font-bold"
                                       : "text-olive-800 hover:bg-olive-100/70"
-                                  }`}
+                                    }`}
                                 >
                                   <div className="truncate pr-2">
                                     <div className="truncate text-xs">{p.name}</div>
@@ -822,11 +806,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                                     </div>
                                   </div>
                                   <ChevronRight
-                                    className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                                      isSelected
+                                    className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected
                                         ? "text-emerald-400"
                                         : "text-olive-400 opacity-0 group-hover:opacity-100"
-                                    }`}
+                                      }`}
                                   />
                                 </button>
                               );
@@ -868,11 +851,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                             key={p._id}
                             type="button"
                             onClick={() => handleSelectPrompt(p._id)}
-                            className={`w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between transition group ${
-                              isSelected
+                            className={`w-full text-left px-2.5 py-2 rounded-xl flex items-center justify-between transition group ${isSelected
                                 ? "bg-olive-900 text-white shadow-sm font-bold"
                                 : "text-olive-800 hover:bg-olive-100/70"
-                            }`}
+                              }`}
                           >
                             <div className="truncate pr-2">
                               <div className="truncate text-xs">{p.name}</div>
@@ -881,11 +863,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               </div>
                             </div>
                             <ChevronRight
-                              className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                                isSelected
+                              className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected
                                   ? "text-emerald-400"
                                   : "text-olive-400 opacity-0 group-hover:opacity-100"
-                              }`}
+                                }`}
                             />
                           </button>
                         );
@@ -913,7 +894,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
               <button
                 type="button"
                 onClick={handleStartNewPrompt}
-                className="px-5 py-2.5 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-bold shadow-md shadow-olive-900/20 transition flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Create New Prompt Template
               </button>
@@ -1015,29 +996,27 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
               {/* Creator Mode Switcher & Content */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-olive-200 pb-2">
-                  <span className="text-xs font-bold text-olive-950 uppercase tracking-wider">
+                  <span className="text-xs font-medium text-olive-950">
                     Prompt Structure
                   </span>
                   <div className="flex items-center gap-1 bg-olive-100 p-1 rounded-lg">
                     <button
                       type="button"
                       onClick={() => setEditorMode("blocks")}
-                      className={`px-3 py-1 rounded text-xs font-semibold transition ${
-                        editorMode === "blocks"
+                      className={`px-3 py-1 rounded text-xs font-semibold transition ${editorMode === "blocks"
                           ? "bg-white text-olive-950 shadow-xs"
                           : "text-olive-600 hover:text-olive-950"
-                      }`}
+                        }`}
                     >
                       Multi-Role Blocks Mode
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditorMode("raw")}
-                      className={`px-3 py-1 rounded text-xs font-semibold transition ${
-                        editorMode === "raw"
+                      className={`px-3 py-1 rounded text-xs font-semibold transition ${editorMode === "raw"
                           ? "bg-white text-olive-950 shadow-xs"
                           : "text-olive-600 hover:text-olive-950"
-                      }`}
+                        }`}
                     >
                       Raw Text Mode
                     </button>
@@ -1056,7 +1035,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               updated[idx].role = e.target.value as IPromptMessage["role"];
                               setMessages(updated);
                             }}
-                            className="bg-white border border-olive-200 text-olive-900 font-bold text-xs rounded-lg px-2.5 py-1 uppercase"
+                            className="bg-white border border-olive-200 text-olive-900 font-medium text-xs rounded-lg px-2.5 py-1"
                           >
                             <option value="system">SYSTEM</option>
                             <option value="user">USER</option>
@@ -1125,7 +1104,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                   type="button"
                   onClick={handleCreatePromptSubmit}
                   disabled={isSaving}
-                  className="px-5 py-2 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-bold shadow-md shadow-olive-900/20 transition"
+                  className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition"
                 >
                   {isSaving ? "Saving..." : "Create Prompt"}
                 </button>
@@ -1145,7 +1124,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                       <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-olive-900 text-white">
                         v{selectedVersionNum}
                       </span>
-                      <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-olive-200 text-olive-800">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-olive-200 text-olive-800">
                         {activePrompt?.category}
                       </span>
                     </div>
@@ -1176,11 +1155,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                         key={v.version}
                         type="button"
                         onClick={() => handleVersionChange(v.version)}
-                        className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition shrink-0 ${
-                          isVerActive
+                        className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition shrink-0 ${isVerActive
                             ? "bg-olive-900 text-white shadow-xs"
                             : "bg-white text-olive-700 hover:bg-olive-200 border border-olive-200"
-                        }`}
+                          }`}
                       >
                         v{v.version}
                       </button>
@@ -1193,7 +1171,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
               {isEditingPromptContent && (
                 <div className="p-5 rounded-2xl bg-white border border-olive-300 shadow-md space-y-4 animate-in fade-in duration-200">
                   <div className="flex items-center justify-between border-b border-olive-200 pb-3">
-                    <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                       <Code2 className="w-4 h-4 text-olive-700" />
                       Workspace Prompt Content Editor (v{selectedVersionNum})
                     </h3>
@@ -1201,22 +1179,20 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                       <button
                         type="button"
                         onClick={() => setEditorMode("blocks")}
-                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${
-                          editorMode === "blocks"
+                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${editorMode === "blocks"
                             ? "bg-white text-olive-950 shadow-xs"
                             : "text-olive-600 hover:text-olive-950"
-                        }`}
+                          }`}
                       >
                         Multi-Role Blocks
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditorMode("raw")}
-                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${
-                          editorMode === "raw"
+                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${editorMode === "raw"
                             ? "bg-white text-olive-950 shadow-xs"
                             : "text-olive-600 hover:text-olive-950"
-                        }`}
+                          }`}
                       >
                         Raw Text
                       </button>
@@ -1235,7 +1211,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                                 updated[idx].role = e.target.value as IPromptMessage["role"];
                                 setMessages(updated);
                               }}
-                              className="bg-white border border-olive-200 text-olive-900 font-bold text-xs rounded-lg px-2.5 py-1 uppercase"
+                              className="bg-white border border-olive-200 text-olive-900 font-medium text-xs rounded-lg px-2.5 py-1"
                             >
                               <option value="system">SYSTEM</option>
                               <option value="user">USER</option>
@@ -1287,7 +1263,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                       type="button"
                       onClick={handleSaveExistingPromptChanges}
                       disabled={isSaving}
-                      className="px-4 py-1.5 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-bold shadow-md transition"
+                      className="px-4 py-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition"
                     >
                       {isSaving ? "Saving..." : "Save & Bump Version"}
                     </button>
@@ -1298,7 +1274,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
               {/* Prompt Content Preview & Resolved View Toggle */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                     <Code2 className="w-4 h-4 text-olive-700" />
                     Prompt Content & Substitution Preview
                   </h3>
@@ -1307,22 +1283,20 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                     <button
                       type="button"
                       onClick={() => setPreviewMode("template")}
-                      className={`px-3 py-1 rounded text-xs font-semibold transition ${
-                        previewMode === "template"
+                      className={`px-3 py-1 rounded text-xs font-semibold transition ${previewMode === "template"
                           ? "bg-white text-olive-950 shadow-xs font-bold"
                           : "text-olive-600 hover:text-olive-950"
-                      }`}
+                        }`}
                     >
                       Template View
                     </button>
                     <button
                       type="button"
                       onClick={() => setPreviewMode("resolved")}
-                      className={`px-3 py-1 rounded text-xs font-semibold transition ${
-                        previewMode === "resolved"
+                      className={`px-3 py-1 rounded text-xs font-semibold transition ${previewMode === "resolved"
                           ? "bg-white text-olive-950 shadow-xs font-bold"
                           : "text-olive-600 hover:text-olive-950"
-                      }`}
+                        }`}
                     >
                       Resolved View
                     </button>
@@ -1334,7 +1308,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                     messages.length > 0 ? (
                       messages.map((m, idx) => (
                         <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                          <span className="text-emerald-400 font-bold uppercase text-[11px] block mb-1">
+                          <span className="text-emerald-400 font-bold text-[11px] block mb-1">
                             [{m.role}]
                           </span>
                           <div className="whitespace-pre-wrap">{m.content}</div>
@@ -1346,7 +1320,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                   ) : Array.isArray(resolvedPreview) ? (
                     resolvedPreview.map((m, idx) => (
                       <div key={idx} className="border-b border-olive-800/60 pb-2 last:border-0 last:pb-0">
-                        <span className="text-amber-300 font-bold uppercase text-[11px] block mb-1">
+                        <span className="text-amber-300 font-bold text-[11px] block mb-1">
                           [{m.role}]
                         </span>
                         <div className="whitespace-pre-wrap text-white">{m.content}</div>
@@ -1361,7 +1335,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
               {/* Dynamic Handlebars Variables (Definition vs Runtime Test Values) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                     <Sliders className="w-4 h-4 text-olive-700" />
                     Handlebars Variables ({activeDetectedVariables.length})
                   </h3>
@@ -1392,14 +1366,14 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               {`{{${varName}}}`}
                               {isRequired && <span className="text-rose-500 font-bold">*</span>}
                             </label>
-                            <span className="text-[11px] text-olive-700 uppercase font-mono px-2 py-0.5 rounded bg-olive-200 font-bold">
+                            <span className="text-[11px] text-olive-700 font-mono px-2 py-0.5 rounded bg-olive-200 font-bold">
                               {varType}
                             </span>
                           </div>
 
                           {/* Runtime Test Value Input */}
                           <div>
-                            <span className="text-[11px] font-bold text-olive-600 uppercase tracking-wider block mb-1">
+                            <span className="text-[11px] font-bold text-olive-600 block mb-1">
                               Runtime Test Value
                             </span>
 
@@ -1470,7 +1444,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                   type="button"
                   onClick={handleRunPlayground}
                   disabled={isExecuting}
-                  className="w-full sm:w-auto px-8 py-3 rounded-xl bg-olive-900 hover:bg-black disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-olive-900/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isExecuting ? (
                     <>
@@ -1495,11 +1469,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                         setCompareRunIdB(runHistory[1].id);
                       }
                     }}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition ${
-                      isComparingRuns
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition ${isComparingRuns
                         ? "bg-olive-900 text-white border-olive-900"
                         : "bg-white text-olive-800 border-olive-200 hover:bg-olive-100"
-                    }`}
+                      }`}
                   >
                     <GitCompare className="w-4 h-4" />
                     {isComparingRuns ? "Exit Comparison" : `Compare Runs (${runHistory.length})`}
@@ -1512,7 +1485,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                 /* Run Comparison Mode */
                 <div className="p-5 rounded-2xl bg-white border border-olive-200 space-y-4 shadow-sm">
                   <div className="flex items-center justify-between pb-2 border-b border-olive-200">
-                    <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                       <GitCompare className="w-4 h-4 text-olive-700" />
                       Side-by-Side Playground Run Comparison
                     </h3>
@@ -1527,7 +1500,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">
+                      <span className="text-[11px] font-bold text-olive-600 block mb-1">
                         Run A
                       </span>
                       <select
@@ -1544,7 +1517,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                     </div>
 
                     <div>
-                      <span className="text-[11px] uppercase font-bold text-olive-600 block mb-1">
+                      <span className="text-[11px] font-bold text-olive-600 block mb-1">
                         Run B
                       </span>
                       <select
@@ -1614,7 +1587,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                 /* Single Run Output View */
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-olive-950 uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-xs font-medium text-olive-950 flex items-center gap-2">
                       <Eye className="w-4 h-4 text-olive-700" />
                       Execution Result Output
                     </h3>
@@ -1717,7 +1690,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                   {/* Session Run History Drawer */}
                   {runHistory.length > 0 && (
                     <div className="space-y-2 pt-4 border-t border-olive-200">
-                      <h4 className="text-xs font-bold text-olive-800 uppercase tracking-wider flex items-center gap-2">
+                      <h4 className="text-xs font-medium text-olive-800 flex items-center gap-2">
                         <Clock className="w-3.5 h-3.5 text-olive-600" />
                         Session Run History ({runHistory.length})
                       </h4>
@@ -1729,11 +1702,10 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                             <div
                               key={run.id}
                               onClick={() => setSelectedRunId(run.id)}
-                              className={`p-3 rounded-xl border text-xs cursor-pointer flex items-center justify-between transition ${
-                                isSelected
+                              className={`p-3 rounded-xl border text-xs cursor-pointer flex items-center justify-between transition ${isSelected
                                   ? "bg-olive-900 text-white border-olive-900 shadow-sm"
                                   : "bg-white text-olive-900 border-olive-200 hover:bg-olive-100"
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2 truncate">
                                 <span className="font-mono font-bold text-[11px] opacity-75">
@@ -1760,7 +1732,14 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
 
         {/* RIGHT PARAMETERS DRAWER (Sliding / Overlay from Right Side) */}
         {isParametersDrawerOpen && (
-          <aside className="w-80 border-l border-olive-200 bg-white shadow-2xl flex flex-col h-full shrink-0 z-30 animate-in slide-in-from-right duration-300">
+          <>
+            {/* Dark Backdrop Overlay */}
+            <div
+              className="fixed inset-0 bg-black/40 z-40 animate-in fade-in duration-200"
+              onClick={() => setIsParametersDrawerOpen(false)}
+            />
+            {/* Drawer Panel Overlay */}
+            <aside className="fixed top-0 right-0 bottom-0 w-80 border-l border-olive-200 bg-white shadow-2xl flex flex-col h-full z-50 animate-in slide-in-from-right duration-300">
             {/* Drawer Header */}
             <div className="px-5 py-4 border-b border-olive-200 bg-olive-50/70 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1895,12 +1874,13 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
               <button
                 type="button"
                 onClick={() => setIsParametersDrawerOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-olive-900 text-white font-bold text-xs transition"
+                className="px-4 py-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-xs transition"
               >
                 Done
               </button>
             </div>
           </aside>
+          </>
         )}
       </div>
 
@@ -1942,7 +1922,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                 type="button"
                 onClick={handleSaveAsVersionSubmit}
                 disabled={isSaving}
-                className="px-5 py-2 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-bold transition"
+                className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition"
               >
                 {isSaving ? "Saving..." : "Confirm & Save Version"}
               </button>
@@ -2016,7 +1996,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                 type="button"
                 onClick={handleSaveAsNewPromptSubmit}
                 disabled={isSaving}
-                className="px-5 py-2 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-bold transition"
+                className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold transition"
               >
                 {isSaving ? "Creating..." : "Create Prompt"}
               </button>

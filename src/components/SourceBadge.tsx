@@ -1,23 +1,24 @@
+import { Bot, PenLine } from 'lucide-react';
 import type { TaskSource } from '@/types/task';
 
 interface SourceBadgeProps {
   source?: TaskSource;
 }
 
-const sourceClasses: Record<string, string> = {
-  manual:  'bg-olive-50    text-olive-700  border border-olive-200',
-  chatgpt: 'bg-olive-50  text-olive-700 border border-olive-200',
-  claude:  'bg-purple-50  text-purple-700 border border-purple-200',
-  gemini:  'bg-cyan-50    text-cyan-700   border border-cyan-200'
+const sourceLabels: Record<string, string> = {
+  manual: 'Created manually',
+  chatgpt: 'From ChatGPT',
+  claude: 'From Claude',
+  gemini: 'From Gemini',
+  'ai-planning': 'AI planner'
 };
 
 function SourceBadge({ source = 'manual' }: SourceBadgeProps): JSX.Element {
-  const cls = sourceClasses[source] ?? sourceClasses.manual;
+  const isManual = source === 'manual';
   return (
-    <span
-      className={`inline-block rounded text-[0.75rem] font-bold px-2.5 py-1 uppercase tracking-[0.05em] ${cls}`}
-    >
-      {source}
+    <span className={`badge ${isManual ? 'badge-slate' : 'badge-green'} !h-5 !text-[11px]`}>
+      {isManual ? <PenLine size={11} /> : <Bot size={11} />}
+      {sourceLabels[source] ?? source}
     </span>
   );
 }

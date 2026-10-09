@@ -30,7 +30,7 @@ const inputCls =
   'w-full bg-white/82  border border-olive-200  rounded-md ' +
   'text-olive-950  px-4 py-3.5 transition-all duration-200 focus:outline-none ' +
   'focus:border-olive-500  focus:ring-2 focus:ring-olive-500/10';
-const labelCls = 'grid gap-2 font-medium text-[0.95rem] text-olive-950';
+const labelCls = 'grid gap-1.5 text-[13px] font-medium text-olive-700';
 
 function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFormProps): JSX.Element {
   const initialStatus: TaskWorkflowStatus =
@@ -115,7 +115,7 @@ function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFor
   };
 
   return (
-    <form className="grid gap-[18px] mt-2" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
       <label className={labelCls}>
         <span>Title</span>
         <input
@@ -129,7 +129,7 @@ function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFor
       </label>
 
       <label className={labelCls}>
-        <span>Description <span className="text-olive-400  font-normal text-[0.82rem]">(optional)</span></span>
+        <span>Description <span className="text-olive-400 font-normal">(optional)</span></span>
         <textarea
           className={`${inputCls} min-h-[88px] resize-y`}
           onChange={(event) => setDescription(event.target.value)}
@@ -170,32 +170,32 @@ function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFor
         </label>
       </div>
 
-      <div className={`p-4 rounded-xl border transition-all duration-300 ${isBlocked 
-        ? 'bg-red-50/50  border-red-200'
-        : 'bg-olive-50  border-olive-200'
+      <div className={`px-4 py-3 rounded-lg border transition-colors ${isBlocked
+        ? 'bg-red-50/60 border-red-200'
+        : 'bg-olive-50 border-olive-200'
       }`}>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between">
           <button 
             type="button"
             onClick={() => setIsBlocked(!isBlocked)}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className={`w-10 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${isBlocked ? 'bg-red-500' : 'bg-olive-300'}`}>
-              <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-300 ${isBlocked ? 'translate-x-4' : 'translate-x-0'}`} />
-            </div>
-            <span className={`text-sm font-bold flex items-center gap-1.5 transition-colors ${isBlocked ? 'text-red-700' : 'text-olive-700'}`}>
-              <AlertCircle size={15} className={isBlocked ? 'text-red-500' : 'text-olive-400'} />
-              Mark as Blocked
+            <span role="switch" aria-checked={isBlocked} className={`w-8 h-[18px] flex items-center rounded-full p-0.5 transition-colors ${isBlocked ? 'bg-red-500' : 'bg-olive-300'}`}>
+              <span className={`bg-white w-3.5 h-3.5 rounded-full shadow-sm transition-transform ${isBlocked ? 'translate-x-3.5' : 'translate-x-0'}`} />
+            </span>
+            <span className={`text-[13px] font-medium flex items-center gap-1.5 ${isBlocked ? 'text-red-700' : 'text-olive-700'}`}>
+              <AlertCircle size={14} className={isBlocked ? 'text-red-500' : 'text-olive-400'} />
+              This task is blocked
             </span>
           </button>
         </div>
         
         {isBlocked && (
-          <div className="animate-in fade-in slide-in-from-top-2 pt-2 border-t border-red-200/50  mt-3">
+          <div className="animate-in pt-3 border-t border-red-200/60 mt-3">
             <label className={labelCls}>
-              <span className="text-[0.7rem] uppercase tracking-wider text-red-600/70  font-bold">Reason / Blocking Task</span>
+              <span>Blocked by</span>
               <select
-                className={`${inputCls} !border-red-200  focus:!border-red-500`}
+                className={`${inputCls} !border-red-200`}
                 onChange={(event) => setBlockedByTaskId(event.target.value)}
                 value={blockedByTaskId}
               >
@@ -235,7 +235,7 @@ function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFor
 
       <div className="grid grid-cols-2 gap-4">
         <label className={labelCls}>
-          <span>Project <span className="text-olive-400  font-normal text-[0.82rem]">(optional)</span></span>
+          <span>Project <span className="text-olive-400 font-normal">(optional)</span></span>
           <select
             className={inputCls}
             disabled={!canChangeProject}
@@ -253,7 +253,7 @@ function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFor
 
         {projectId && (
           <label className={labelCls}>
-            <span>Epic <span className="text-olive-400  font-normal text-[0.82rem]">(optional)</span></span>
+            <span>Epic <span className="text-olive-400 font-normal">(optional)</span></span>
             <select
               className={inputCls}
               onChange={(event) => setEpicId(event.target.value)}
@@ -271,15 +271,15 @@ function EditTaskForm({ epics, allTasks, onSubmit, projects, task }: EditTaskFor
       </div>
 
       <button
-        className="bg-olive-900  text-white rounded-md px-4 py-3 text-[0.95rem] font-bold hover:bg-olive-800  disabled:opacity-50 transition-colors shadow-lg shadow-olive-500/20"
+        className="btn btn-primary justify-self-end min-w-[140px]"
         disabled={submitting}
         type="submit"
       >
-        {submitting ? 'Saving task...' : 'Update Task'}
+        {submitting ? 'Saving…' : 'Save changes'}
       </button>
 
       {errorMessage ? (
-        <p className="text-red-600  m-0 text-[0.9rem] font-medium">{errorMessage}</p>
+        <p className="text-red-600 m-0 text-[13px]">{errorMessage}</p>
       ) : null}
     </form>
   );

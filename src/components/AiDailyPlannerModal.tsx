@@ -48,7 +48,7 @@ export const AiDailyPlannerModal: React.FC<AiDailyPlannerModalProps> = ({ isOpen
         {!schedule ? (
           <form onSubmit={handlePlanDay} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">
                 Workload Constraints or Focus for Today (Optional)
               </label>
               <textarea

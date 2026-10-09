@@ -64,7 +64,7 @@ export const ListView: React.FC<ListViewProps> = ({
     <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-300">
-          <thead className="bg-slate-950/80 border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <thead className="bg-slate-950/80 border-b border-slate-800 text-xs font-medium text-slate-400">
             <tr>
               <th className="py-3.5 px-4">Task Title</th>
               <th className="py-3.5 px-4">Status</th>

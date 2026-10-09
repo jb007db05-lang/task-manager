@@ -25,21 +25,21 @@ function SlaDashboard(): JSX.Element | null {
   if (!summary) return null;
 
   const items = [
-    { label: 'Breached', value: summary.totalBreached, icon: AlertTriangle, tone: 'text-red-600 bg-red-50 border-red-100' },
-    { label: 'Response', value: `${summary.responseCompliancePercent}%`, icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-    { label: 'Resolution', value: `${summary.resolutionCompliancePercent}%`, icon: BarChart3, tone: 'text-olive-700 bg-olive-50 border-olive-200' },
-    { label: 'Avg resolve', value: `${summary.averageResolutionTimeHours}h`, icon: TimerReset, tone: 'text-amber-700 bg-amber-50 border-amber-100' }
+    { label: 'SLA breaches', value: summary.totalBreached, icon: AlertTriangle, tone: summary.totalBreached > 0 ? 'text-red-600' : 'text-olive-400' },
+    { label: 'Response on time', value: `${summary.responseCompliancePercent}%`, icon: CheckCircle2, tone: 'text-brand-600' },
+    { label: 'Resolved on time', value: `${summary.resolutionCompliancePercent}%`, icon: BarChart3, tone: 'text-brand-600' },
+    { label: 'Avg. time to resolve', value: `${summary.averageResolutionTimeHours}h`, icon: TimerReset, tone: 'text-olive-400' }
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 @2xl:grid-cols-4 rounded-xl border border-olive-200 bg-white overflow-hidden [&>*]:border-olive-100 [&>*:nth-child(n+2)]:border-l @max-2xl:[&>*:nth-child(3)]:border-l-0 @max-2xl:[&>*:nth-child(n+3)]:border-t">
       {items.map((item) => (
-        <div key={item.label} className={`rounded-xl border p-3 ${item.tone}`}>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-widest font-black opacity-70">{item.label}</span>
-            <item.icon size={15} />
+        <div key={item.label} className="flex items-center gap-3 px-4 py-3">
+          <item.icon size={16} strokeWidth={1.75} className={`shrink-0 ${item.tone}`} />
+          <div className="min-w-0">
+            <div className="text-[17px] font-semibold text-olive-950 leading-tight tabular-nums">{item.value}</div>
+            <div className="text-xs text-olive-500 truncate">{item.label}</div>
           </div>
-          <strong className="block mt-1 text-lg font-black">{item.value}</strong>
         </div>
       ))}
     </div>

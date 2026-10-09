@@ -126,86 +126,57 @@ function ChatInput({
   const isNearLimit = characterCount > MAX_MESSAGE_LENGTH * 0.9;
   const isAtLimit = characterCount >= MAX_MESSAGE_LENGTH;
 
+  const canSend = Boolean(content.trim()) && !disabled && !isAtLimit;
+
   return (
-    <div className="bg-white  border-t border-olive-200/50 ">
-      {/* Reply preview */}
+    <div className="rounded-xl border border-olive-300 bg-white shadow-xs focus-within:border-brand-500 focus-within:shadow-[var(--focus-ring)] transition-shadow">
       {replyingTo && (
-        <div className="mx-4 mt-3 flex items-center gap-3 px-4 py-2.5 bg-olive-50/50  border border-olive-100  rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[11px] uppercase font-bold text-olive-600  tracking-wider">
-                Replying to
-              </span>
-              <span className="text-xs font-bold text-olive-700  truncate">
-                {replyingTo.sender?.name || replyingTo.sender?.email}
-              </span>
-            </div>
-            <div className="text-[11px] text-olive-500  truncate italic">
-              "{replyingTo.content}"
-            </div>
+        <div className="flex items-center gap-2 mx-2 mt-2 pl-3 pr-1 py-1.5 rounded-lg bg-olive-50 border-l-2 border-brand-500 animate-fadeIn">
+          <div className="flex-1 min-w-0 text-xs">
+            <span className="text-olive-500">Replying to </span>
+            <span className="font-medium text-olive-800">{replyingTo.sender?.name || replyingTo.sender?.email}</span>
+            <div className="text-olive-500 truncate">{replyingTo.content}</div>
           </div>
-          <button
-            onClick={onCancelReply}
-            className="p-1.5 text-olive-400 hover:text-red-500  transition-colors bg-white  rounded-full shadow-sm"
-          >
+          <button aria-label="Cancel reply" onClick={onCancelReply} className="icon-btn !w-6 !h-6" type="button">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Input area */}
-      <div className="flex items-end gap-3 p-4">
-        <div className="flex-1 relative group">
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            rows={1}
-            className={[
-              'w-full px-5 py-3 pr-20 rounded-2xl resize-none shadow-sm transition-all duration-300',
-              'bg-olive-50  border border-olive-200',
-              'text-olive-950  text-sm leading-relaxed',
-              'placeholder:text-olive-400',
-              'focus:outline-none focus:ring-4 focus:ring-olive-500/10 focus:border-olive-500/50 focus:bg-white',
-              'disabled:opacity-50 disabled:cursor-not-allowed group-hover:border-olive-300'
-            ].join(' ')}
-            style={{ minHeight: '48px', maxHeight: '150px' }}
-          />
+      <textarea
+        aria-label="Message"
+        ref={textareaRef}
+        value={content}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={disabled ? 'Reconnecting…' : placeholder}
+        disabled={disabled}
+        rows={1}
+        className="block w-full px-3.5 pt-3 pb-1 bg-transparent resize-none text-[13.5px] leading-relaxed text-olive-950 placeholder:text-olive-400 focus:outline-none disabled:cursor-not-allowed border-0 !shadow-none"
+        style={{ minHeight: '44px', maxHeight: '150px' }}
+      />
 
-          {/* Character count */}
-          <div
-            className={[
-              'absolute right-4 bottom-3 text-[11px] font-bold tracking-tighter',
-              isAtLimit
-                ? 'text-red-500'
-                : isNearLimit
-                  ? 'text-amber-500'
-                  : 'text-olive-400',
-              content.length === 0 ? 'opacity-0 scale-90' : 'opacity-100 scale-100',
-              'transition-all duration-200'
-            ].join(' ')}
+      <div className="flex items-center justify-between gap-3 px-2.5 pb-2">
+        <span className="pl-1 text-[11px] text-olive-400">
+          <span className="kbd">Enter</span> to send, <span className="kbd">Shift</span> + <span className="kbd">Enter</span> for a new line
+        </span>
+        <div className="flex items-center gap-2">
+          {content.length > 0 && (
+            <span className={`text-[11px] tabular-nums ${isAtLimit ? 'text-red-600' : isNearLimit ? 'text-amber-600' : 'text-olive-400'}`}>
+              {characterCount}/{MAX_MESSAGE_LENGTH}
+            </span>
+          )}
+          <button
+            aria-label="Send message"
+            onClick={handleSubmit}
+            disabled={!canSend}
+            className="btn btn-sm btn-primary !h-7 !px-2.5"
+            type="button"
           >
-            {characterCount}
-          </div>
+            <Send className="w-3.5 h-3.5" />
+            Send
+          </button>
         </div>
-
-        {/* Send button */}
-        <button
-          onClick={handleSubmit}
-          disabled={!content.trim() || disabled || isAtLimit}
-          className={[
-            'flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center',
-            'transition-all duration-300 transform active:scale-90',
-            content.trim() && !disabled && !isAtLimit
-              ? 'bg-olive-600 text-white shadow-xl shadow-olive-500/25 hover:shadow-olive-500/40 hover:-translate-y-0.5'
-              : 'bg-olive-100  text-olive-400  cursor-not-allowed'
-          ].join(' ')}
-        >
-          <Send className={['w-5 h-5 transition-transform duration-300', content.trim() ? 'translate-x-0.5 -translate-y-0.5' : ''].join(' ')} />
-        </button>
       </div>
     </div>
   );

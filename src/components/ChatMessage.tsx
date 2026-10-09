@@ -50,16 +50,14 @@ const getInitials = (user: MessageSender | null): string => {
 
 // Get avatar color based on user ID
 const getAvatarColor = (userId: string | null): string => {
-  if (!userId) return 'bg-gray-400';
+  if (!userId) return 'bg-olive-200 text-olive-700';
   const colors = [
-    'bg-olive-500',
-    'bg-green-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-olive-500',
-    'bg-teal-500',
-    'bg-orange-500',
-    'bg-cyan-500'
+    'bg-brand-100 text-brand-800',
+    'bg-olive-200 text-olive-800',
+    'bg-amber-100 text-amber-800',
+    'bg-blue-100 text-blue-800',
+    'bg-orange-100 text-orange-700',
+    'bg-red-100 text-red-800'
   ];
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
@@ -178,7 +176,7 @@ function ChatMessageComponent({
   if (isSystemMessage) {
     return (
       <div className="flex items-center justify-center py-2 my-1">
-        <div className="flex items-center gap-2 px-4 py-1.5 bg-olive-100/50  rounded-full border border-olive-200/50 ">
+        <div className="flex items-center gap-2 px-3 py-1 bg-olive-100 rounded-full">
           <span className="text-[11px] font-medium text-olive-500 ">
             {message.content}
           </span>
@@ -194,7 +192,7 @@ function ChatMessageComponent({
   if (isDeleted) {
     return (
       <div className="flex items-center justify-center py-2 my-1 opacity-50">
-        <span className="text-[11px] text-olive-400  italic px-4 py-1 bg-olive-50  rounded-lg">
+        <span className="text-xs text-olive-400 italic px-3 py-1">
           Message deleted
         </span>
       </div>
@@ -204,38 +202,36 @@ function ChatMessageComponent({
   return (
     <div
       id={`message-${message.id}`}
-      className={[
-        'group flex gap-4 px-6 py-2 transition-all duration-300 relative w-full hover:bg-olive-50/80',
-        isOwnMessage ? 'flex-row-reverse' : 'flex-row'
-      ].join(' ')}
+      className="group relative px-3 py-2 rounded-lg hover:bg-olive-50 transition-colors"
     >
-      {/* Avatar */}
-      <div
-        className={[
-          'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-md transform transition-transform group-hover:scale-105',
-          'text-white text-sm font-bold select-none ring-2 ring-white',
-          getAvatarColor(message.senderId),
-        ].join(' ')}
-      >
-        {getInitials(message.sender)}
-      </div>
+      <div className="flex gap-3">
+        <div
+          className={[
+            'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
+            'text-[11px] font-semibold select-none',
+            getAvatarColor(message.senderId),
+          ].join(' ')}
+        >
+          {getInitials(message.sender)}
+        </div>
 
-      {/* Message content */}
-      <div className={['flex flex-col max-w-[92%] min-w-0', isOwnMessage ? 'items-end' : 'items-start'].join(' ')}>
-        
-        {/* The Card Bubble */}
-        <div className="relative group/bubble w-full min-w-[200px]">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span className="text-[13px] font-semibold text-olive-950 truncate">
+              {message.sender?.name || 'Unknown'}
+              {isOwnMessage && <span className="ml-1 font-normal text-olive-400">(you)</span>}
+            </span>
+            <span className="text-[11px] text-olive-400 shrink-0">{formatTime(message.createdAt)}</span>
+            {message.isEdited && <span className="text-[11px] text-olive-400">· edited</span>}
+          </div>
+
           {isEditing ? (
-            <div className="flex flex-col gap-3 min-w-[300px] w-full bg-white  p-4 rounded-2xl border-2 border-olive-500 shadow-2xl">
+            <div className="mt-1.5 rounded-lg border border-brand-500 shadow-[var(--focus-ring)] bg-white">
               <textarea
+                aria-label="Edit message"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className={[
-                  'w-full px-4 py-3 text-sm rounded-xl resize-none outline-none',
-                  'bg-olive-50  border border-olive-200',
-                  'text-olive-950',
-                  'focus:ring-2 focus:ring-olive-500/20'
-                ].join(' ')}
+                className="block w-full px-3 py-2 text-[13px] resize-none outline-none bg-transparent text-olive-950"
                 rows={3}
                 autoFocus
                 onKeyDown={(e) => {
@@ -248,123 +244,80 @@ function ChatMessageComponent({
                   }
                 }}
               />
-              <div className="flex items-center gap-2 justify-end">
-                <button
-                  onClick={handleEditCancel}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-olive-500 hover:text-olive-700   transition-colors"
-                >
+              <div className="flex items-center gap-2 justify-end px-2 pb-2">
+                <span className="mr-auto pl-1 text-[11px] text-olive-400">Enter to save · Esc to cancel</span>
+                <button onClick={handleEditCancel} className="btn btn-sm btn-ghost !h-7" type="button">
                   <X className="w-3.5 h-3.5" />
                   Cancel
                 </button>
-                <button
-                  onClick={handleEditSubmit}
-                  className="flex items-center gap-1.5 px-6 py-2 text-xs font-bold bg-olive-600 text-white rounded-xl hover:bg-olive-700 shadow-lg shadow-olive-500/20 active:scale-95 transition-all"
-                >
+                <button onClick={handleEditSubmit} className="btn btn-sm btn-primary !h-7" type="button">
                   <Check className="w-3.5 h-3.5" />
                   Save
                 </button>
               </div>
             </div>
           ) : (
-            <div
-              className={[
-                'flex flex-col shadow-sm transition-all duration-300 overflow-hidden',
-                isOwnMessage
-                  ? 'bg-olive-600  text-white rounded-tl-2xl rounded-tr-md rounded-br-2xl rounded-bl-2xl'
-                  : 'bg-white  border border-olive-200/60  text-olive-900  rounded-tl-md rounded-tr-2xl rounded-br-2xl rounded-bl-2xl'
-              ].join(' ')}
-            >
-              {/* Card Header (Owner Name) */}
-              <div className={['px-4 py-2 text-[0.72rem] font-bold uppercase tracking-[0.15em] border-b', 
-                isOwnMessage ? 'border-white/10 text-white/90' : 'border-olive-100  text-olive-600'
-              ].join(' ')}>
-                {((name) => name.length > 10 ? name.slice(0, 10) + '…' : name)(message.sender?.name || 'Unknown')}
+            <>
+              {message.replyTo && (
+                <button
+                  type="button"
+                  className="mt-1 mb-1 max-w-full flex items-center gap-2 pl-2 pr-3 py-1 rounded-md border-l-2 border-olive-300 bg-olive-100/70 hover:bg-olive-100 text-xs text-olive-500 text-left transition-colors"
+                  onClick={() => onLoadThread?.(message.replyTo!.id)}
+                >
+                  <CornerDownRight className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{message.replyTo.content}</span>
+                </button>
+              )}
+              <div className="text-[13.5px] leading-relaxed text-olive-800 whitespace-pre-wrap" style={{ wordBreak: 'break-word' }}>
+                {message.content}
               </div>
+            </>
+          )}
 
-              {/* Card Body */}
-              <div className="px-5 py-3.5">
-                {/* Reply preview inside bubble */}
-                {message.replyTo && (
-                  <div
+          {groupedReactions.size > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {Array.from(groupedReactions.entries()).map(([emoji, users]) => {
+                const hasReacted = userReactions.includes(emoji);
+                return (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReactionClick(emoji)}
                     className={[
-                      'mb-3 p-2 rounded-lg text-xs flex items-center gap-3 transition-colors',
-                      isOwnMessage ? 'bg-black/10 hover:bg-black/20 text-white/80' : 'bg-olive-50  hover:bg-olive-100 text-olive-500',
-                      'cursor-pointer border-l-2',
-                      isOwnMessage ? 'border-white/30' : 'border-olive-500'
+                      'flex items-center gap-1 h-6 px-2 rounded-full text-[11px] font-medium border transition-colors',
+                      hasReacted
+                        ? 'bg-brand-50 border-brand-200 text-brand-800'
+                        : 'bg-white border-olive-200 text-olive-600 hover:border-olive-300'
                     ].join(' ')}
-                    onClick={() => onLoadThread?.(message.replyTo!.id)}
+                    title={`Reacted by ${users.length} user${users.length > 1 ? 's' : ''}`}
+                    type="button"
                   >
-                    <CornerDownRight className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{message.replyTo.content}</span>
-                  </div>
-                )}
-
-                <div className="leading-relaxed text-[0.92rem] whitespace-pre-wrap" style={{ wordBreak: 'break-word' }}>
-                  {message.content}
-                </div>
-
-                {/* Footer Info */}
-                <div className={['mt-3 flex items-center justify-between gap-4 text-[11px] uppercase font-bold tracking-wider opacity-60'].join(' ')}>
-                  <span>{formatTime(message.createdAt)}</span>
-                  {message.isEdited && <span>(edited)</span>}
-                </div>
-              </div>
+                    <span className="text-sm leading-none">{emoji}</span>
+                    <span className="tabular-nums">{users.length}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
+
+          {message.replyCount > 0 && (
+            <button
+              onClick={() => onLoadThread?.(message.id)}
+              className="mt-1 text-xs font-medium text-brand-700 hover:text-brand-800 flex items-center gap-1 transition-colors"
+              type="button"
+            >
+              <CornerDownRight className="w-3 h-3" />
+              {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
+            </button>
+          )}
         </div>
-
-        {/* Dynamic Horizontal Reactions Bar */}
-        {groupedReactions.size > 0 && (
-          <div className={['flex flex-wrap gap-1.5 mt-2', isOwnMessage ? 'justify-end' : ''].join(' ')}>
-            {Array.from(groupedReactions.entries()).map(([emoji, users]) => {
-              const hasReacted = userReactions.includes(emoji);
-              return (
-                <button
-                  key={emoji}
-                  onClick={() => handleReactionClick(emoji)}
-                  className={[
-                    'flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-xs transition-all active:scale-90',
-                    'border',
-                    hasReacted
-                      ? 'bg-olive-50 border-olive-200 text-olive-700'
-                      : 'bg-white border-olive-200 text-olive-600',
-                    'hover:border-olive-400'
-                  ].join(' ')}
-                  title={`Reacted by ${users.length} user${users.length > 1 ? 's' : ''}`}
-                >
-                  <span className="text-base leading-none">{emoji}</span>
-                  <span>{users.length}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Reply count indicator */}
-        {message.replyCount > 0 && (
-          <button
-            onClick={() => onLoadThread?.(message.id)}
-            className={[
-              'mt-2 text-[0.72rem] font-bold uppercase tracking-widest text-olive-600 hover:text-olive-700   transition-colors',
-              'flex items-center gap-1.5',
-              isOwnMessage ? 'justify-end' : ''
-            ].join(' ')}
-          >
-            <CornerDownRight className="w-3.5 h-3.5" />
-            {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
-          </button>
-        )}
       </div>
 
       {/* Floating Actions Overlay */}
       {!isEditing && (
         <div
-          className={[
-            'flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 mt-1',
-            isOwnMessage ? 'mr-2' : 'ml-2'
-          ].join(' ')}
+          className="absolute right-3 -top-3 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
         >
-          <div className="flex bg-white  rounded-xl shadow-xl border border-olive-200/50  p-1">
+          <div className="flex bg-white rounded-lg shadow-md ring-1 ring-olive-950/[0.06] p-0.5">
             {/* Emoji toggle icon */}
             <div className="relative">
               <button
@@ -379,7 +332,7 @@ function ChatMessageComponent({
                   }
                   setShowEmojiPicker(!showEmojiPicker);
                 }}
-                className="p-2 text-olive-500 hover:text-olive-600   rounded-lg hover:bg-olive-50  transition-colors"
+                className="icon-btn !w-7 !h-7"
                 title="Add reaction"
               >
                 <Smile size={16} />
@@ -389,7 +342,7 @@ function ChatMessageComponent({
                 <>
                   <div className="fixed inset-0 z-[6000]" onClick={() => setShowEmojiPicker(false)} />
                   <div
-                    className="fixed p-2.5 bg-white  rounded-2xl shadow-2xl border border-olive-200  z-[6001]"
+                    className="fixed p-1.5 bg-white rounded-xl shadow-lg ring-1 ring-olive-950/[0.07] z-[6001]"
                     style={{
                       top: `${emojiPickerPos.top}px`,
                       left: `${emojiPickerPos.left}px`,
@@ -401,7 +354,7 @@ function ChatMessageComponent({
                         <button
                           key={emoji}
                           onClick={() => handleReactionClick(emoji)}
-                          className="w-10 h-10 flex items-center justify-center text-xl rounded-xl hover:bg-olive-100  transition-all hover:scale-110 active:scale-90"
+                          className="w-9 h-9 flex items-center justify-center text-lg rounded-lg hover:bg-olive-100 transition-colors"
                         >
                           {emoji}
                         </button>
@@ -414,7 +367,7 @@ function ChatMessageComponent({
 
             <button
               onClick={() => onReply(message)}
-              className="p-2 text-olive-500 hover:text-olive-600   rounded-lg hover:bg-olive-50  transition-colors"
+              className="icon-btn !w-7 !h-7"
               title="Reply"
             >
               <CornerDownRight size={16} />
@@ -424,7 +377,7 @@ function ChatMessageComponent({
             <div className="relative">
               <button
                 onClick={() => setShowActions(!showActions)}
-                className="p-2 text-olive-500 hover:text-olive-600   rounded-lg hover:bg-olive-50  transition-colors"
+                className="icon-btn !w-7 !h-7"
               >
                 <MoreHorizontal size={16} />
               </button>
@@ -432,11 +385,11 @@ function ChatMessageComponent({
               {showActions && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowActions(false)} />
-                  <div className="absolute right-0 top-full mt-2 py-1.5 bg-white  rounded-xl shadow-2xl border border-olive-200  z-50 min-w-[140px] overflow-hidden">
+                  <div className="absolute right-0 top-full mt-1.5 p-1 bg-white rounded-xl shadow-lg ring-1 ring-olive-950/[0.07] z-50 min-w-[140px]">
                     {canEdit && (
                       <button
                         onClick={handleStartEdit}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-[0.82rem] font-bold text-olive-700  hover:bg-olive-50  transition-colors"
+                        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-md text-[13px] text-olive-700 hover:bg-olive-100 transition-colors"
                       >
                         <Edit2 size={14} />
                         Edit Message
@@ -448,7 +401,7 @@ function ChatMessageComponent({
                           handleDelete();
                           setShowActions(false);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-[0.82rem] font-bold text-red-600  hover:bg-red-50  transition-colors"
+                        className="w-full flex items-center gap-2.5 px-2.5 h-8 rounded-md text-[13px] text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 size={14} />
                         Delete
@@ -464,7 +417,7 @@ function ChatMessageComponent({
 
       {/* Render replies recursively */}
       {sortedReplies.length > 0 && depth < 5 && (
-        <div className="mt-2 ml-4 flex flex-col gap-2 border-l-2 border-olive-100  pl-4">
+        <div className="mt-1 ml-[22px] flex flex-col border-l-2 border-olive-100 pl-3">
           {sortedReplies.map((reply) => (
             <ChatMessageComponent
               key={reply.id}

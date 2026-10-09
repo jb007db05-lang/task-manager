@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { Send, MessageSquare } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { getComments, addComment, type Comment } from '@/services/comments';
 import { formatDate } from '@/utils/date';
 import UserAvatar from './UserAvatar';
@@ -54,71 +54,57 @@ function CommentSection({ taskId }: CommentSectionProps): JSX.Element {
   const displayDate = (dateString: string) => formatDate(dateString, 'short');
 
   return (
-    <div className="flex flex-col h-full bg-olive-50/30  rounded-xl overflow-hidden border border-olive-200 ">
-      <div className="p-4 border-b border-olive-200  flex items-center gap-2 bg-white ">
-        <MessageSquare size={16} className="text-olive-400" />
-        <h3 className="text-sm font-bold text-olive-700  uppercase tracking-wider">Comments</h3>
-        <span className="px-2 py-0.5 rounded-full bg-olive-100  text-[0.7rem] font-bold text-olive-500">
-          {comments.length}
-        </span>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px]">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 space-y-4 min-h-[120px]">
         {loading ? (
-          <div className="flex justify-center p-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-olive-500"></div>
+          <div className="grid gap-3">
+            {[0, 1].map((i) => (
+              <div key={i} className="flex gap-3">
+                <div className="skeleton !rounded-full w-6 h-6" />
+                <div className="flex-1 grid gap-1.5"><div className="skeleton h-3 w-24" /><div className="skeleton h-10" /></div>
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600   ">
-            {error}
-          </div>
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">{error}</div>
         ) : comments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-olive-400 py-8">
-            <MessageSquare size={32} className="opacity-10 mb-2" />
-            <p className="text-xs font-medium">No comments yet. Start the conversation!</p>
-          </div>
+          <p className="text-[13px] text-olive-500 m-0 py-2">No comments yet. Ask a question or share an update.</p>
         ) : (
           comments.map((comment) => (
-            <div key={comment.id} className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2">
-              <UserAvatar 
-                name={comment.user.name} 
-                email={comment.user.email} 
-                size="sm" 
-              />
+            <div key={comment.id} className="flex gap-2.5 animate-in">
+              <UserAvatar name={comment.user.name} email={comment.user.email} size="sm" />
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-olive-700 ">
-                    {comment.user.name || comment.user.email}
-                  </span>
-                  <span className="text-[11px] text-olive-400 font-medium">
-                    {displayDate(comment.createdAt)}
-                  </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[13px] font-medium text-olive-900">{comment.user.name || comment.user.email}</span>
+                  <span className="text-[11px] text-olive-400">{displayDate(comment.createdAt)}</span>
                 </div>
-                <div className="text-sm text-olive-600  leading-relaxed break-words bg-white  p-3 rounded-xl border border-olive-100  shadow-sm">
-                  {comment.content}
-                </div>
+                <p className="m-0 mt-0.5 text-[13px] text-olive-700 leading-relaxed break-words whitespace-pre-wrap">{comment.content}</p>
               </div>
             </div>
           ))
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 bg-white  border-t border-olive-200 ">
-        <div className="relative group">
+      <form onSubmit={handleSubmit} className="mt-4">
+        <div className="rounded-lg border border-olive-300 bg-white shadow-xs focus-within:border-brand-500 focus-within:shadow-[var(--focus-ring)] transition-shadow">
           <textarea
+            aria-label="Write a comment"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Add a comment..."
-            className="w-full pl-4 pr-12 py-3 bg-olive-50  border border-olive-200  rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-olive-500/20 focus:border-olive-500 transition-all resize-none max-h-32"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void handleSubmit(e);
+            }}
+            placeholder="Write a comment…"
+            className="block w-full px-3 pt-2.5 pb-1 bg-transparent text-[13px] focus:outline-none resize-none max-h-32 border-0 !shadow-none"
             rows={2}
           />
-          <button
-            type="submit"
-            disabled={!content.trim() || submitting}
-            className="absolute right-2 bottom-2 p-2 bg-olive-600 text-white rounded-lg hover:bg-olive-500 disabled:opacity-40 disabled:hover:bg-olive-600 transition-all shadow-lg shadow-olive-500/20"
-          >
-            <Send size={16} />
-          </button>
+          <div className="flex items-center justify-between px-2 pb-2">
+            <span className="text-[11px] text-olive-400 pl-1"><span className="kbd">Ctrl</span> + <span className="kbd">Enter</span> to send</span>
+            <button type="submit" disabled={!content.trim() || submitting} className="btn btn-sm btn-primary !h-7">
+              <Send size={13} />
+              {submitting ? 'Sending…' : 'Comment'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

@@ -1,3 +1,4 @@
+import EmptyState from '@/components/EmptyState';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
@@ -68,7 +69,7 @@ const columns = [
       };
 
       return (
-        <span className={`px-2.5 py-1 rounded-md text-[0.72rem] font-medium uppercase border ${getEventStyle(name)}`}>
+        <span className={`px-2.5 py-1 rounded-md text-[0.72rem] font-medium border ${getEventStyle(name)}`}>
           {name.replace(/_/g, ' ')}
         </span>
       );
@@ -370,7 +371,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
 
     row.toggleExpanded();
 
-    if (isExpanding && !logDetails[event._id] && (sdkIntegrationId || selectedKeyId)) {
+    if (isExpanding && !event.payload && !logDetails[event._id] && (sdkIntegrationId || selectedKeyId)) {
       setFetchingPayloadId(event._id);
       try {
         const logs = await getEventLogs(event._id, sdkIntegrationId || selectedKeyId, !!sdkIntegrationId, environment);
@@ -426,7 +427,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                     <div className="border-t border-olive-100  my-1" />
                     <button
                       onClick={() => { setIsManageKeysModalOpen(true); setIsNodeSwitcherOpen(false); }}
-                      className="w-full px-4 py-2 text-left text-[0.75rem] font-semibold text-olive-500 hover:text-olive-600 transition-colors uppercase tracking-wider"
+                      className="w-full px-4 py-2 text-left text-[0.75rem] font-semibold text-olive-500 hover:text-olive-600 transition-colors"
                     >
                       Manage Nodes
                     </button>
@@ -440,7 +441,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
           <div className="flex-1" />
 
           <button
-            className="inline-flex items-center gap-2 h-9 px-4 bg-olive-900  rounded text-[0.85rem] font-medium text-white shadow-sm hover:bg-olive-800  transition-colors"
+            className="inline-flex items-center gap-2 h-9 px-4 bg-brand-700  rounded text-[0.85rem] font-medium text-white shadow-sm hover:bg-brand-800  transition-colors"
             onClick={() => onOpenDocs?.()}
             type="button"
           >
@@ -478,31 +479,18 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
       {/* Main Content */}
       <div className="flex-1 overflow-hidden flex flex-col">
         {(!selectedKeyId && !sdkIntegrationId) ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-24 text-center animate-in fade-in zoom-in duration-500 bg-white ">
-            <div className="relative mb-6">
-              <img
-                src="https://res.cloudinary.com/diqzswlyr/image/upload/q_auto/f_auto/v1776863078/no_data_lyzl4t.png"
-                alt="No Node Selected"
-                className="relative w-82 h-82 mx-auto object-contain opacity-90"
-              />
-            </div>
-
-            <h3 className="text-2xl font-semibold text-olive-800  mb-3 tracking-tighter font-sans">
-              Telemetry Node Required
-            </h3>
-
-            <p className="text-olive-500  text-[0.9rem] max-w-[420px] mx-auto mb-10 leading-relaxed font-medium">
-              Start monitoring your synchronization ecosystem. Select a telemetry node from the dashboard above to explore incoming interaction signals in real-time.
-            </p>
-
-            <button
-              onClick={() => setIsNodeSwitcherOpen(true)}
-              className="inline-flex items-center gap-3 px-8 py-3.5 bg-olive-900  text-white rounded-xl text-sm font-semibold shadow-2xl shadow-olive-900/30 hover:bg-olive-800  transform transition-all active:scale-95 duration-200 uppercase tracking-[0.1em]"
-              type="button"
-            >
-              <Activity size={20} strokeWidth={3} className="text-olive-300" />
-              <span>Provision Tracking Node</span>
-            </button>
+          <div className="flex-1 flex items-center justify-center p-8">
+            <EmptyState
+              icon={Activity}
+              title="Choose a source to see its events"
+              description="Pick an event source from the menu above to stream incoming events in real time, or set up a new one."
+              action={
+                <button onClick={() => setIsNodeSwitcherOpen(true)} className="btn btn-primary" type="button">
+                  <Activity size={15} />
+                  Choose a source
+                </button>
+              }
+            />
           </div>
         ) : (
           <DataTable
@@ -522,7 +510,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-4">
                         <div className="w-1 h-5 bg-olive-600 rounded-full" />
-                        <h4 className="text-[0.72rem] font-medium uppercase text-olive-600 tracking-widest">
+                        <h4 className="text-[0.72rem] font-medium text-olive-600">
                           {event.eventName.replace(/_/g, ' ')} <span className="opacity-30 mx-2">•</span> <span className="text-olive-400 font-medium font-mono">RAW LOG DATA</span>
                         </h4>
                       </div>
@@ -531,10 +519,10 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                     {isFetching ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 text-olive-500/40">
                         <Loader2 size={24} className="animate-spin" />
-                        <span className="text-[11px] font-medium uppercase tracking-[0.2em]">Syncing Payload...</span>
+                        <span className="text-[11px] font-medium">Syncing Payload...</span>
                       </div>
                     ) : (
-                      <div className="rounded-xl bg-olive-950 shadow-2xl shadow-olive-900/20 p-6 relative overflow-hidden group border border-olive-900">
+                      <div className="rounded-xl bg-olive-950 shadow-2xl p-6 relative overflow-hidden group border border-olive-900">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none transition-opacity group-hover:opacity-[0.1]">
                           <Activity size={100} className="text-white" />
                         </div>
@@ -571,7 +559,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
         >
           <div className="space-y-5">
             <div className="space-y-2">
-              <label className="block text-[0.75rem] font-semibold text-olive-500 uppercase tracking-wider">
+              <label className="block text-[0.75rem] font-semibold text-olive-500">
                 Events
               </label>
               <MultiSelect
@@ -584,7 +572,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="grid gap-2">
-                <span className="text-[0.75rem] font-semibold text-olive-500 uppercase tracking-wider">Start date</span>
+                <span className="text-[0.75rem] font-semibold text-olive-500">Start date</span>
                 <input
                   className="h-10 rounded-lg border border-olive-200 bg-white px-3 text-sm  "
                   onChange={(event) => setDraftFilters((current) => ({ ...current, startDate: event.target.value }))}
@@ -593,7 +581,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                 />
               </label>
               <label className="grid gap-2">
-                <span className="text-[0.75rem] font-semibold text-olive-500 uppercase tracking-wider">End date</span>
+                <span className="text-[0.75rem] font-semibold text-olive-500">End date</span>
                 <input
                   className="h-10 rounded-lg border border-olive-200 bg-white px-3 text-sm  "
                   onChange={(event) => setDraftFilters((current) => ({ ...current, endDate: event.target.value }))}
@@ -628,7 +616,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                   Cancel
                 </button>
                 <button
-                  className="rounded-lg bg-olive-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-olive-800  "
+                  className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-800  "
                   onClick={() => {
                     setAppliedFilters(draftFilters);
                     setCurrentPage(1);
@@ -657,7 +645,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
               </div>
               <button
                 onClick={() => setIsCreateKeyModalOpen(true)}
-                className="px-4 py-2 bg-olive-900  text-white rounded text-sm font-medium hover:bg-olive-800 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-brand-700  text-white rounded text-sm font-medium hover:bg-brand-800 transition-colors flex items-center gap-2"
               >
                 <Plus size={16} /> New Node
               </button>
@@ -672,7 +660,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <strong className="text-[0.9rem] text-olive-800  truncate">{key.name}</strong>
-                      <span className="text-[11px] px-1 bg-emerald-50 text-emerald-600 rounded font-semibold uppercase tracking-wide">Active</span>
+                      <span className="text-[11px] px-1 bg-emerald-50 text-emerald-600 rounded font-semibold">Active</span>
                     </div>
                     <code className="text-[0.7rem] text-olive-400 font-mono block mt-0.5">{key.maskedKey}</code>
                   </div>
@@ -697,7 +685,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
         >
           <form onSubmit={handleCreateKey} className="space-y-6 pt-2">
             <div>
-              <label className="block text-[0.75rem] font-semibold text-olive-500 uppercase tracking-wider mb-2">Node Name</label>
+              <label className="block text-[0.75rem] font-semibold text-olive-500 mb-2">Node Name</label>
               <input
                 autoFocus
                 type="text"
@@ -718,7 +706,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
               <button
                 type="submit"
                 disabled={!newKeyName.trim()}
-                className="flex-1 h-10 bg-olive-900  text-white rounded font-semibold text-[0.85rem] shadow-lg shadow-olive-900/20 disabled:opacity-50"
+                className="flex-1 h-10 bg-olive-900  text-white rounded font-semibold text-[0.85rem] shadow-lg disabled:opacity-50"
               >
                 Create
               </button>
@@ -735,7 +723,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
         >
           <div className="space-y-6 pt-2">
             <div className="p-5 bg-olive-900 rounded border border-olive-800 space-y-3">
-              <span className="text-[11px] font-semibold text-olive-400 uppercase tracking-widest block text-center">Secret API Key</span>
+              <span className="text-[11px] font-semibold text-olive-400 block text-center">Secret API Key</span>
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded border border-white/5">
                 <code className="text-[0.95rem] font-semibold font-mono text-olive-100 break-all flex-1 text-center">{newlyCreatedKey.key}</code>
                 <button
@@ -746,7 +734,7 @@ const EventTrackingPage: React.FC<EventTrackingPageProps> = ({ onOpenDocs, sdkIn
                 </button>
               </div>
             </div>
-            <p className="text-[0.7rem] text-amber-600 font-semibold uppercase tracking-widest text-center px-2 italic">
+            <p className="text-[0.7rem] text-amber-600 font-semibold text-center px-2 italic">
               Warning: This is the only time this key will be displayed.
             </p>
             <button

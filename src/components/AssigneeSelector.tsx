@@ -44,8 +44,9 @@ export default function AssigneeSelector({
     if (isOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setDropdownPos({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
+        // The dropdown is position: fixed, so viewport coordinates are what we need.
+        top: rect.bottom,
+        left: rect.left,
         width: rect.width
       });
     }
@@ -55,17 +56,17 @@ export default function AssigneeSelector({
 
   return (
     <div className={`relative z-30 ${className}`}>
-      {label && <label className="block text-xs font-medium text-olive-500  mb-1.5">{label}</label>}
+      {label && <label className="block text-[13px] font-medium text-olive-700 mb-1.5">{label}</label>}
       
       <button
         ref={triggerRef}
         type="button"
         disabled={disabled || loading}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
-          isOpen 
-            ? 'border-olive-500 ring-2 ring-olive-500/10 bg-white'
-            : 'border-olive-200  bg-olive-50/50  hover:border-olive-300'
+        className={`w-full h-[2.375rem] flex items-center gap-2 px-2.5 rounded-lg border bg-white shadow-xs transition-colors ${
+          isOpen
+            ? 'border-brand-500 shadow-[var(--focus-ring)]'
+            : 'border-olive-300 hover:border-olive-400'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         {selectedMember ? (
@@ -76,14 +77,14 @@ export default function AssigneeSelector({
               size="sm" 
               showTooltip={false} 
             />
-            <span className="text-sm font-medium text-olive-700  truncate">
+            <span className="text-sm text-olive-900 truncate">
               {selectedMember.user.name || selectedMember.user.email}
             </span>
           </>
         ) : (
           <>
-            <div className="w-7 h-7 rounded-full bg-olive-200  flex items-center justify-center">
-              <User className="w-4 h-4 text-olive-500" />
+            <div className="w-6 h-6 rounded-full border border-dashed border-olive-300 flex items-center justify-center">
+              <User className="w-3.5 h-3.5 text-olive-400" />
             </div>
             <span className="text-sm text-olive-500">Unassigned</span>
           </>
@@ -97,9 +98,9 @@ export default function AssigneeSelector({
             onClick={() => setIsOpen(false)}
           ></div>
           <div 
-            className="fixed z-[6001] max-h-60 overflow-y-auto bg-white  rounded-xl border border-olive-200  shadow-xl p-1.5 animate-modalIn"
+            className="fixed z-[6001] max-h-60 overflow-y-auto bg-white rounded-xl ring-1 ring-olive-950/[0.07] shadow-lg p-1 animate-modalIn"
             style={{
-              top: `${dropdownPos.top + 8}px`,
+              top: `${dropdownPos.top + 6}px`,
               left: `${dropdownPos.left}px`,
               width: `${dropdownPos.width}px`
             }}
@@ -115,10 +116,10 @@ export default function AssigneeSelector({
                     onSelect(member.userId);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-left transition-colors ${
                     String(selectedUserId) === String(member.userId)
-                      ? 'bg-olive-50  text-olive-700  ring-1 ring-olive-500/20' 
-                      : 'hover:bg-olive-50  text-olive-700'
+                      ? 'bg-brand-50 text-brand-900'
+                      : 'hover:bg-olive-100 text-olive-800'
                   }`}
                 >
                   <UserAvatar 
@@ -128,7 +129,7 @@ export default function AssigneeSelector({
                     showTooltip={false} 
                   />
                   <div className="flex flex-col items-start min-w-0">
-                    <span className="text-sm font-medium truncate">
+                    <span className="text-[13px] font-medium truncate">
                       {member.user.name || member.user.email}
                     </span>
                     {member.user.name && (

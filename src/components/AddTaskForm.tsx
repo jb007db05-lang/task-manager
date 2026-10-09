@@ -25,8 +25,8 @@ interface AddTaskFormProps {
   projects: Project[];
 }
 
-const inputCls = 'w-full bg-white/82  border border-olive-200  rounded-md text-olive-950  px-4 py-3.5 transition-all duration-200 focus:outline-none focus:border-olive-500  focus:ring-2 focus:ring-olive-500/10';
-const labelCls = 'grid gap-2 font-medium text-[0.95rem] text-olive-950';
+const inputCls = 'input-base';
+const labelCls = 'grid gap-1.5 text-[13px] font-medium text-olive-700';
 
 function AddTaskForm({ epics, initialProjectId = null, initialEpicId = null, onCreateTask, projects }: AddTaskFormProps): JSX.Element {
   const { user } = useAuth();
@@ -83,10 +83,6 @@ function AddTaskForm({ epics, initialProjectId = null, initialEpicId = null, onC
     const finalProjectId = projectId || initialProjectId || null;
     const finalEpicId = epicId || initialEpicId || null;
 
-    console.log('[DEBUG] AddTaskForm submitting:', { 
-      projectId, initialProjectId, finalProjectId, 
-      epicId, initialEpicId, finalEpicId 
-    });
 
     try {
       await onCreateTask({
@@ -114,9 +110,9 @@ function AddTaskForm({ epics, initialProjectId = null, initialEpicId = null, onC
   };
 
   return (
-    <form className="grid gap-[18px] mt-2" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
       <label className={labelCls}>
-        <span>Task title</span>
+        <span>Title</span>
         <input
           autoFocus
           className={inputCls}
@@ -129,7 +125,7 @@ function AddTaskForm({ epics, initialProjectId = null, initialEpicId = null, onC
       </label>
 
       <label className={labelCls}>
-        <span>Description <span className="text-olive-400  font-normal text-[0.82rem]">(optional)</span></span>
+        <span>Description <span className="text-olive-400 font-normal">(optional)</span></span>
         <textarea
           className={`${inputCls} min-h-[80px] resize-y`}
           onChange={(event) => setDescription(event.target.value)}
@@ -155,7 +151,7 @@ function AddTaskForm({ epics, initialProjectId = null, initialEpicId = null, onC
         </label>
 
         <label className={labelCls}>
-          <span>Initial Status</span>
+          <span>Status</span>
           <select 
             className={inputCls} 
             onChange={(event) => setStatus(event.target.value as TaskWorkflowStatus)} 
@@ -215,17 +211,17 @@ function AddTaskForm({ epics, initialProjectId = null, initialEpicId = null, onC
       )}
 
       <button
-        className="bg-olive-900  text-white rounded-md px-4 py-3 text-[0.95rem] font-bold hover:bg-olive-800  disabled:opacity-50 transition-colors shadow-lg shadow-olive-500/20"
+        className="btn btn-primary justify-self-end min-w-[140px]"
         disabled={submitting}
         type="submit"
       >
-        {submitting ? 'Creating task...' : 'Create Task'}
+        {submitting ? 'Creating…' : 'Create task'}
       </button>
 
       {errorMessage ? (
-        <div className="flex items-center gap-2 p-3 bg-red-50  border border-red-100  rounded-lg">
-          <AlertTriangle size={14} className="text-red-500" />
-          <p className="text-red-600  m-0 text-[0.85rem] font-medium">{errorMessage}</p>
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+          <AlertTriangle size={14} className="text-red-600 shrink-0" />
+          <p className="text-red-700 m-0 text-[13px]">{errorMessage}</p>
         </div>
       ) : null}
     </form>

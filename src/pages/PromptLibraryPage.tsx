@@ -1,3 +1,4 @@
+import PageHeader from "@/components/PageHeader";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -156,55 +157,36 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
   ];
 
   return (
-    <div className="min-h-full bg-olive-50 text-olive-950 p-6 space-y-6 font-sans">
-      {/* Header Panel */}
-      <div className="bg-white border border-olive-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-2xl bg-olive-900 text-white shadow-md shadow-olive-900/10">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-olive-950 flex items-center gap-2.5">
-              Prompt Library & Versioning
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-olive-100 text-olive-800 border border-olive-200 font-mono">
-                PromptOps v1.0
-              </span>
-            </h1>
-            <p className="text-xs text-olive-600 mt-0.5">
-              Manage reusable prompt templates, Handlebars variables, SHA-256 canonical version hashes, and folders.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/playground")}
-            className="px-4 py-2 rounded-xl bg-olive-100 hover:bg-olive-200 border border-olive-300 text-olive-950 text-xs font-bold flex items-center gap-2 transition shadow-xs cursor-pointer"
-          >
-            <Play className="w-4 h-4 text-emerald-600 fill-current" /> Open Playground
-          </button>
-          <button
-            onClick={() => setIsCreatingFolder(true)}
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-olive-50 border border-olive-200 text-olive-700 hover:text-olive-950 text-xs font-semibold flex items-center gap-2 transition shadow-sm"
-          >
-            <FolderPlus className="w-4 h-4 text-olive-600" /> New Folder
-          </button>
-          <button
-            onClick={() => {
-              setEditingPrompt(null);
-              setIsEditorOpen(true);
-            }}
-            className="px-4 py-2 rounded-xl bg-olive-900 hover:bg-black text-white text-xs font-semibold shadow-md shadow-olive-900/20 flex items-center gap-2 transition"
-          >
-            <Plus className="w-4 h-4" /> Create Prompt Template
-          </button>
-        </div>
-      </div>
+    <div className="min-h-full px-8 pt-8 pb-16 space-y-6">
+      <PageHeader
+        title="Prompt library"
+        description="Reusable prompt templates with variables, version history and folders."
+        actions={
+          <>
+            <button onClick={() => navigate("/playground")} className="btn btn-ghost" type="button">
+              <Play className="w-4 h-4" /> Playground
+            </button>
+            <button onClick={() => setIsCreatingFolder(true)} className="btn btn-secondary" type="button">
+              <FolderPlus className="w-4 h-4" /> New folder
+            </button>
+            <button
+              onClick={() => {
+                setEditingPrompt(null);
+                setIsEditorOpen(true);
+              }}
+              className="btn btn-primary"
+              type="button"
+            >
+              <Plus className="w-4 h-4" /> New prompt
+            </button>
+          </>
+        }
+      />
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Navigation Sidebar */}
-        <div className="lg:col-span-1 space-y-5 bg-white border border-olive-200 rounded-2xl p-5 shadow-sm">
+        <div className="lg:col-span-1 space-y-5 card p-4 self-start">
           {/* Search Input */}
           <div className="relative">
             <Search className="w-4 h-4 text-olive-400 absolute left-3.5 top-2.5" />
@@ -219,7 +201,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
 
           {/* Quick Filters */}
           <div className="space-y-1">
-            <div className="text-[11px] font-semibold text-olive-500 uppercase tracking-wider px-2 mb-2">
+            <div className="text-[11px] font-semibold text-olive-500 px-2 mb-2">
               Quick Views
             </div>
             <button
@@ -228,9 +210,9 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                 setShowFavoritesOnly(false);
                 setShowTemplatesOnly(false);
               }}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition ${
+              className={`w-full text-left px-3 h-8 rounded-lg text-[13px] font-medium flex items-center justify-between transition ${
                 selectedFolderId === null && !showFavoritesOnly && !showTemplatesOnly
-                  ? "bg-olive-900 text-white font-semibold shadow-sm"
+                  ? "bg-brand-50 text-brand-900 font-medium ring-1 ring-inset ring-brand-100"
                   : "text-olive-600 hover:bg-olive-50 hover:text-olive-950"
               }`}
             >
@@ -239,7 +221,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
               </span>
               <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
                 selectedFolderId === null && !showFavoritesOnly && !showTemplatesOnly
-                  ? "bg-olive-800 text-olive-100"
+                  ? "bg-brand-100 text-brand-800"
                   : "bg-olive-100 text-olive-700"
               }`}>
                 {prompts.length}
@@ -251,7 +233,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                 setShowFavoritesOnly(!showFavoritesOnly);
                 setShowTemplatesOnly(false);
               }}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition ${
+              className={`w-full text-left px-3 h-8 rounded-lg text-[13px] font-medium flex items-center justify-between transition ${
                 showFavoritesOnly
                   ? "bg-amber-100 text-amber-900 border border-amber-300 font-semibold"
                   : "text-olive-600 hover:bg-olive-50 hover:text-olive-950"
@@ -266,7 +248,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
           {/* Folders List */}
           <div className="space-y-1.5 pt-3 border-t border-olive-200">
             <div className="flex items-center justify-between px-2 mb-1">
-              <span className="text-[11px] font-semibold text-olive-500 uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-olive-500">
                 Folders ({folders.length})
               </span>
             </div>
@@ -304,7 +286,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                 onClick={() => setSelectedFolderId(f._id)}
                 className={`group px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between cursor-pointer transition ${
                   selectedFolderId === f._id
-                    ? "bg-olive-900 text-white font-semibold shadow-sm"
+                    ? "bg-brand-50 text-brand-900 font-medium ring-1 ring-inset ring-brand-100"
                     : "text-olive-600 hover:bg-olive-50 hover:text-olive-950"
                 }`}
               >
@@ -324,7 +306,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
 
           {/* Categories Selector */}
           <div className="space-y-1.5 pt-3 border-t border-olive-200">
-            <div className="text-[11px] font-semibold text-olive-500 uppercase tracking-wider px-2 mb-1">
+            <div className="text-[11px] font-semibold text-olive-500 px-2 mb-1">
               Categories
             </div>
             {categories.map((c) => (
@@ -363,7 +345,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                   setEditingPrompt(null);
                   setIsEditorOpen(true);
                 }}
-                className="px-4 py-2 rounded-xl bg-olive-900 text-white text-xs font-semibold shadow-md shadow-olive-900/20 hover:bg-black transition inline-flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-brand-700 text-white text-xs font-semibold hover:bg-brand-800 transition inline-flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Create Prompt Template
               </button>
@@ -430,7 +412,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
 
                     {/* Metadata & Tag Badges */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-olive-100 text-olive-800 border border-olive-200">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-olive-100 text-olive-800 border border-olive-200">
                         {p.category}
                       </span>
                       {p.hash && (
@@ -463,7 +445,7 @@ export const PromptLibraryPage: React.FC<PromptLibraryPageProps> = ({
                           e.stopPropagation();
                           navigate(`/playground?promptId=${p._id}&version=${p.version}`);
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-olive-900 hover:bg-black text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
                         title="Open in Playground"
                       >
                         <Play className="w-3.5 h-3.5 text-emerald-400 fill-current" /> Open in Playground

@@ -7,7 +7,8 @@ import {
   Plus,
   Search,
   Trash2,
-  Calendar
+  Sparkles,
+  X
 } from 'lucide-react';
 import UserAvatar from './UserAvatar';
 import {
@@ -26,6 +27,7 @@ interface ProjectPanelProps {
   actionProjectId: string | null;
   loading: boolean;
   onOpenCreateProject: () => void;
+  onOpenAiPlanner?: () => void;
   onOpenEpicManager: (project: Project) => void;
   onOpenProject: (projectId: string | null) => void;
   onOpenUpdateProject: (project: Project) => void;
@@ -43,6 +45,7 @@ function ProjectPanel({
   actionProjectId,
   loading,
   onOpenCreateProject,
+  onOpenAiPlanner,
   onOpenEpicManager,
   onOpenProject,
   onOpenUpdateProject,
@@ -63,25 +66,25 @@ function ProjectPanel({
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            className="w-5 h-5 cursor-pointer accent-olive-600"
-            checked={table.getIsAllPageRowsSelected()}
-            ref={(el) => {
-              if (el) {
-                el.indeterminate = table.getIsSomePageRowsSelected();
-              }
-            }}
-            onChange={table.getToggleAllPageRowsSelectedHandler()}
-          />
-        </div>
+        <input
+          aria-label="Select all projects"
+          type="checkbox"
+          className="w-4 h-4 cursor-pointer accent-brand-600 align-middle"
+          checked={table.getIsAllPageRowsSelected()}
+          ref={(el) => {
+            if (el) {
+              el.indeterminate = table.getIsSomePageRowsSelected();
+            }
+          }}
+          onChange={table.getToggleAllPageRowsSelectedHandler()}
+        />
       ),
       cell: ({ row }) => (
-        <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()}>
           <input
+            aria-label={`Select ${row.original.name}`}
             type="checkbox"
-            className="w-5 h-5 cursor-pointer accent-olive-600"
+            className="w-4 h-4 cursor-pointer accent-brand-600 align-middle disabled:opacity-30 disabled:cursor-not-allowed"
             checked={row.getIsSelected()}
             disabled={row.original.currentUserRole !== 'ADMIN'}
             onChange={row.getToggleSelectedHandler()}
@@ -89,108 +92,111 @@ function ProjectPanel({
         </div>
       ),
       enableSorting: false,
+      size: 44,
     }),
     columnHelper.accessor('name', {
-      header: 'Project',
+      header: 'Name',
       cell: info => (
-        <div className="flex items-center gap-3">
-          <FolderKanban className="text-olive-600  shrink-0" size={18} />
-          <div className="grid gap-0.5">
-            <strong className="text-olive-900  font-bold text-[1rem]">{info.getValue()}</strong>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 flex items-center justify-center shrink-0">
+            <FolderKanban size={15} strokeWidth={1.75} />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-medium text-olive-950 truncate">{info.getValue()}</div>
             {info.row.original.description && (
-              <span className="text-olive-400  text-[0.85rem] truncate max-w-[300px]">
-                {info.row.original.description}
-              </span>
+              <div className="text-xs text-olive-500 truncate max-w-[420px]">{info.row.original.description}</div>
             )}
           </div>
         </div>
       ),
     }),
+    columnHelper.accessor('currentUserRole', {
+      header: 'Role',
+      cell: info => (
+        <span className={`badge ${info.getValue() === 'ADMIN' ? 'badge-green' : 'badge-slate'}`}>
+          {info.getValue() === 'ADMIN' ? 'Admin' : 'Member'}
+        </span>
+      ),
+      size: 100,
+    }),
     columnHelper.accessor('creator', {
-      header: 'Creator',
+      header: 'Owner',
       cell: info => {
         const creator = info.getValue();
-        return (
-          <div className="flex items-center gap-3">
-            {creator ? (
-              <UserAvatar size="md" name={creator.name} email={creator.email} />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-olive-100  border border-olive-200  flex items-center justify-center">
-                <Plus size={14} className="text-olive-400" />
-              </div>
-            )}
-            <span className="text-olive-700  font-semibold truncate max-w-[120px]">
-              {creator?.name || creator?.email || 'Unknown'}
-            </span>
+        return creator ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <UserAvatar size="sm" name={creator.name} email={creator.email} />
+            <span className="text-olive-700 truncate max-w-[160px]">{creator.name || creator.email}</span>
           </div>
+        ) : (
+          <span className="text-olive-400">—</span>
         );
       },
+      enableSorting: false,
     }),
     columnHelper.accessor('createdAt', {
       id: 'date',
-      header: 'Date',
+      header: 'Created',
       cell: info => (
-        <div className="flex items-center gap-2 text-olive-600 ">
-          <Calendar size={14} className="opacity-60" />
-          <span>{formatDate(info.getValue())}</span>
-        </div>
+        <span className="text-olive-500 tabular-nums whitespace-nowrap" title={formatTime(info.getValue())}>
+          {formatDate(info.getValue())}
+        </span>
       ),
-    }),
-    columnHelper.accessor('createdAt', {
-      id: 'time',
-      header: 'Time',
-      cell: info => formatTime(info.getValue()),
-      enableSorting: false,
+      size: 130,
     }),
     columnHelper.display({
       id: 'actions',
-      header: () => <div className="text-right">Actions</div>,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
         const project = row.original;
-        const rowActionCls = 'flex items-center justify-center w-7 h-7 rounded text-olive-400  transition-all duration-150 hover:-translate-y-px';
+        const isAdmin = project.currentUserRole === 'ADMIN';
         return (
-          <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
             <button
-              className={`${rowActionCls} !w-10 !h-10 hover:bg-olive-100  hover:text-olive-600  disabled:opacity-40`}
-              disabled={project.currentUserRole !== 'ADMIN'}
+              aria-label="Open epics"
+              className="icon-btn disabled:opacity-30"
+              disabled={!isAdmin}
               onClick={() => onOpenEpicManager(project)}
               title="Epics"
               type="button"
             >
-              <Layers3 size={20} />
+              <Layers3 size={15} />
             </button>
             <button
-              className={`${rowActionCls} !w-10 !h-10 hover:bg-olive-100  hover:text-olive-900  disabled:opacity-40`}
-              disabled={project.currentUserRole !== 'ADMIN'}
+              aria-label="Edit project"
+              className="icon-btn disabled:opacity-30"
+              disabled={!isAdmin}
               onClick={() => onOpenUpdateProject(project)}
-              title="Edit project"
+              title="Edit"
               type="button"
             >
-              <Pencil size={20} />
+              <Pencil size={15} />
             </button>
             <button
-              className={`${rowActionCls} !w-10 !h-10 hover:bg-red-50  hover:text-red-500  disabled:opacity-50`}
-              disabled={actionProjectId === project.id || project.currentUserRole !== 'ADMIN'}
+              aria-label="Delete project"
+              className="icon-btn hover:!bg-red-50 hover:!text-red-600 disabled:opacity-30"
+              disabled={actionProjectId === project.id || !isAdmin}
               onClick={async () => {
                 const isConfirmed = await confirm({
-                  title: 'Delete Project',
-                  message: `Are you sure you want to delete "${project.name}"? This action is irreversible.`,
-                  confirmText: 'Delete Project',
+                  title: 'Delete project',
+                  message: `Delete "${project.name}"? Its epics, tasks, and notes will be removed. This can't be undone.`,
+                  confirmText: 'Delete project',
                   type: 'danger'
                 });
                 if (isConfirmed) {
                   await onDeleteProject(project.id);
                 }
               }}
-              title="Delete project"
+              title="Delete"
               type="button"
             >
-              <Trash2 size={20} />
+              <Trash2 size={15} />
             </button>
           </div>
         );
       },
       enableSorting: false,
+      size: 120,
     }),
   ], [onOpenEpicManager, onOpenUpdateProject, onDeleteProject, actionProjectId]);
 
@@ -216,9 +222,9 @@ function ProjectPanel({
     if (selectedProjects.length === 0) return;
 
     const isConfirmed = await confirm({
-      title: 'Delete Multiple Projects',
-      message: `Are you sure you want to delete ${selectedProjects.length} selected projects? This action is irreversible.`,
-      confirmText: 'Delete Projects',
+      title: `Delete ${selectedProjects.length} projects`,
+      message: `Delete the ${selectedProjects.length} selected projects and everything in them? This can't be undone.`,
+      confirmText: 'Delete projects',
       type: 'danger'
     });
 
@@ -247,108 +253,107 @@ function ProjectPanel({
     }).format(new Date(dateString));
   };
 
+  const isEmpty = projects.length === 0 && !loading;
+
   return (
-    <div className="flex flex-col h-full bg-white ">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-olive-200  bg-olive-50 ">
-        <div className="grid gap-0.5">
-          <h4 className="m-0 font-bold text-olive-950  text-[0.95rem]">Project Directory</h4>
-          <span className="text-olive-400  text-[0.75rem]">Full Workspace Management</span>
+    <div className=" px-8 pt-8 pb-16">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="page-title m-0">Projects</h1>
+          <p className="page-subtitle mb-0">Everything your team is working on, in one place.</p>
         </div>
-
-        {/* Divider */}
-        <div className="h-6 w-px bg-olive-200  opacity-60 mx-2" />
-
-        {/* Search */}
-        <div className="relative flex-1 flex items-center">
-          <Search className="absolute left-2.5 text-olive-400 " size={14} />
-          <input
-            className="w-full h-9 pl-[38px] pr-3 text-[0.85rem] bg-white  border border-olive-200  rounded-md shadow-inner transition-all duration-200 focus:outline-none focus:border-olive-500  focus:ring-2 focus:ring-olive-500/12 text-olive-950 "
-            onChange={handleSearchChange}
-            placeholder="Filter projects..."
-            type="text"
-            value={searchTerm}
-          />
-        </div>
-
-        {selectedProjects.length > 0 && (
-          <button
-            className="inline-flex items-center gap-2 h-9 px-4 bg-white  border border-red-200  rounded text-red-600  text-sm hover:bg-red-50  transition-colors"
-            onClick={handleDeleteSelected}
-            type="button"
-          >
-            <Trash2 size={16} />
-            <span>Delete Selected ({selectedProjects.length})</span>
+        <div className="flex items-center gap-2">
+          {onOpenAiPlanner && (
+            <button className="btn btn-secondary" onClick={onOpenAiPlanner} type="button">
+              <Sparkles size={15} className="text-brand-600" />
+              Plan with AI
+            </button>
+          )}
+          <button className="btn btn-primary" onClick={onOpenCreateProject} type="button">
+            <Plus size={16} />
+            New project
           </button>
-        )}
-
-        <button
-          className="inline-flex items-center gap-2 h-9 px-4 bg-olive-900  text-white rounded text-sm font-medium hover:bg-olive-800  transition-colors"
-          onClick={onOpenCreateProject}
-          type="button"
-        >
-          <Plus size={16} />
-          <span>New project</span>
-        </button>
+        </div>
       </div>
 
-      {/* Table Section */}
-      <div className="flex-1 overflow-y-auto px-1 py-1">
-        {projects.length === 0 && !loading ? (
-          <div className="py-20 border-y border-transparent">
-            {/* Custom Empty State preserved for brand consistency */}
-            <div className="flex flex-col items-center justify-center max-w-[400px] mx-auto text-center animate-in fade-in zoom-in duration-500">
-              <div className="relative">
-                <img
-                  src="https://res.cloudinary.com/diqzswlyr/image/upload/q_auto/f_auto/v1776863078/no_data_lyzl4t.png"
-                  alt="No Data"
-                  className="relative w-82 h-82 mx-auto object-contain opacity-90"
-                />
-              </div>
+      {isEmpty && !searchTerm ? (
+        <div className="card mt-8 px-6 py-16 flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 flex items-center justify-center mb-4">
+            <FolderKanban size={22} strokeWidth={1.75} />
+          </div>
+          <h2 className="text-[17px] font-semibold text-olive-950 m-0">Start your first project</h2>
+          <p className="text-[13px] text-olive-500 mt-1.5 mb-6 max-w-sm text-pretty">
+            Projects hold your epics, tasks, notes and team. Create one from scratch, or describe your goal and let AI draft the plan.
+          </p>
+          <div className="flex items-center gap-2">
+            <button className="btn btn-primary" onClick={onOpenCreateProject} type="button">
+              <Plus size={16} />
+              New project
+            </button>
+            {onOpenAiPlanner && (
+              <button className="btn btn-secondary" onClick={onOpenAiPlanner} type="button">
+                <Sparkles size={15} className="text-brand-600" />
+                Plan with AI
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="card mt-6 overflow-hidden">
+          <div className="flex items-center gap-3 px-4 h-14 border-b border-olive-200">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-olive-400 pointer-events-none" size={15} />
+              <input
+                aria-label="Search projects"
+                className="input-base !h-9 !pl-9 !pr-8"
+                onChange={handleSearchChange}
+                placeholder="Search projects"
+                type="text"
+                value={searchTerm}
+              />
+              {searchTerm && (
+                <button
+                  aria-label="Clear search"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 icon-btn !w-6 !h-6"
+                  onClick={() => onSearch('')}
+                  type="button"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+            <div className="flex-1" />
+            {selectedProjects.length > 0 && (
+              <button className="btn btn-sm btn-secondary !text-red-600 hover:!bg-red-50 hover:!border-red-200" onClick={handleDeleteSelected} type="button">
+                <Trash2 size={14} />
+                Delete {selectedProjects.length}
+              </button>
+            )}
+          </div>
 
-              <h3 className="text-xl font-bold text-olive-950  mb-2 tracking-tight">
-                {searchTerm ? "No Matches Found" : "Your Directory is Empty"}
-              </h3>
-
-              <p className="text-olive-500  text-sm mb-8 leading-relaxed px-4">
-                {searchTerm
-                  ? "We couldn't find any projects matching your current filter. Try adjusting your search term to see more results."
-                  : "It looks like you haven't created any projects yet. Start by provisioning a new node for your synchronization workspace."}
-              </p>
-
-              <button
-                onClick={searchTerm ? () => onSearch('') : onOpenCreateProject}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-olive-900  text-white rounded-lg text-sm font-bold shadow-lg shadow-olive-950/20 hover:bg-olive-800  transform transition-all active:scale-95 duration-200"
-                type="button"
-              >
-                {searchTerm ? (
-                  <>
-                    <Search size={16} strokeWidth={2.5} />
-                    <span>Clear search filter</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus size={18} strokeWidth={2.5} />
-                    <span>Create first project</span>
-                  </>
-                )}
+          {isEmpty ? (
+            <div className="py-16 text-center">
+              <p className="text-sm font-medium text-olive-900 m-0">No projects match "{searchTerm}"</p>
+              <p className="text-[13px] text-olive-500 mt-1 mb-4">Try a different name or clear the search.</p>
+              <button className="btn btn-sm btn-secondary" onClick={() => onSearch('')} type="button">
+                Clear search
               </button>
             </div>
-          </div>
-        ) : (
-          <DataTable
-            table={table}
-            loading={loading}
-            onRowClick={(project) => onOpenProject(project.id)}
-            skeletonRows={5}
-            pagination={{
-              page: currentPage,
-              totalPages,
-              onPageChange
-            }}
-          />
-        )}
-      </div>
+          ) : (
+            <DataTable
+              table={table}
+              loading={loading}
+              onRowClick={(project) => onOpenProject(project.id)}
+              skeletonRows={5}
+              pagination={{
+                page: currentPage,
+                totalPages,
+                onPageChange
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

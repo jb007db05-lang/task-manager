@@ -34,24 +34,20 @@ const ToastViewport: React.FC<{
   toasts: ToastItem[];
   onDismiss: (id: string) => void;
 }> = ({ toasts, onDismiss }) => (
-  <div className="fixed top-4 right-4 z-[10000] flex w-[min(92vw,380px)] flex-col gap-3">
+  <div className="fixed bottom-5 right-5 z-[10000] flex w-[min(92vw,360px)] flex-col gap-2" aria-live="polite">
     {toasts.map((toast) => (
       <div
         key={toast.id}
-        className={[
-          'flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.16)] backdrop-blur-sm',
-          toast.variant === 'success'
-            ? 'border-emerald-200 bg-emerald-50/95 text-emerald-950'
-            : 'border-red-200 bg-red-50/95 text-red-950'
-        ].join(' ')}
+        role={toast.variant === 'error' ? 'alert' : 'status'}
+        className="flex items-start gap-3 rounded-xl bg-olive-950 px-4 py-3 text-white shadow-xl ring-1 ring-black/10 animate-slideUp"
       >
-        <span className="mt-0.5 shrink-0">
-          {toast.variant === 'success' ? <CheckCircle2 size={18} /> : <CircleAlert size={18} />}
+        <span className={`mt-0.5 shrink-0 ${toast.variant === 'success' ? 'text-brand-300' : 'text-red-300'}`}>
+          {toast.variant === 'success' ? <CheckCircle2 size={17} /> : <CircleAlert size={17} />}
         </span>
-        <p className="m-0 flex-1 text-sm leading-6">{toast.message}</p>
+        <p className="m-0 flex-1 text-[13px] leading-5 text-white/90">{toast.message}</p>
         <button
           aria-label="Dismiss notification"
-          className="shrink-0 rounded-full p-1 transition-colors hover:bg-black/5"
+          className="shrink-0 -mr-1 rounded-md p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
           onClick={() => onDismiss(toast.id)}
           type="button"
         >

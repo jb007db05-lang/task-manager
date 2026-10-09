@@ -278,12 +278,12 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="m-0 text-2xl font-bold text-slate-900 ">Engagement</h2>
+                <h1 className="page-title m-0">Engagement</h1>
                 {integrations.length > 0 && !propSdkIntegrationId && (
                   <select
                     value={activeIntegrationId}
                     onChange={(e) => setActiveIntegrationId(e.target.value)}
-                    className="rounded-lg border border-slate-200  bg-white  px-3 py-1.5 text-sm font-semibold text-slate-800  shadow-sm focus:border-slate-500 focus:outline-none"
+                    className="input-base !h-8 !w-auto !text-[13px]"
                   >
                     {integrations.map((integration) => (
                       <option key={integration.id} value={integration.id}>
@@ -301,7 +301,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
               <Metric label="MTU" value={analytics?.mtu.users ?? 0} />
             </div>
           </div>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-5 -mb-[17px] flex flex-wrap gap-6" role="tablist">
             <TabButton active={tab === 'guides'} icon={Layers3} label="Guides" onClick={() => setTab('guides')} />
             <TabButton active={tab === 'surveys'} icon={Radio} label="Surveys" onClick={() => setTab('surveys')} />
             <TabButton active={tab === 'checklists'} icon={CheckSquare} label="Checklists" onClick={() => setTab('checklists')} />
@@ -337,7 +337,7 @@ function EngagementPage({ sdkIntegrationId: propSdkIntegrationId, defaultTab, hi
                   setCreateModalType(tab === 'guides' ? 'guide' : tab === 'surveys' ? 'survey' : 'checklist');
                   setIsCreateModalOpen(true);
                 }}
-                className="flex items-center gap-2 rounded bg-slate-900 hover:bg-slate-800 px-4 py-2 text-sm font-bold text-white transition-colors shadow-sm"
+                className="flex items-center gap-2 rounded bg-brand-700 hover:bg-brand-800 px-4 py-2 text-sm font-bold text-white transition-colors shadow-sm"
               >
                 <Plus size={16} />
                 Create {tab === 'guides' ? 'Guide' : tab === 'surveys' ? 'Survey' : 'Checklist'}
@@ -493,7 +493,7 @@ function ExperienceList({
                 <p className="m-0 text-sm font-bold text-slate-900  truncate">{experience.title}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   <span className="text-xs text-slate-500 ">{experience.type}</span>
-                  <span className={`rounded px-1.5 py-0.5 text-[11px] font-bold uppercase ${statusColor[experience.status ?? 'DRAFT'] ?? statusColor.DRAFT}`}>
+                  <span className={`rounded px-1.5 py-0.5 text-[11px] font-bold ${statusColor[experience.status ?? 'DRAFT'] ?? statusColor.DRAFT}`}>
                     {experience.status ?? 'DRAFT'}
                   </span>
                   <span className="text-xs text-slate-500 ">{experience.priority}</span>
@@ -741,7 +741,7 @@ function Preview({ guide }: { guide: Guide }): JSX.Element {
     <aside className="sticky top-6 h-fit rounded-lg border border-olive-200 bg-white p-5 shadow-sm">
       <SectionTitle icon={Bell} title="Preview" />
       <div className="mt-4 rounded-lg border border-olive-200 bg-olive-50 p-4">
-        <p className="m-0 text-xs font-bold uppercase tracking-widest text-olive-500">{guide.type}</p>
+        <p className="m-0 text-xs font-medium text-olive-500">{guide.type}</p>
         <h3 className="m-0 mt-2 text-lg font-bold text-olive-950">{guide.title}</h3>
         <p className="m-0 mt-2 text-sm text-olive-600">{guide.description}</p>
         <div className="mt-4 grid gap-2">
@@ -793,8 +793,8 @@ function AnalyticsDashboard({ analytics }: { analytics: GuideAnalyticsSummary | 
 function Metric({ label, value }: { label: string; value: number }): JSX.Element {
   return (
     <div className="rounded-md border border-slate-200  px-4 py-2">
-      <p className="m-0 text-xs font-bold uppercase tracking-widest text-slate-500 ">{label}</p>
-      <p className="m-0 text-xl font-black text-slate-900 ">{value}</p>
+      <p className="m-0 text-xs font-medium text-slate-500">{label}</p>
+      <p className="m-0 text-xl font-semibold text-slate-900 ">{value}</p>
     </div>
   );
 }
@@ -802,17 +802,24 @@ function Metric({ label, value }: { label: string; value: number }): JSX.Element
 function MetricCard({ label, value }: { label: string; value: number }): JSX.Element {
   return (
     <div className="rounded-lg bg-white  p-5 shadow-md">
-      <p className="m-0 text-xs font-bold uppercase tracking-widest text-slate-500 ">{label}</p>
-      <p className="m-0 mt-2 text-3xl font-black text-slate-900 ">{value}</p>
+      <p className="m-0 text-xs font-medium text-slate-500">{label}</p>
+      <p className="m-0 mt-2 text-3xl font-semibold text-slate-900 ">{value}</p>
     </div>
   );
 }
 
 function TabButton({ active, icon: Icon, label, onClick }: { active: boolean; icon: LucideIcon; label: string; onClick: () => void }): JSX.Element {
   return (
-    <button className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-all shadow-xs ${active ? 'bg-slate-900 text-white  ' : 'border border-slate-200  text-slate-700  hover:bg-slate-50 '}`} onClick={onClick} type="button">
-      <Icon size={16} />
+    <button
+      aria-selected={active}
+      role="tab"
+      className={`relative flex items-center gap-1.5 h-9 text-[13px] transition-colors ${active ? 'text-olive-950 font-medium' : 'text-olive-500 hover:text-olive-900'}`}
+      onClick={onClick}
+      type="button"
+    >
+      <Icon size={15} strokeWidth={1.75} />
       {label}
+      {active && <span className="absolute -bottom-px left-0 right-0 h-0.5 rounded-full bg-brand-600" />}
     </button>
   );
 }
@@ -821,14 +828,14 @@ function SectionTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }
   return (
     <div className="flex items-center gap-2">
       <Icon size={17} className="text-slate-700 " />
-      <h3 className="m-0 text-sm font-black uppercase tracking-widest text-slate-900 ">{title}</h3>
+      <h3 className="m-0 text-sm font-semibold text-slate-900">{title}</h3>
     </div>
   );
 }
 
 function TextInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }): JSX.Element {
   return (
-    <label className="grid gap-1 text-xs font-bold uppercase tracking-widest text-slate-500 min-w-0">
+    <label className="grid gap-1 text-xs font-medium text-slate-500 min-w-0">
       {label}
       <input className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium normal-case tracking-normal text-slate-900 focus:border-slate-500 focus:outline-none" onChange={(event) => onChange(event.target.value)} value={value} />
     </label>
@@ -837,7 +844,7 @@ function TextInput({ label, value, onChange }: { label: string; value: string; o
 
 function SelectInput({ label, value, values, onChange }: { label: string; value: string; values: string[]; onChange: (value: string) => void }): JSX.Element {
   return (
-    <label className="grid gap-1 text-xs font-bold uppercase tracking-widest text-slate-500 min-w-0">
+    <label className="grid gap-1 text-xs font-medium text-slate-500 min-w-0">
       {label}
       <select className="w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium normal-case tracking-normal text-slate-900 focus:border-slate-500 focus:outline-none" onChange={(event) => onChange(event.target.value)} value={value}>
         {values.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
@@ -956,7 +963,7 @@ function SurveyResponsesModal({
                       {response.category && response.category !== 'NONE' && (
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-olive-500">NPS Class:</span>
-                          <span className={`px-2 py-0.5 rounded-full font-bold text-[11px] uppercase tracking-wider ${
+                          <span className={`px-2 py-0.5 rounded-full font-medium text-[11px] ${
                             response.category === 'PROMOTER'
                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                               : response.category === 'PASSIVE'
@@ -982,7 +989,7 @@ function SurveyResponsesModal({
                   {/* Answers */}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-olive-800">Answers Payload</h4>
+                      <h4 className="text-xs font-medium text-olive-800">Answers Payload</h4>
                       <div className="space-y-1.5">
                         {response.answers.map((answer) => (
                           <div key={answer.questionId} className="text-sm rounded border border-olive-100/65 bg-white p-2">
@@ -1004,7 +1011,7 @@ function SurveyResponsesModal({
 
                     {/* Metadata & Raw Details */}
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-olive-800">Telemetry & Context</h4>
+                      <h4 className="text-xs font-medium text-olive-800">Telemetry & Context</h4>
                       <div className="rounded border border-olive-100/65 bg-olive-50/40 p-2.5 space-y-1.5 text-xs text-olive-700">
                         {response.metadata && Object.keys(response.metadata).length > 0 ? (
                           Object.entries(response.metadata).map(([key, val]) => (
@@ -1113,7 +1120,7 @@ function EditExperienceModal({
           <button
             onClick={() => void handleSave()}
             disabled={saving}
-            className="flex items-center gap-2 rounded bg-slate-900 hover:bg-slate-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+            className="flex items-center gap-2 rounded bg-brand-700 hover:bg-brand-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
             type="button"
           >
             <Save size={14} />
@@ -1238,7 +1245,7 @@ function CreateExperienceModal({
           <button
             onClick={() => void handleSave()}
             disabled={saving}
-            className="flex items-center gap-2 rounded bg-slate-900 hover:bg-slate-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+            className="flex items-center gap-2 rounded bg-brand-700 hover:bg-brand-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
             type="button"
           >
             <Save size={14} />

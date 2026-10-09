@@ -61,7 +61,7 @@ export const AiTaskBreakdownModal: React.FC<AiTaskBreakdownModalProps> = ({
         {!breakdown ? (
           <form onSubmit={handleDecompose} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">
                 Task Title
               </label>
               <input
@@ -75,7 +75,7 @@ export const AiTaskBreakdownModal: React.FC<AiTaskBreakdownModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-medium text-slate-400 mb-1">
                 Description (Optional)
               </label>
               <textarea
@@ -91,7 +91,7 @@ export const AiTaskBreakdownModal: React.FC<AiTaskBreakdownModalProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-purple-900/30 transition disabled:opacity-50"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl text-xs shadow-lg transition disabled:opacity-50"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{loading ? "Decomposing..." : "Break Down Task"}</span>
@@ -112,7 +112,7 @@ export const AiTaskBreakdownModal: React.FC<AiTaskBreakdownModalProps> = ({
             </div>
 
             <div>
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+              <h4 className="text-xs font-medium text-slate-400 mb-2 flex items-center space-x-1.5">
                 <Layers className="w-3.5 h-3.5 text-purple-400" />
                 <span>Generated Subtasks ({breakdown.subtasks?.length || 0})</span>
               </h4>

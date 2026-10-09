@@ -1,7 +1,5 @@
-import { Calendar } from 'lucide-react';
 import Skeleton from '@/components/Skeleton';
 
-import EmptyState from '@/components/EmptyState';
 import TaskCard from '@/components/TaskCard';
 import type { Epic } from '@/types/epic';
 import type { Project } from '@/types/project';
@@ -39,6 +37,7 @@ function TaskList({
   epics,
   onDelete,
   onEditTask,
+  onUpdateStatus,
   projects,
   tasks,
   onSelectTask,
@@ -51,28 +50,18 @@ function TaskList({
 }: TaskListProps): JSX.Element {
   if (loading) {
     return (
-      <div className="grid gap-4">
+      <div className="card divide-y divide-olive-100 overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={`skeleton-${i}`} className="bg-white  border border-olive-100  rounded-2xl p-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 flex-1">
-                <Skeleton variant="rectangle" className="w-6 h-6 rounded-lg" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton variant="text" className="w-1/3 h-5" />
-                  <Skeleton variant="text" className="w-1/2 h-3" />
-                </div>
-              </div>
-              <Skeleton variant="rectangle" className="w-24 h-8 rounded-lg" />
-            </div>
-            <div className="flex items-center gap-3 pt-3 border-t border-olive-50 ">
-              <Skeleton variant="circle" className="w-6 h-6" />
-              <Skeleton variant="text" className="w-20 h-3" />
-              <div className="flex-1" />
-              <div className="flex gap-2">
-                <Skeleton variant="rectangle" className="w-8 h-8 rounded-lg" />
-                <Skeleton variant="rectangle" className="w-8 h-8 rounded-lg" />
+          <div key={`skeleton-${i}`} className="flex items-start gap-3 px-4 py-3.5">
+            <Skeleton variant="rectangle" className="w-4 h-4 mt-0.5 rounded" />
+            <div className="flex-1 space-y-2">
+              <Skeleton variant="text" className={i % 2 ? 'w-1/2' : 'w-2/3'} />
+              <div className="flex gap-3">
+                <Skeleton variant="rectangle" className="w-20 h-5" />
+                <Skeleton variant="rectangle" className="w-14 h-5" />
               </div>
             </div>
+            <Skeleton variant="circle" className="w-6 h-6" />
           </div>
         ))}
       </div>
@@ -143,115 +132,74 @@ function TaskList({
     return sections;
   })();
 
+  if (tasks.length === 0) {
+    return <></>;
+  }
+
+  const renderTask = (task: Task, showEpic: boolean) => (
+    <TaskCard
+      actionTaskId={actionTaskId}
+      epicName={showEpic && task.epicId ? epicById.get(task.epicId)?.name : undefined}
+      key={task.id}
+      onDelete={onDelete}
+      onEditTask={onEditTask}
+      onUpdateStatus={onUpdateStatus}
+      projectName={showEpic && task.projectId ? projectNames.get(task.projectId) : undefined}
+      task={task}
+      onSelect={onSelectTask}
+      onComment={onCommentTask}
+      onToggleBlocked={onToggleBlocked}
+      isSelected={selectedTaskId === task.id}
+      isMultiSelected={selectedTaskIds.includes(task.id)}
+      onToggleSelection={onToggleSelection}
+    />
+  );
+
   return (
-    <div className="grid gap-3.5">
-      {tasks.length === 0 ? (
-        <EmptyState
-          description="Create a task or switch the active project to start planning work for this date."
-          icon={Calendar}
-          title="No tasks in this view"
-        />
+    <div className="grid gap-5">
+      {projectSections.length > 0 ? (
+        projectSections.flatMap((section) => {
+          const tasksByEpicId = new Map<string | null, Task[]>();
+
+          section.tasks.forEach((task) => {
+            const key = task.epicId ?? null;
+            const current = tasksByEpicId.get(key) ?? [];
+            current.push(task);
+            tasksByEpicId.set(key, current);
+          });
+
+          const sectionEpics =
+            section.project == null
+              ? []
+              : (orderedProjectEpics.get(section.project.id) ?? [])
+                .filter((epic) => tasksByEpicId.has(epic.id))
+                .map((epic) => ({ id: epic.id, title: epic.name, tasks: tasksByEpicId.get(epic.id) ?? [] }));
+
+          const noEpicTasks = tasksByEpicId.get(null) ?? [];
+          const groups = [
+            ...sectionEpics,
+            ...(noEpicTasks.length > 0 ? [{ id: `${section.id}-no-epic`, title: 'No epic', tasks: noEpicTasks }] : [])
+          ];
+          const showHeaders = groups.length > 1 || projectSections.length > 1;
+
+          return groups.map((group) => (
+            <section key={group.id}>
+              {showHeaders && (
+                <h4 className="flex items-center gap-2 m-0 mb-2 px-1 text-xs font-medium text-olive-500">
+                  {projectSections.length > 1 && <span className="text-olive-400">{section.title} /</span>}
+                  <span className="text-olive-800">{group.title}</span>
+                  <span className="text-olive-400 tabular-nums">{group.tasks.length}</span>
+                </h4>
+              )}
+              <div className="card overflow-hidden divide-y divide-olive-100">
+                {group.tasks.map((task) => renderTask(task, false))}
+              </div>
+            </section>
+          ));
+        })
       ) : (
-        <div className="grid gap-[18px]">
-          {projectSections.length > 0 ? (
-            projectSections.map((section) => {
-              const tasksByEpicId = new Map<string | null, Task[]>();
-
-              section.tasks.forEach((task) => {
-                const key = task.epicId ?? null;
-                const current = tasksByEpicId.get(key) ?? [];
-                current.push(task);
-                tasksByEpicId.set(key, current);
-              });
-
-              const sectionEpics =
-                section.project == null
-                  ? []
-                  : (orderedProjectEpics.get(section.project.id) ?? [])
-                    .filter((epic) => tasksByEpicId.has(epic.id))
-                    .map((epic) => ({
-                      id: epic.id,
-                      epic,
-                      title: epic.name,
-                      description: epic.description?.trim() ? epic.description : 'Grouped task execution lane.',
-                      tasks: tasksByEpicId.get(epic.id) ?? []
-                    }));
-
-              const noEpicTasks = tasksByEpicId.get(null) ?? [];
-
-              const sectionGroups = [
-                ...sectionEpics,
-                ...(noEpicTasks.length > 0
-                  ? [
-                    {
-                      id: `${section.id}-no-epic`,
-                      epic: null,
-                      title: 'No Epic',
-                      description:
-                        section.project == null
-                          ? 'Tasks without project or epic assignment.'
-                          : 'Tasks in this project that are not assigned to an epic.',
-                      tasks: noEpicTasks
-                    }
-                  ]
-                  : [])
-              ];
-
-              return (
-                <section className="grid gap-[18px]" key={section.id}>
-
-                  {/* Epic groups */}
-                  <div className="grid gap-[18px]">
-                    {sectionGroups.map((group) => (
-                      <section
-                        key={group.id}
-                        className="flex flex-col gap-4"
-                      >
-
-                        {/* Task cards */}
-                        <div className="grid gap-4">
-                          {group.tasks.map((task) => (
-                            <TaskCard
-                              actionTaskId={actionTaskId}
-                              epicName={task.epicId ? epicById.get(task.epicId)?.name : undefined}
-                              key={task.id}
-                              onDelete={onDelete}
-                              onEditTask={onEditTask}
-                              projectName={task.projectId ? projectNames.get(task.projectId) : undefined}
-                              task={task}
-                              onSelect={onSelectTask}
-                              onComment={onCommentTask}
-                              onToggleBlocked={onToggleBlocked}
-                              isSelected={selectedTaskId === task.id}
-                              isMultiSelected={selectedTaskIds.includes(task.id)}
-                              onToggleSelection={onToggleSelection}
-                            />
-                          ))}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                </section>
-              );
-            })
-          ) : (
-            <div className="grid gap-4">
-              {tasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  onDelete={onDelete}
-                  onEditTask={onEditTask}
-                  task={task}
-                  onSelect={onSelectTask}
-                  onComment={onCommentTask}
-                  onToggleBlocked={onToggleBlocked}
-                  isSelected={selectedTaskId === task.id}
-                  isMultiSelected={selectedTaskIds.includes(task.id)}
-                  onToggleSelection={onToggleSelection}
-                />
-              ))}
-            </div>
-          )}
+        <div className="card overflow-hidden divide-y divide-olive-100">
+          {tasks.map((task) => renderTask(task, true))}
         </div>
       )}
     </div>

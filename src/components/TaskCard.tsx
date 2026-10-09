@@ -1,13 +1,15 @@
-import { AlertCircle, FilePenLine, Rows3, Trash2, ArrowUpCircle, ArrowDownCircle, MinusCircle, MessageSquare, Siren } from 'lucide-react';
+import { AlertCircle, FilePenLine, ListChecks, Trash2, MessageSquare, Ban } from 'lucide-react';
 
 import type { Epic } from '@/types/epic';
 import type { Project } from '@/types/project';
 import {
+  TASK_WORKFLOW_STATUS_OPTIONS,
   type Subtask,
   type Task,
   type TaskWorkflowStatus,
   type TaskPriority
 } from '@/types/task';
+import { TASK_PRIORITY_META, statusMeta } from '@/utils/taskMeta';
 import UserAvatar from './UserAvatar';
 import SlaIndicator from './SlaIndicator';
 
@@ -37,27 +39,35 @@ interface TaskCardProps {
   onToggleSelection?: (taskId: string) => void;
 }
 
-const statusPillClasses: Record<string, string> = {
-  BACKLOG: 'bg-olive-100  text-olive-600  border-olive-200',
-  TODO: 'bg-olive-50  text-olive-700  border-olive-100',
-  IN_PROGRESS: 'bg-amber-50  text-amber-700  border-amber-100',
-  IN_REVIEW: 'bg-purple-50  text-purple-700  border-purple-100',
-  BLOCKED: 'bg-red-50  text-red-700  border-red-100',
-  DONE: 'bg-emerald-50  text-emerald-700  border-emerald-100',
-  rolled_over: 'bg-olive-50  text-olive-500  border-olive-100'
-};
-
-const priorityIcons: Record<TaskPriority, JSX.Element> = {
-  CRITICAL: <Siren size={12} className="text-red-600" />,
-  HIGH: <ArrowUpCircle size={12} className="text-red-500" />,
-  MEDIUM: <MinusCircle size={12} className="text-amber-500" />,
-  LOW: <ArrowDownCircle size={12} className="text-olive-400" />,
-};
+/** Signal-strength style priority glyph. */
+export function PriorityGlyph({ priority }: { priority?: TaskPriority }): JSX.Element | null {
+  if (!priority) return null;
+  const meta = TASK_PRIORITY_META[priority];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs ${meta.className}`} title={`${meta.label} priority`}>
+      {priority === 'CRITICAL' ? (
+        <AlertCircle size={13} strokeWidth={2.25} />
+      ) : (
+        <span className="inline-flex items-end gap-[2px] h-3" aria-hidden="true">
+          {[1, 2, 3].map((bar) => (
+            <span
+              key={bar}
+              className={`w-[3px] rounded-[1px] ${bar <= meta.bars ? 'bg-current' : 'bg-olive-200'}`}
+              style={{ height: `${bar * 4}px` }}
+            />
+          ))}
+        </span>
+      )}
+      <span className="text-olive-600">{meta.label}</span>
+    </span>
+  );
+}
 
 function TaskCard({
   actionTaskId,
   onDelete,
   onEditTask,
+  onUpdateStatus,
   epicName,
   projectName,
   task,
@@ -69,163 +79,147 @@ function TaskCard({
   onToggleSelection
 }: TaskCardProps): JSX.Element {
   const completedSubtasksCount = task.subtasks.filter((subtask) => subtask.status === 'DONE').length;
-  const statusCls = statusPillClasses[task.status] || statusPillClasses.TODO;
+  const status = statusMeta(task.status);
   const isUpdating = actionTaskId === task.id;
+  const breached = task.responseBreached || task.resolutionBreached;
+  const isDone = task.status === 'DONE';
 
   return (
     <article
       className={[
-        'group relative flex flex-col gap-4 p-4 transition-all duration-300',
-        'bg-white',
-        'border rounded-xl font-["Inter"] shadow-sm',
-        task.responseBreached || task.resolutionBreached ? 'ring-1 ring-red-300 bg-red-50/30' : '',
-        isSelected
-          ? 'border-olive-400/70  shadow-sm bg-olive-50/60'
-          : 'border-olive-200/80  hover:border-olive-300  hover:-translate-y-[2px]',
-        isUpdating ? 'opacity-60 grayscale-[0.5] cursor-wait' : 'cursor-pointer'
+        'group relative flex items-start gap-3 px-4 py-3 transition-colors',
+        isSelected ? 'bg-brand-50/60' : isMultiSelected ? 'bg-olive-50' : 'bg-white hover:bg-olive-50/60',
+        isUpdating ? 'opacity-60 cursor-wait' : 'cursor-pointer'
       ].join(' ')}
       onClick={() => !isUpdating && onSelect?.(task)}
     >
-      {isUpdating && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/10  backdrop-blur-[1px] rounded-xl overflow-hidden">
-          <div className="flex gap-1.5">
-             <div className="w-1.5 h-1.5 rounded-full bg-olive-500 animate-bounce [animation-delay:-0.3s]" />
-             <div className="w-1.5 h-1.5 rounded-full bg-olive-500 animate-bounce [animation-delay:-0.15s]" />
-             <div className="w-1.5 h-1.5 rounded-full bg-olive-500 animate-bounce" />
-          </div>
-        </div>
+      {isSelected && <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-600" />}
+
+      {onToggleSelection && (
+        <input
+          aria-label={`Select ${task.title}`}
+          type="checkbox"
+          checked={isMultiSelected}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => onToggleSelection(task.id)}
+          className={`mt-1 w-4 h-4 accent-brand-600 cursor-pointer shrink-0 transition-opacity ${isMultiSelected ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
+        />
       )}
-      <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-olive-300/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              {onToggleSelection && (
-                <input
-                  type="checkbox"
-                  checked={isMultiSelected}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    onToggleSelection(task.id);
-                  }}
-                  className="w-4 h-4 rounded border-olive-300 text-olive-600 focus:ring-olive-500 cursor-pointer"
-                />
-              )}
-              <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border shadow-sm ${statusCls}`}>
-                {task.status.replace('_', ' ')}
-              </div>
-              {task.priority && (
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-olive-100  border border-olive-200 ">
-                  {priorityIcons[task.priority]}
-                  <span className="text-[11px] font-bold text-olive-500 ">{task.priority}</span>
-                </div>
-              )}
-            </div>
-
-            {task.isBlocked && (
-              <div className="flex items-center gap-1 text-red-500" title={task.blockedByTaskId ? `Blocked by task ${task.blockedByTaskId}` : 'Blocked'}>
-                <AlertCircle size={14} />
-              </div>
-            )}
-          </div>
-
-          <h3 className="text-[0.95rem] font-bold tracking-tight text-olive-950  m-0 leading-snug line-clamp-2">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start gap-2">
+          <h3 className={`text-sm font-medium m-0 leading-snug line-clamp-2 ${isDone ? 'text-olive-400 line-through decoration-olive-300' : 'text-olive-950'}`}>
             {task.title}
           </h3>
+          {task.isBlocked && (
+            <span className="badge badge-red !h-5 shrink-0" title={task.blockedByTaskId ? `Blocked by task ${task.blockedByTaskId}` : 'Blocked'}>
+              <Ban size={11} />
+              Blocked
+            </span>
+          )}
+        </div>
 
-          <p className="mt-1.5 text-olive-500  text-[0.75rem] leading-relaxed line-clamp-2 font-medium">
-            {task.description || 'No description provided.'}
-          </p>
+        {task.description && (
+          <p className="mt-0.5 mb-0 text-olive-500 text-[13px] leading-relaxed line-clamp-1">{task.description}</p>
+        )}
 
-          <div className="mt-3">
-            <SlaIndicator task={task} />
-          </div>
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 mt-2">
+          {/* Inline status change */}
+          <label
+            className="relative inline-flex items-center gap-1.5 h-6 pl-2 pr-2.5 rounded-md border border-olive-200 bg-white text-xs text-olive-700 hover:border-olive-300 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className={`w-2 h-2 rounded-full ${status.dot}`} />
+            {status.label}
+            {onUpdateStatus && task.status !== 'rolled_over' && (
+              <select
+                aria-label="Change status"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                disabled={!task.permissions.canEdit || isUpdating}
+                onChange={(e) => onUpdateStatus(task, e.target.value as TaskWorkflowStatus)}
+                value={task.status}
+              >
+                {TASK_WORKFLOW_STATUS_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            )}
+          </label>
+
+          <PriorityGlyph priority={task.priority} />
+
+          {task.slaResolutionDueAt && (breached || task.currentSlaState !== 'HEALTHY') && <SlaIndicator task={task} compact />}
+
+          {task.subtasks.length > 0 && (
+            <span className="inline-flex items-center gap-1 text-xs text-olive-500 tabular-nums" title="Subtasks done">
+              <ListChecks size={13} />
+              {completedSubtasksCount}/{task.subtasks.length}
+            </span>
+          )}
+
+          {(epicName || projectName) && (
+            <span className="text-xs text-olive-400 truncate max-w-[200px]">{epicName ?? projectName}</span>
+          )}
 
           {task.dynamicPriorityScore > 0 && (
-            <div className="mt-2 flex items-center gap-2 text-[0.66rem] font-bold text-olive-500">
-              <span>Dynamic score {task.dynamicPriorityScore}</span>
-              <span className="h-1 w-1 rounded-full bg-olive-300" />
-              <span>{task.dependencyWeight} downstream</span>
-            </div>
-          )}
-
-          {(projectName || epicName || task.subtasks.length > 0) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-olive-100/90  text-olive-400 ">
-              {task.subtasks.length > 0 && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-olive-100/80 ">
-                  <Rows3 size={10} />
-                  <span className="text-[11px] font-bold">
-                    {completedSubtasksCount}<span className="opacity-40">/</span>{task.subtasks.length}
-                  </span>
-                </div>
-              )}
-              {projectName && (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-olive-100/80 ">
-                  <div className="w-1 h-1 rounded-full bg-olive-500/50" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[100px]">{projectName}</span>
-                </div>
-              )}
-              {epicName && (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-olive-100/80 ">
-                  <div className="w-1 h-1 rounded-full bg-olive-500/50" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[100px]">{epicName}</span>
-                </div>
-              )}
-            </div>
+            <span className="text-xs text-olive-400 tabular-nums" title={`${task.dependencyWeight} downstream tasks`}>
+              Score {task.dynamicPriorityScore}
+            </span>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-col items-center gap-3">
-          <UserAvatar 
-            name={task.assignedTo?.name} 
-            email={task.assignedTo?.email} 
-            size="sm" 
-            className="ring-2 ring-white  shadow-md"
-          />
-          <div className="flex flex-col gap-1">
-            {onEditTask && (
-              <button
-                className="p-2 rounded-lg bg-white/90  border border-olive-200/80  text-olive-400 hover:text-olive-600  transition-colors disabled:opacity-40 shadow-sm"
-                disabled={!task.permissions.canEdit}
-                onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
-                title="Edit Task"
-              >
-                <FilePenLine size={13} />
-              </button>
-            )}
-            {onToggleBlocked && (
-              <button
-                className={[
-                  'p-2 rounded-lg border transition-all shadow-sm',
-                  task.isBlocked 
-                    ? 'bg-red-500 border-red-600 text-white hover:bg-red-600' 
-                    : 'bg-white/90  border-olive-200/80  text-olive-400 hover:text-red-500'
-                ].join(' ')}
-                disabled={!task.permissions.canEdit}
-                onClick={(e) => { e.stopPropagation(); onToggleBlocked(task); }}
-                title={task.isBlocked ? 'Unblock Task' : 'Block Task'}
-              >
-                <AlertCircle size={13} />
-              </button>
-            )}
+      <div className="shrink-0">
+        <div className="absolute right-11 top-2 z-10 hidden group-hover:flex focus-within:flex items-center gap-0.5 p-0.5 rounded-lg bg-white shadow-md ring-1 ring-olive-950/[0.06]">
+          {onEditTask && (
             <button
-              className="p-2 rounded-lg bg-white/90  border border-olive-200/80  text-olive-400 hover:text-olive-600  transition-colors shadow-sm"
-              onClick={(e) => { e.stopPropagation(); onComment?.(task); }}
-              title="Add Comment"
+              aria-label="Edit task"
+              className="icon-btn !w-7 !h-7 disabled:opacity-30"
+              disabled={!task.permissions.canEdit}
+              onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
+              title="Edit"
+              type="button"
             >
-              <MessageSquare size={13} />
+              <FilePenLine size={14} />
             </button>
+          )}
+          <button
+            aria-label="Comments"
+            className="icon-btn !w-7 !h-7"
+            onClick={(e) => { e.stopPropagation(); onComment?.(task); }}
+            title="Comments"
+            type="button"
+          >
+            <MessageSquare size={14} />
+          </button>
+          {onToggleBlocked && (
             <button
-              className="p-2 rounded-lg bg-white/90  border border-olive-200/80  text-olive-400 hover:text-red-500 transition-colors disabled:opacity-40 shadow-sm"
-              disabled={!task.permissions.canDelete}
-              onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-              title="Delete Task"
+              aria-label={task.isBlocked ? 'Unblock task' : 'Mark blocked'}
+              className={`icon-btn !w-7 !h-7 disabled:opacity-30 ${task.isBlocked ? '!text-red-600' : ''}`}
+              disabled={!task.permissions.canEdit}
+              onClick={(e) => { e.stopPropagation(); onToggleBlocked(task); }}
+              title={task.isBlocked ? 'Unblock' : 'Mark blocked'}
+              type="button"
             >
-              <Trash2 size={13} />
+              <Ban size={14} />
             </button>
-          </div>
+          )}
+          <button
+            aria-label="Delete task"
+            className="icon-btn !w-7 !h-7 hover:!text-red-600 hover:!bg-red-50 disabled:opacity-30"
+            disabled={!task.permissions.canDelete}
+            onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+            title="Delete"
+            type="button"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
+        {task.assignedTo ? (
+          <UserAvatar name={task.assignedTo.name} email={task.assignedTo.email} size="sm" />
+        ) : (
+          <span className="w-6 h-6 rounded-full border border-dashed border-olive-300" title="Unassigned" />
+        )}
       </div>
     </article>
   );

@@ -9,10 +9,20 @@ interface UserAvatarProps {
 }
 
 const sizeClasses = {
-  sm: 'w-7 h-7 text-[11px]',
-  md: 'w-8 h-8 text-[0.75rem]',
-  lg: 'w-9 h-9 text-sm'
+  sm: 'w-6 h-6 text-[10px]',
+  md: 'w-8 h-8 text-xs',
+  lg: 'w-9 h-9 text-[13px]'
 };
+
+// Muted, palette-friendly avatar tints, chosen deterministically per user.
+const palette = [
+  'bg-brand-100 text-brand-800',
+  'bg-olive-200 text-olive-800',
+  'bg-amber-100 text-amber-800',
+  'bg-blue-100 text-blue-800',
+  'bg-orange-100 text-orange-700',
+  'bg-red-100 text-red-800',
+];
 
 export default function UserAvatar({ 
   name, 
@@ -28,10 +38,11 @@ export default function UserAvatar({
     : (nameParts[0]?.[0] || email[0] || 'U').toUpperCase();
 
   const fullName = name || email;
+  const hash = Array.from(email || fullName).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) >>> 0, 7);
 
   const content = (
     <div 
-      className={`flex items-center justify-center rounded-full bg-olive-100  text-olive-700  font-bold shadow-sm border border-olive-200/50  shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`flex items-center justify-center rounded-full font-semibold ring-2 ring-white shrink-0 ${palette[hash % palette.length]} ${sizeClasses[size]} ${className}`}
     >
       {initials}
     </div>

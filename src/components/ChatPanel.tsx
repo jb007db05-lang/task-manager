@@ -11,7 +11,7 @@ import {
   Bell,
   BellOff,
   Loader2,
-  Users,
+  X,
 } from 'lucide-react';
 import type { ChatMessage as ChatMessageType } from '@/types/chat';
 import type { Project, ProjectMember } from '@/types/project';
@@ -31,7 +31,7 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
-function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
+function ChatPanel({ project, members, isOpen, onClose }: ChatPanelProps) {
   const { user } = useAuth();
   const {
     messages,
@@ -177,9 +177,9 @@ function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
     const el = document.getElementById(`message-${messageId}`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('!bg-olive-100', 'transition-colors', 'duration-500');
+      el.classList.add('!bg-amber-50', 'transition-colors', 'duration-500');
       setTimeout(() => {
-        el.classList.remove('!bg-olive-100');
+        el.classList.remove('!bg-amber-50');
       }, 2000);
     }
   }, []);
@@ -187,79 +187,65 @@ function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
   const typingText = useMemo(() => {
     const users = Array.from(typingUsers.values());
     if (users.length === 0) return null;
-    if (users.length === 1) return `${users[0].userName} is typing...`;
-    if (users.length === 2) return `${users[0].userName} and ${users[1].userName} are typing...`;
-    return `${users.length} people are typing...`;
+    if (users.length === 1) return `${users[0].userName} is typing…`;
+    if (users.length === 2) return `${users[0].userName} and ${users[1].userName} are typing…`;
+    return `${users.length} people are typing…`;
   }, [typingUsers]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-olive-50  overflow-hidden relative border-none">
-      {/* Professional Clean Header */}
-      <div className="shrink-0 px-8 py-5 h-[72px] bg-white  flex items-center justify-between z-20 border-b border-olive-200 ">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="p-2.5 bg-olive-50  rounded-xl border border-olive-100  text-olive-600 ">
-              <MessageSquare className="w-[18px] h-[18px]" strokeWidth={2.5} />
-            </div>
-            {isConnected && (
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white  rounded-full"></span>
-            )}
-          </div>
-          <div className="flex flex-col">
-            <h3 className="text-olive-950  font-bold text-[1.1rem] tracking-tight leading-tight">{project.name}</h3>
-            <div className="flex items-center gap-2 text-olive-500  text-[0.7rem] font-semibold mt-0.5">
-              <span className="flex items-center gap-1.5">
-                <Users className="w-3 h-3" />
-                {members.length} Members
-              </span>
-              <span className="w-1 h-1 rounded-full bg-olive-300 " />
-            </div>
+    <div className="flex flex-col h-full w-full bg-white overflow-hidden relative">
+      <div className="shrink-0 px-5 h-14 flex items-center justify-between gap-3 border-b border-olive-200">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="min-w-0">
+            <h3 className="text-[15px] font-semibold text-olive-950 m-0 truncate">{project.name}</h3>
+            <p className="m-0 text-xs text-olive-500 flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-brand-500' : 'bg-amber-500'}`} />
+              {isConnected ? 'Connected' : 'Reconnecting…'} · {members.length} {members.length === 1 ? 'member' : 'members'}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0.5">
           <button
+            aria-label="Search messages"
+            aria-pressed={showSearch}
             onClick={() => setShowSearch(!showSearch)}
-            className={[
-              'p-2 rounded-xl transition-all duration-200',
-              showSearch
-                ? 'bg-olive-50 text-olive-600 shadow-inner scale-95'
-                : 'text-olive-600 hover:bg-olive-100   active:scale-90'
-            ].join(' ')}
+            className={`icon-btn ${showSearch ? '!bg-olive-100 !text-olive-900' : ''}`}
             title="Search messages"
+            type="button"
           >
             <Search className="w-4 h-4" />
           </button>
-
           <button
+            aria-label={notificationsEnabled ? 'Mute notifications' : 'Unmute notifications'}
             onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-            className="p-2 rounded-xl text-olive-600 hover:bg-olive-100   transition-all active:scale-90"
+            className="icon-btn"
             title={notificationsEnabled ? 'Mute' : 'Unmute'}
+            type="button"
           >
-            {notificationsEnabled ? (
-              <Bell className="w-4 h-4" />
-            ) : (
-              <BellOff className="w-4 h-4" />
-            )}
+            {notificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+          </button>
+          <div className="w-px h-5 bg-olive-200 mx-1" />
+          <button aria-label="Close chat" onClick={onClose} className="icon-btn" title="Close" type="button">
+            <X className="w-[18px] h-[18px]" />
           </button>
         </div>
       </div>
 
-      {/* Search area (conditionally rendered below header) */}
       {showSearch && (
-        <div className="px-6 py-4 bg-olive-50  border-b border-olive-200  animate-in slide-in-from-top duration-300">
-          <div className="relative group">
+        <div className="px-5 py-3 border-b border-olive-100 animate-fadeIn">
+          <div className="relative">
             <input
+              autoFocus
+              aria-label="Search in conversation"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search in conversation..."
-              className="w-full px-4 py-2.5 pl-11 text-sm bg-white  border border-olive-200  rounded-2xl text-olive-950  shadow-sm focus:outline-none focus:ring-2 focus:ring-olive-500/30 transition-all group-hover:border-olive-300 "
+              placeholder="Search in conversation"
+              className="input-base !h-9 !pl-9"
             />
-            <Search className="absolute left-4 top-3 w-4 h-4 text-olive-400 group-focus-within:text-olive-500 transition-colors" />
-            {isSearching && (
-              <Loader2 className="absolute right-4 top-3 w-4 h-4 text-olive-400 animate-spin" />
-            )}
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-olive-400 pointer-events-none" />
+            {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-olive-400 animate-spin" />}
           </div>
         </div>
       )}
@@ -267,17 +253,19 @@ function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-1.5 custom-scrollbar bg-olive-50/50 "
+        className="flex-1 overflow-y-auto px-2 py-4 space-y-0.5 custom-scrollbar"
       >
         {isLoading && messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-6 h-6 text-olive-400 animate-spin" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-olive-400 ">
-            <MessageSquare className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">No messages yet</p>
-            <p className="text-xs mt-1">Start the conversation!</p>
+          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+            <div className="w-10 h-10 rounded-full bg-olive-100 text-olive-400 flex items-center justify-center mb-3">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <p className="text-sm font-medium text-olive-900 m-0">No messages yet</p>
+            <p className="text-[13px] text-olive-500 mt-1 m-0">Say hello to the team working on {project.name}.</p>
           </div>
         ) : (
           <>
@@ -286,7 +274,7 @@ function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
               <button
                 onClick={loadMoreMessages}
                 disabled={isLoading}
-                className="w-full py-2 text-xs text-olive-500 hover:text-olive-700  "
+                className="w-full py-2 text-xs font-medium text-olive-500 hover:text-olive-900"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 mx-auto animate-spin" />
@@ -325,12 +313,10 @@ function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
                 return (
                   <div key={message.id}>
                     {showSeparator && (
-                      <div className="flex items-center gap-4 py-4 px-6">
-                        <div className="flex-1 h-px bg-olive-200 " />
-                        <span className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-olive-400  select-none whitespace-nowrap">
-                          {dateLabel}
-                        </span>
-                        <div className="flex-1 h-px bg-olive-200 " />
+                      <div className="flex items-center gap-3 py-3 px-4">
+                        <div className="flex-1 h-px bg-olive-100" />
+                        <span className="text-xs font-medium text-olive-400 select-none whitespace-nowrap">{dateLabel}</span>
+                        <div className="flex-1 h-px bg-olive-100" />
                       </div>
                     )}
                     <ChatMessage
@@ -363,26 +349,17 @@ function ChatPanel({ project, members, isOpen }: ChatPanelProps) {
       </div>
 
       {/* Footer Area */}
-      <div className="border-t border-olive-200  bg-white ">
+      <div className="border-t border-olive-200 bg-white">
         {/* Typing indicator */}
         {typingText && (
-          <div className="px-4 py-1.5 text-xs text-olive-500  italic">
+          <div className="px-5 pt-2 text-xs text-olive-500">
             {typingText}
           </div>
         )}
 
         {/* Connection status (Floating overlay) */}
-        {!isConnected && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50">
-            <div className="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse flex items-center gap-2">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Reconnecting to Chat...
-            </div>
-          </div>
-        )}
-
         {/* Input */}
-        <div className="p-4">
+        <div className="px-4 pb-4 pt-3">
           <ChatInput
             onSendMessage={handleSendMessage}
             onTypingStart={startTyping}

@@ -368,7 +368,7 @@ export const PromptEditorModal: React.FC<PromptEditorModalProps> = ({
                         updated[index].role = e.target.value as IPromptMessage['role'];
                         setMessages(updated);
                       }}
-                      className="bg-white border border-olive-200 text-olive-900 font-bold text-xs rounded-lg px-2.5 py-1 focus:outline-none uppercase"
+                      className="bg-white border border-olive-200 text-olive-900 font-medium text-xs rounded-lg px-2.5 py-1 focus:outline-none"
                     >
                       <option value="system">SYSTEM</option>
                       <option value="user">USER</option>
@@ -441,7 +441,7 @@ export const PromptEditorModal: React.FC<PromptEditorModalProps> = ({
             ) : (
               <div className="border border-olive-200 rounded-xl overflow-hidden bg-white shadow-xs">
                 <table className="w-full text-xs text-left text-olive-800">
-                  <thead className="bg-olive-50 text-olive-700 font-semibold uppercase text-[11px] tracking-wider border-b border-olive-200">
+                  <thead className="bg-olive-50 text-olive-700 font-semibold text-[11px] border-b border-olive-200">
                     <tr>
                       <th className="px-3 py-2">Variable Name</th>
                       <th className="px-3 py-2">Type</th>
@@ -547,7 +547,7 @@ export const PromptEditorModal: React.FC<PromptEditorModalProps> = ({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-5 py-2 rounded-xl bg-olive-900 hover:bg-black disabled:opacity-50 text-white text-sm font-semibold shadow-md shadow-olive-900/20 transition flex items-center gap-2"
+            className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-semibold transition flex items-center gap-2"
           >
             {isSubmitting ? "Saving..." : existingPrompt ? "Save & Create Version" : "Create Prompt"}
           </button>

@@ -43,32 +43,32 @@ function ProjectForm({
     }
   };
 
-  const inputCls = 'w-full bg-white/82  border border-olive-200  rounded-md text-olive-950  px-4 py-3.5 transition-all duration-200 focus:outline-none focus:border-olive-500  focus:ring-2 focus:ring-olive-500/10';
+  const inputCls = 'input-base';
 
   return (
-    <form className="grid gap-[18px] mt-6" onSubmit={(event) => void handleSubmit(event)}>
-      <label className="grid gap-2 font-medium text-[0.95rem] text-olive-950 ">
-        <span>Project name</span>
-        <input className={inputCls} onChange={(event) => setName(event.target.value)} placeholder="Backend" type="text" value={name} />
+    <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
+      <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
+        <span>Name</span>
+        <input className={inputCls} onChange={(event) => setName(event.target.value)} autoFocus placeholder="e.g. Website relaunch" type="text" value={name} />
       </label>
-      <label className="grid gap-2 font-medium text-[0.95rem] text-olive-950 ">
-        <span>Description</span>
+      <label className="grid gap-1.5 text-[13px] font-medium text-olive-700">
+        <span>Description <span className="text-olive-400 font-normal">(optional)</span></span>
         <textarea
-          className={`${inputCls} min-h-[112px] resize-y`}
+          className={`${inputCls} min-h-[96px] resize-y`}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Optional project context"
+          placeholder="What is this project about?"
           rows={3}
           value={description}
         />
       </label>
       <button
-        className="bg-olive-900  text-white rounded-md px-4 py-2.5 text-[0.9rem] font-medium hover:bg-olive-800  disabled:opacity-50 transition-colors"
+        className="btn btn-primary justify-self-end min-w-[140px]"
         disabled={submitting}
         type="submit"
       >
-        {submitting ? 'Saving...' : submitLabel}
+        {submitting ? 'Saving…' : submitLabel}
       </button>
-      {errorMessage ? <p className="text-red-600  m-0 text-[0.9rem]">{errorMessage}</p> : null}
+      {errorMessage ? <p className="text-red-600 m-0 text-[13px]">{errorMessage}</p> : null}
     </form>
   );
 }
