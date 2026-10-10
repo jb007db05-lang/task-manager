@@ -117,6 +117,9 @@ export interface PromptItem {
   usageCount: number;
   lastUsedAt?: string | null;
   deployment?: PromptDeploymentSummary | null;
+  parameters?: Record<string, any>;
+  provider?: string;
+  modelName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -132,6 +135,9 @@ export interface PromptVersion {
   body: string;
   messages?: IPromptMessage[];
   variables: IPromptVariable[];
+  parameters?: Record<string, any>;
+  provider?: string;
+  modelName?: string;
   changedBy: {
     _id: string;
     name: string;
@@ -150,6 +156,9 @@ export interface CreatePromptPayload {
   body: string;
   messages?: IPromptMessage[];
   variables?: IPromptVariable[];
+  parameters?: Record<string, any>;
+  provider?: string;
+  modelName?: string;
   folderId?: string | null;
   visibility?: "private" | "project" | "organization";
   isTemplate?: boolean;
@@ -164,6 +173,9 @@ export interface UpdatePromptPayload {
   body?: string;
   messages?: IPromptMessage[];
   variables?: IPromptVariable[];
+  parameters?: Record<string, any>;
+  provider?: string;
+  modelName?: string;
   folderId?: string | null;
   visibility?: "private" | "project" | "organization";
   projectId?: string | null;

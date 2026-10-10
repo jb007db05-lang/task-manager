@@ -1,5 +1,7 @@
 export interface Project {
   id: string;
+  uuid?: string;
+  _id?: string;
   name: string;
   description?: string;
   userId: string;

@@ -98,6 +98,8 @@ import type { Epic, EpicStatus } from '@/types/epic';
 import type { Note } from '@/types/note';
 import type { Project, ProjectMember } from '@/types/project';
 import type { Task, TaskWorkflowStatus, TaskPriority } from '@/types/task';
+import { TASK_WORKFLOW_STATUS_OPTIONS } from '@/types/task';
+import { toDisplayErrorMessage } from '@/utils/apiError';
 import { findProjectByName } from '@/utils/projectTree';
 import { useConfirm } from '@/context/ConfirmationContext';
 
@@ -576,7 +578,8 @@ function DashboardPage(): JSX.Element {
       status: subtask.status,
       completed: subtask.status === 'DONE' || subtask.completed,
       completedAt: subtask.status === 'DONE' ? (subtask.completedAt ?? new Date().toISOString()) : null,
-      assignedToUserId
+      assignedToUserId,
+      assignedToUser: subtask.assignedToUser ?? null
     };
   };
 
