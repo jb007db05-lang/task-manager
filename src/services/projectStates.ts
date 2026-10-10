@@ -14,7 +14,7 @@ export interface ProjectState {
 
 export const projectStateService = {
   async getProjectStates(projectId: string): Promise<ProjectState[]> {
-    const res = await api.get<{ states: ProjectState[] }>(`/api/projects/${projectId}/states`);
+    const res = await api.get<{ states: ProjectState[] }>(`/projects/${projectId}/states`);
     return res.data.states;
   },
 
@@ -22,7 +22,7 @@ export const projectStateService = {
     projectId: string,
     payload: { name: string; color?: string; category?: string; description?: string },
   ): Promise<ProjectState> {
-    const res = await api.post<{ state: ProjectState }>(`/api/projects/${projectId}/states`, payload);
+    const res = await api.post<{ state: ProjectState }>(`/projects/${projectId}/states`, payload);
     return res.data.state;
   },
 
@@ -32,19 +32,19 @@ export const projectStateService = {
     payload: Partial<ProjectState>,
   ): Promise<ProjectState> {
     const res = await api.patch<{ state: ProjectState }>(
-      `/api/projects/${projectId}/states/${stateId}`,
+      `/projects/${projectId}/states/${stateId}`,
       payload,
     );
     return res.data.state;
   },
 
   async deleteProjectState(projectId: string, stateId: string): Promise<void> {
-    await api.delete(`/api/projects/${projectId}/states/${stateId}`);
+    await api.delete(`/projects/${projectId}/states/${stateId}`);
   },
 
   async reorderProjectStates(projectId: string, stateIds: string[]): Promise<ProjectState[]> {
     const res = await api.patch<{ states: ProjectState[] }>(
-      `/api/projects/${projectId}/states/reorder`,
+      `/projects/${projectId}/states/reorder`,
       { stateIds },
     );
     return res.data.states;

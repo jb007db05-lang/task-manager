@@ -15,7 +15,6 @@ import {
   Zap,
   Eye,
   AlertCircle,
-  FileText,
   ChevronRight,
   ChevronDown,
   Plus,
@@ -25,26 +24,27 @@ import {
   X,
   RotateCcw,
   SlidersHorizontal,
-  FolderPlus,
   Trash2,
-  MessageSquare,
+  Rocket,
 } from "lucide-react";
 import {
   promptService,
   PromptItem,
   PromptVersion,
   PromptFolder,
+  PromptDeployment,
   IPromptMessage,
   IPromptVariable,
   PlaygroundRunResult,
 } from "@/services/prompts";
+import { PromptDeploymentModal } from "@/components/PromptDeploymentModal";
 
 export interface PlaygroundRunItem {
   id: string;
   timestamp: string;
   promptName: string;
   versionNumber?: number;
-  variableValues: Record<string, any>;
+  variableValues: Record<string, unknown>;
   provider: string;
   modelName: string;
   parameters: {
@@ -85,7 +85,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
   const [activePrompt, setActivePrompt] = useState<PromptItem | null>(null);
   const [versionsList, setVersionsList] = useState<PromptVersion[]>([]);
   const [selectedVersionNum, setSelectedVersionNum] = useState<number>(1);
-  const [activeVersionDoc, setActiveVersionDoc] = useState<PromptVersion | null>(null);
+  const [, setActiveVersionDoc] = useState<PromptVersion | null>(null);
 
   // Inline Prompt Editor Mode vs View Mode State
   const [isEditingPromptContent, setIsEditingPromptContent] = useState<boolean>(false);
@@ -108,7 +108,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
 
   // Variables Schema & Runtime Test Values
   const [variablesSchema, setVariablesSchema] = useState<IPromptVariable[]>([]);
-  const [runtimeValues, setRuntimeValues] = useState<Record<string, any>>({});
+  const [runtimeValues, setRuntimeValues] = useState<Record<string, unknown>>({});
   const [previewMode, setPreviewMode] = useState<"template" | "resolved">("resolved");
 
   // Right Parameters Drawer State
@@ -118,6 +118,24 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
   const [temperature, setTemperature] = useState<number>(0.7);
   const [maxTokens, setMaxTokens] = useState<number>(2048);
   const [topP, setTopP] = useState<number>(0.95);
+
+  // Deployment & Canary State
+  const [deployment, setDeployment] = useState<PromptDeployment | null>(null);
+  const [isDeploymentModalOpen, setIsDeploymentModalOpen] = useState<boolean>(false);
+
+  // Baseline State to Detect Any Prompt or Parameter Modification
+  const baselineState = React.useRef<{
+    promptId: string;
+    version: number;
+    body: string;
+    messages: string;
+    variables: string;
+    provider: string;
+    modelName: string;
+    temperature: number;
+    maxTokens: number;
+    topP: number;
+  } | null>(null);
 
   // Execution & Output State
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
@@ -142,7 +160,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   // Mobile layout state
-  const [mobileTab, setMobileTab] = useState<"sidebar" | "main" | "params">("main");
+  const [, setMobileTab] = useState<"sidebar" | "main" | "params">("main");
 
   // Auto-dismiss notification toasts
   useEffect(() => {
@@ -192,6 +210,39 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
     }
   };
 
+  const loadDeploymentInfo = useCallback(async (pId: string) => {
+    try {
+      const dep = await promptService.getDeployment(workspaceId, pId);
+      setDeployment(dep);
+    } catch {
+      setDeployment(null);
+    }
+  }, [workspaceId]);
+
+  const handlePromoteCanary = async () => {
+    if (!selectedPromptId) return;
+    try {
+      const updated = await promptService.promoteCanary(workspaceId, selectedPromptId);
+      setDeployment(updated);
+      setSuccessMsg(`Canary promoted to production v${updated.productionVersion}!`);
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
+      setErrorMsg(errorObj.response?.data?.message || errorObj.message || "Failed to promote canary.");
+    }
+  };
+
+  const handleAbortCanary = async () => {
+    if (!selectedPromptId) return;
+    try {
+      const updated = await promptService.abortCanary(workspaceId, selectedPromptId);
+      setDeployment(updated);
+      setSuccessMsg("Canary rollout aborted.");
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
+      setErrorMsg(errorObj.response?.data?.message || errorObj.message || "Failed to abort canary.");
+    }
+  };
+
   // Synchronize when selectedPromptId or URL changes
   useEffect(() => {
     if (!workspaceId || !selectedPromptId) return;
@@ -209,6 +260,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
 
         const matchVer = versions.find((v) => v.version === targetVerNum);
         applyPromptVersionDoc(promptDoc, matchVer || null);
+        await loadDeploymentInfo(promptDoc._id);
 
         setIsCreatingNewPrompt(false);
         setIsEditingPromptContent(false);
@@ -218,7 +270,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
     };
 
     fetchPromptDetails();
-  }, [selectedPromptId, urlVersionNum, workspaceId]);
+  }, [selectedPromptId, urlVersionNum, workspaceId, loadDeploymentInfo]);
 
   // Apply template & variable schema when active version or prompt changes
   const applyPromptVersionDoc = (prompt: PromptItem, verDoc: PromptVersion | null) => {
@@ -236,12 +288,40 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
     setVariablesSchema(schema);
     setEditorMode(contentMsgs.length > 0 ? "blocks" : "raw");
 
+    const paramSource = verDoc?.parameters || prompt.parameters;
+    const effProvider = paramSource?.provider || provider;
+    const effModel = paramSource?.modelName || modelName;
+    const effTemp = paramSource?.temperature ?? temperature;
+    const effMaxTokens = paramSource?.maxTokens ?? maxTokens;
+    const effTopP = paramSource?.topP ?? topP;
+
+    if (paramSource) {
+      setProvider(effProvider);
+      setModelName(effModel);
+      setTemperature(effTemp);
+      setMaxTokens(effMaxTokens);
+      setTopP(effTopP);
+    }
+
+    baselineState.current = {
+      promptId: prompt._id,
+      version: verDoc?.version ?? prompt.version,
+      body: contentBody,
+      messages: JSON.stringify(contentMsgs),
+      variables: JSON.stringify(schema),
+      provider: effProvider,
+      modelName: effModel,
+      temperature: effTemp,
+      maxTokens: effMaxTokens,
+      topP: effTopP,
+    };
+
     // Reconcile runtime test values with detected placeholders
     const detectedNames = extractHandlebarsVariables(contentBody, contentMsgs);
     const schemaMap = new Map(schema.map((v) => [v.name, v]));
 
     setRuntimeValues((prevValues) => {
-      const nextValues: Record<string, any> = {};
+      const nextValues: Record<string, unknown> = {};
       detectedNames.forEach((varName) => {
         if (prevValues[varName] !== undefined && prevValues[varName] !== "") {
           nextValues[varName] = prevValues[varName];
@@ -253,6 +333,51 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
       return nextValues;
     });
   };
+
+  const isPromptDirty = useCallback((): boolean => {
+    if (!selectedPromptId || !activePrompt || !baselineState.current) return false;
+    if (baselineState.current.promptId !== selectedPromptId) return false;
+
+    const currentContentBody =
+      editorMode === "blocks"
+        ? messages.map((m) => `[${m.role.toUpperCase()}]\n${m.content}`).join("\n\n")
+        : body;
+
+    const bodyChanged = currentContentBody.trim() !== baselineState.current.body.trim();
+    const messagesChanged =
+      JSON.stringify(editorMode === "blocks" ? messages : []) !==
+      baselineState.current.messages;
+    const variablesChanged =
+      JSON.stringify(variablesSchema) !== baselineState.current.variables;
+    const providerChanged = provider !== baselineState.current.provider;
+    const modelChanged = modelName !== baselineState.current.modelName;
+    const tempChanged = temperature !== baselineState.current.temperature;
+    const maxTokensChanged = maxTokens !== baselineState.current.maxTokens;
+    const topPChanged = topP !== baselineState.current.topP;
+
+    return (
+      bodyChanged ||
+      messagesChanged ||
+      variablesChanged ||
+      providerChanged ||
+      modelChanged ||
+      tempChanged ||
+      maxTokensChanged ||
+      topPChanged
+    );
+  }, [
+    selectedPromptId,
+    activePrompt,
+    editorMode,
+    messages,
+    body,
+    variablesSchema,
+    provider,
+    modelName,
+    temperature,
+    maxTokens,
+    topP,
+  ]);
 
   // Switch Version
   const handleVersionChange = (verNum: number) => {
@@ -501,9 +626,55 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
     setIsExecuting(true);
 
     try {
+      let runVersionNum = selectedVersionNum;
+
+      // Auto-save new version if content, structure, or parameters have changed
+      if (selectedPromptId && activePrompt && isPromptDirty()) {
+        const contentBody =
+          editorMode === "blocks"
+            ? messages.map((m) => `[${m.role.toUpperCase()}]\n${m.content}`).join("\n\n")
+            : body;
+
+        const updated = await promptService.updatePrompt(workspaceId, selectedPromptId, {
+          body: contentBody,
+          messages: editorMode === "blocks" ? messages : [],
+          variables: variablesSchema,
+          provider,
+          modelName,
+          parameters: {
+            temperature,
+            maxTokens,
+            topP,
+          },
+          changeNote: `Auto-saved version before run (v${activePrompt.version + 1})`,
+        });
+
+        const versions = await promptService.getPromptVersions(workspaceId, selectedPromptId);
+        setVersionsList(versions);
+        setActivePrompt(updated);
+        setSelectedVersionNum(updated.version);
+        runVersionNum = updated.version;
+        await loadDeploymentInfo(updated._id);
+
+        baselineState.current = {
+          promptId: updated._id,
+          version: updated.version,
+          body: contentBody,
+          messages: JSON.stringify(editorMode === "blocks" ? messages : []),
+          variables: JSON.stringify(variablesSchema),
+          provider,
+          modelName,
+          temperature,
+          maxTokens,
+          topP,
+        };
+
+        setSuccessMsg(`Modifications detected: saved as new version v${updated.version} before running.`);
+      }
+
       const res: PlaygroundRunResult = await promptService.runPlayground(workspaceId, {
         promptId: selectedPromptId || undefined,
-        versionNumber: selectedVersionNum,
+        versionNumber: runVersionNum,
         body,
         messages: messages.length > 0 ? messages : undefined,
         variables: runtimeValues,
@@ -520,7 +691,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
         id: `run-${Date.now()}`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
         promptName: activePrompt ? activePrompt.name : newPromptName || "Playground Session",
-        versionNumber: selectedVersionNum,
+        versionNumber: runVersionNum,
         variableValues: { ...runtimeValues },
         provider: res.metadata.provider,
         modelName: res.metadata.modelName,
@@ -1143,6 +1314,59 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                   </button>
                 </div>
 
+                {/* Deployment & Canary Rollout Status Bar */}
+                <div className="p-3 bg-white rounded-xl border border-olive-200 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center flex-wrap gap-2 text-xs">
+                    <span className="font-semibold text-olive-700">Deployments:</span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                      Prod: v{deployment?.productionVersion ?? "—"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-800 border border-sky-200">
+                      Staging: v{deployment?.stagingVersion ?? "—"}
+                    </span>
+                    {deployment?.canary?.version ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                        Canary: v{deployment.canary.version} ({deployment.canary.percentage}% traffic)
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-olive-400">No active canary</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {deployment?.canary?.version && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handlePromoteCanary}
+                          className="btn btn-xs btn-primary !h-7 text-[11px]"
+                          title="Promote canary version to 100% production"
+                        >
+                          Promote Canary
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAbortCanary}
+                          className="btn btn-xs btn-ghost text-rose-600 hover:text-rose-800 !h-7 text-[11px]"
+                          title="Abort canary rollout"
+                        >
+                          Abort Canary
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsDeploymentModalOpen(true)}
+                      className="btn btn-xs btn-secondary !h-7 text-[11px] flex items-center gap-1.5"
+                    >
+                      <Rocket className="w-3.5 h-3.5 text-brand-600" />
+                      Deploy & Canary Rollout
+                    </button>
+                  </div>
+                </div>
+
                 {/* Canonical Version Tabs */}
                 <div className="flex items-center gap-2 pt-2 border-t border-olive-200/80 overflow-x-auto custom-scrollbar">
                   <span className="text-xs font-semibold text-olive-600 shrink-0">
@@ -1402,7 +1626,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               </div>
                             ) : varType === "enum" && schemaDef?.options ? (
                               <select
-                                value={testVal}
+                                value={String(testVal)}
                                 onChange={(e) => setRuntimeValues({ ...runtimeValues, [varName]: e.target.value })}
                                 className="w-full bg-white border border-olive-200 rounded-lg px-3 py-1.5 text-xs text-olive-950"
                               >
@@ -1415,7 +1639,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                               </select>
                             ) : String(testVal).length > 50 || varType === "json" ? (
                               <textarea
-                                value={testVal}
+                                value={String(testVal)}
                                 onChange={(e) => setRuntimeValues({ ...runtimeValues, [varName]: e.target.value })}
                                 placeholder={`Enter test value for ${varName}...`}
                                 rows={3}
@@ -1424,7 +1648,7 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
                             ) : (
                               <input
                                 type={varType === "number" ? "number" : "text"}
-                                value={testVal}
+                                value={String(testVal)}
                                 onChange={(e) => setRuntimeValues({ ...runtimeValues, [varName]: e.target.value })}
                                 placeholder={`Enter test value for ${varName}...`}
                                 className="w-full bg-white border border-olive-200 rounded-lg px-3 py-1.5 text-xs text-olive-950 font-mono focus:outline-none focus:border-olive-400"
@@ -2003,6 +2227,22 @@ export const PromptPlaygroundPage: React.FC<PromptPlaygroundPageProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Prompt Deployment Modal */}
+      {activePrompt && (
+        <PromptDeploymentModal
+          isOpen={isDeploymentModalOpen}
+          onClose={() => setIsDeploymentModalOpen(false)}
+          workspaceId={workspaceId}
+          prompt={activePrompt}
+          onChanged={() => {
+            loadLibraryData();
+            if (activePrompt) {
+              loadDeploymentInfo(activePrompt._id);
+            }
+          }}
+        />
       )}
     </div>
   );

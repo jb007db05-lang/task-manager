@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from 'react';
 
 import AuthProvider from '@/context/AuthContext';
 import { ChatProvider } from '@/context/ChatContext';
+import { WorkspaceProvider } from '@/context/WorkspaceContext';
 import { ConfirmationProvider } from '@/context/ConfirmationContext';
 import PrivateRoute from '@/routes/PrivateRoute';
 import PublicRoute from '@/routes/PublicRoute';
@@ -25,14 +26,16 @@ function App(): JSX.Element {
     <ToastProvider>
       <LoadingProvider>
         <AuthProvider>
+          <WorkspaceProvider>
           <ChatProvider>
             <ConfirmationProvider>
-              <BrowserRouter>
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <GuideRuntimeProvider>
                   <Suspense fallback={<Loader center />}>
                   <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+                    <Route path="/invite/accept" element={<AcceptInvitationPage />} />
                     <Route path="/auth/google/callback" element={<GoogleOAuthCallbackPage />} />
                     <Route
                       path="/login"
@@ -71,6 +74,7 @@ function App(): JSX.Element {
               <GlobalLoadingSpinner />
             </ConfirmationProvider>
           </ChatProvider>
+          </WorkspaceProvider>
         </AuthProvider>
       </LoadingProvider>
     </ToastProvider>

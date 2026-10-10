@@ -22,13 +22,17 @@ import { AiProjectPlanModal } from '@/components/AiProjectPlanModal';
 import { getProjectAiConfig } from '@/services/aiPlanning';
 import SdkDocsPanel from '@/components/SdkDocsPanel';
 import EventTrackingPage from '@/pages/EventTrackingPage';
-import SemanticIntelligencePage from '@/pages/SemanticIntelligencePage';
+import InsightsPage from '@/pages/InsightsPage';
+import RequirePermission from '@/components/RequirePermission';
+import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
+import ProjectTimePanel from '@/components/project/ProjectTimePanel';
+import ProjectPromptsPanel from '@/components/project/ProjectPromptsPanel';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import EngagementPage from '@/pages/EngagementPage';
 import SdkIntegrationsPage from '@/pages/SdkIntegrationsPage';
 import SdkIntegrationDetailPage from '@/pages/SdkIntegrationDetailPage';
 import PromptLibraryPage from '@/pages/PromptLibraryPage';
 import PromptPlaygroundPage from '@/pages/PromptPlaygroundPage';
-import { workspaceService } from '@/services/workspaces';
 import { getIntegration } from '@/lib/sdk-integrations/api';
 import Sidebar, { SidebarView } from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
@@ -49,6 +53,7 @@ import {
   ChevronDown,
   Edit3,
   FileText,
+  Clock,
   Folder,
   Layout,
   List,
@@ -173,6 +178,7 @@ function DashboardPage(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { projectId, epicId, integrationId, tab } = useParams();
+  const settingsTab = new URLSearchParams(location.search).get('tab') === 'workspace' ? 'workspace' : 'account';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [epics, setEpics] = useState<Epic[]>([]);
@@ -263,24 +269,9 @@ function DashboardPage(): JSX.Element {
   const { lastMessage, clearLastMessage, setActiveProject } = useChat();
   const [activeIntegrationName, setActiveIntegrationName] = useState<string>('');
   const [activeIntegrationSandbox, setActiveIntegrationSandbox] = useState(false);
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>('');
-
-  useEffect(() => {
-    const fetchWorkspace = async () => {
-      try {
-        const list = await workspaceService.listWorkspaces();
-        if (list && list.length > 0) {
-          const wsId = list[0].id || (list[0] as { id?: string; _id?: string })._id;
-          if (wsId) {
-            setActiveWorkspaceId(wsId);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load user workspace', err);
-      }
-    };
-    void fetchWorkspace();
-  }, []);
+  const { activeWorkspaceId, can } = useWorkspace();
+  const [isTimePanelOpen, setIsTimePanelOpen] = useState(false);
+  const [isPromptsPanelOpen, setIsPromptsPanelOpen] = useState(false);
 
   useEffect(() => {
     const fetchIntegrationDetails = async () => {
@@ -342,6 +333,8 @@ function DashboardPage(): JSX.Element {
 
 
   const loadDashboard = useCallback(async (): Promise<void> => {
+    // Everything is scoped to the active workspace; wait until it is known.
+    if (!activeWorkspaceId) return;
     setLoading(true);
     setError(null);
 
@@ -376,7 +369,7 @@ function DashboardPage(): JSX.Element {
     } finally {
       setLoading(false);
     }
-  }, [projectPage, debouncedProjectSearchTerm, taskFilters.assigneeId, debouncedTaskSearchTerm]);
+  }, [activeWorkspaceId, projectPage, debouncedProjectSearchTerm, taskFilters.assigneeId, debouncedTaskSearchTerm]);
 
   useEffect(() => {
     void loadDashboard();
@@ -564,34 +557,66 @@ function DashboardPage(): JSX.Element {
     }
   };
 
+  const cleanSubtaskPayload = (subtask: Task['subtasks'][number]) => {
+    let assignedToUserId: string | null = null;
+    const raw = subtask.assignedToUserId;
+    if (raw && typeof raw === 'object') {
+      assignedToUserId = (raw as any)._id || (raw as any).id || null;
+    } else if (typeof raw === 'string') {
+      const match = raw.match(/[a-f0-9]{24}/i);
+      assignedToUserId = match ? match[0] : null;
+    }
+
+    return {
+      id: subtask.id,
+      _id: subtask.id,
+      title: subtask.title.trim(),
+      description: subtask.description?.trim() || undefined,
+      note: subtask.note?.trim() || undefined,
+      status: subtask.status,
+      completed: subtask.status === 'DONE' || subtask.completed,
+      completedAt: subtask.status === 'DONE' ? (subtask.completedAt ?? new Date().toISOString()) : null,
+      assignedToUserId
+    };
+  };
+
   const handleUpdateSubtask = async (
     task: Task,
     targetSubtask: Task['subtasks'][number],
-    patch: { title: string; description?: string; note?: string; assignedToUserId?: string | null }
+    patch: { title: string; description?: string; note?: string; status?: TaskWorkflowStatus; assignedToUserId?: string | null }
   ): Promise<void> => {
     setActionTaskId(task.id);
     setTaskMutationError(null);
     setTaskMutationSuccess(null);
 
     try {
-      const subtasks = task.subtasks.map((subtask) => (
-        subtask.id === targetSubtask.id
-          ? {
-            ...subtask,
-            title: patch.title.trim(),
-            description: patch.description?.trim(),
-            note: patch.note?.trim(),
-            assignedToUserId: patch.assignedToUserId
-          }
-          : subtask
-      ));
+      const updatedSubtasks = task.subtasks.map((subtask) => {
+        const cleaned = cleanSubtaskPayload(subtask);
+        if (subtask.id !== targetSubtask.id) {
+          return cleaned;
+        }
 
-      await updateTask(task.id, { status: task.status as TaskWorkflowStatus, subtasks });
+        const nextStatus = patch.status ?? subtask.status;
+        return {
+          ...cleaned,
+          title: patch.title.trim(),
+          description: patch.description?.trim(),
+          note: patch.note?.trim(),
+          status: nextStatus,
+          completed: nextStatus === 'DONE',
+          completedAt: nextStatus === 'DONE' ? (subtask.completedAt ?? new Date().toISOString()) : null,
+          assignedToUserId: patch.assignedToUserId !== undefined ? patch.assignedToUserId : cleaned.assignedToUserId
+        };
+      });
+
+      const nextTaskStatus = deriveTaskStatusFromSubtasks(task.status, updatedSubtasks);
+
+      await updateTask(task.id, { status: nextTaskStatus, subtasks: updatedSubtasks });
       await loadDashboard();
       setTaskMutationSuccess('Subtask updated.');
       setEditingSubtask(null);
-    } catch {
-      setTaskMutationError('Unable to update the subtask.');
+    } catch (err) {
+      setTaskMutationError(toDisplayErrorMessage(err) || 'Unable to update the subtask.');
     } finally {
       setActionTaskId(null);
     }
@@ -991,12 +1016,13 @@ function DashboardPage(): JSX.Element {
 
     // Optimistic Update
     const updatedSubtasks = task.subtasks.map((subtask) => {
+      const cleaned = cleanSubtaskPayload(subtask);
       if (subtask.id !== targetSubtask.id) {
-        return subtask;
+        return cleaned;
       }
 
       return {
-        ...subtask,
+        ...cleaned,
         status,
         completed: status === 'DONE',
         completedAt: status === 'DONE' ? new Date().toISOString() : null
@@ -1019,13 +1045,11 @@ function DashboardPage(): JSX.Element {
         status: updatedTask.status,
         subtasks: updatedSubtasks
       });
-      // We don't strictly need to reload everything if optimistic update is correct, 
-      // but loadDashboard ensures project/epic sync if they depend on task status.
       await loadDashboard();
       setTaskMutationSuccess('Subtask updated.');
     } catch (err) {
       setTasks(previousTasks); // Rollback
-      setTaskMutationError('Unable to update the subtask.');
+      setTaskMutationError(toDisplayErrorMessage(err) || 'Unable to update the subtask.');
       console.error('Subtask update failed:', err);
     }
   };
@@ -1610,7 +1634,12 @@ function DashboardPage(): JSX.Element {
       activeProject == null
         ? []
         : epics
-          .filter((epic) => epic.projectId === activeProject.id)
+          .filter(
+            (epic) =>
+              epic.projectId === activeProject.id ||
+              (activeProject.uuid && epic.projectId === activeProject.uuid) ||
+              ((activeProject as any)._id && epic.projectId === (activeProject as any)._id)
+          )
           .sort((left, right) => left.order - right.order),
     [activeProject, epics]
   );
@@ -1811,7 +1840,7 @@ function DashboardPage(): JSX.Element {
             }
           }
           else if (view === 'sdk-docs') navigate('/sdk-docs');
-          else if (view === 'settings') navigate('/settings');
+          else if (view === 'settings') navigate(targetTab === 'workspace' ? '/settings?tab=workspace' : '/settings');
         }}
         onNewProject={() => setIsProjectCreateModalOpen(true)}
         onLogout={handleLogout}
@@ -1844,7 +1873,17 @@ function DashboardPage(): JSX.Element {
               </button>
             ) : undefined
           }
-          rightContent={null}
+          rightContent={
+            <button
+              aria-label="Toggle team chat"
+              onClick={() => setIsChatPanelOpen(!isChatPanelOpen)}
+              className={`btn btn-sm ${isChatPanelOpen ? 'btn-primary' : 'btn-secondary'} flex items-center gap-1.5`}
+              type="button"
+            >
+              <MessageCircle size={15} strokeWidth={1.75} />
+              <span>Chat</span>
+            </button>
+          }
         />
 
         <main className="flex-1 overflow-hidden">
@@ -1853,16 +1892,36 @@ function DashboardPage(): JSX.Element {
               <div className=" px-8 pt-8 pb-16">
                 <PageHeader
                   title="Settings"
-                  description={activeProject ? `Your account, plus AI configuration for ${activeProject.name}.` : 'Manage your profile, security, and AI provider keys.'}
+                  description={settingsTab === 'workspace' ? 'Members, roles and what each person can do in this workspace.' : activeProject ? `Your account, plus AI configuration for ${activeProject.name}.` : 'Manage your profile, security, and AI provider keys.'}
+                  actions={
+                    <div className="flex items-center p-0.5 rounded-lg bg-olive-100 border border-olive-200/70" role="tablist">
+                      {([['workspace', 'Workspace'], ['account', 'Account']] as const).map(([key, label]) => (
+                        <button
+                          aria-selected={settingsTab === key}
+                          className={`h-8 px-3 rounded-md text-[13px] transition-colors ${settingsTab === key ? 'bg-white shadow-xs text-olive-950 font-medium' : 'text-olive-500 hover:text-olive-800'}`}
+                          key={key}
+                          onClick={() => navigate(key === 'workspace' ? '/settings?tab=workspace' : '/settings')}
+                          role="tab"
+                          type="button"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  }
                 />
                 <div className="mt-8">
-                  <SettingsPanel
-                    activeProject={activeProject}
-                    onAiConfigChange={(enabled, provider) => {
-                      setActiveProjectAiEnabled(enabled);
-                      setActiveProjectAiProvider(provider);
-                    }}
-                  />
+                  {settingsTab === 'workspace' ? (
+                    <WorkspaceSettings />
+                  ) : (
+                    <SettingsPanel
+                      activeProject={activeProject}
+                      onAiConfigChange={(enabled, provider) => {
+                        setActiveProjectAiEnabled(enabled);
+                        setActiveProjectAiProvider(provider);
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -1884,19 +1943,21 @@ function DashboardPage(): JSX.Element {
             </div>
           ) : activeView === 'prompts' ? (
             <div className="h-full overflow-y-auto">
-              <PromptLibraryPage workspaceId={activeWorkspaceId} />
+              <RequirePermission feature="the prompt library" permission="library.access">
+                <PromptLibraryPage workspaceId={activeWorkspaceId} />
+              </RequirePermission>
             </div>
           ) : activeView === 'playground' ? (
             <div className="h-full overflow-y-auto">
-              <PromptPlaygroundPage workspaceId={activeWorkspaceId} />
+              <RequirePermission feature="the playground" permission="library.access">
+                <PromptPlaygroundPage workspaceId={activeWorkspaceId} />
+              </RequirePermission>
             </div>
           ) : activeView === 'semantic-intelligence' ? (
             <div className="h-full overflow-y-auto">
-              <SemanticIntelligencePage
-                allProjectsValue={ALL_PROJECTS_VALUE}
-                projects={projects}
-                selectedProjectId={selectedProjectView}
-              />
+              <RequirePermission feature="insights" permission="intelligence.view">
+                <InsightsPage onOpenProject={(id: string) => handleProjectSelect(id)} />
+              </RequirePermission>
             </div>
           ) : activeView === 'sdk-docs' ? (
             <div className="h-full overflow-y-auto">
@@ -1976,6 +2037,16 @@ function DashboardPage(): JSX.Element {
                     <Users size={15} strokeWidth={1.75} />
                     Team
                   </button>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setIsTimePanelOpen(true)} type="button">
+                    <Clock size={15} strokeWidth={1.75} />
+                    Time
+                  </button>
+                  {can('prompt.access') && (
+                    <button className="btn btn-sm btn-ghost" onClick={() => setIsPromptsPanelOpen(true)} type="button">
+                      <FileText size={15} strokeWidth={1.75} />
+                      Prompts
+                    </button>
+                  )}
                   <button className="btn btn-sm btn-ghost" onClick={() => setIsActivityHistoryOpen(true)} type="button">
                     <History size={15} strokeWidth={1.75} />
                     Activity
@@ -2137,7 +2208,7 @@ function DashboardPage(): JSX.Element {
                 </aside>
 
                 {/* Tasks */}
-                <section className="@container flex flex-col flex-1 min-w-0 h-full bg-olive-50/60">
+                <section className="@container flex flex-col flex-1 min-w-0 h-full min-h-0 bg-olive-50/60 overflow-hidden">
                   <div className="shrink-0 px-6 pt-5 pb-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
@@ -2224,7 +2295,7 @@ function DashboardPage(): JSX.Element {
                     )}
                   </div>
 
-                  <div className="flex-1 overflow-auto custom-scrollbar">
+                  <div className={`flex-1 min-h-0 ${viewMode === 'kanban' ? 'flex flex-col overflow-hidden' : 'overflow-auto custom-scrollbar'}`}>
                     {viewMode === 'list' ? (
                       <div className="px-6 pb-8">
                         <TaskList
@@ -2273,8 +2344,10 @@ function DashboardPage(): JSX.Element {
                         )}
                       </div>
                     ) : (
-                      <div className="h-full">
+                      <div className="h-full min-h-0 flex flex-col">
                         <KanbanBoard
+                          epics={epics}
+                          projects={projects}
                           tasks={activeEpicTasks}
                           onUpdateStatus={async (taskId, status) => {
                             const task = tasks.find(t => t.id === taskId);
@@ -2383,10 +2456,23 @@ function DashboardPage(): JSX.Element {
                                       type="checkbox"
                                     />
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2 min-w-0">
+                                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
                                         <span className={`text-[13px] leading-snug ${subtask.status === 'DONE' ? 'text-olive-400 line-through' : 'text-olive-900'}`}>
                                           {subtask.title}
                                         </span>
+                                        <select
+                                          value={subtask.status}
+                                          disabled={!activeTask.permissions.canUpdate}
+                                          onChange={(e) => void handleUpdateSubtaskStatus(activeTask, subtask, e.target.value as TaskWorkflowStatus)}
+                                          className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded border border-olive-200 bg-olive-50 text-olive-700 hover:bg-olive-100 transition cursor-pointer"
+                                          aria-label={`Status for ${subtask.title}`}
+                                        >
+                                          {TASK_WORKFLOW_STATUS_OPTIONS.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                              {opt.label}
+                                            </option>
+                                          ))}
+                                        </select>
                                         {subtask.assignedToUser && (
                                           <UserAvatar name={subtask.assignedToUser.name} email={subtask.assignedToUser.email} size="sm" />
                                         )}
@@ -2539,7 +2625,7 @@ function DashboardPage(): JSX.Element {
         ) : null
       }
       {
-        isChatPanelOpen && activeProject ? (
+        isChatPanelOpen ? (
           <>
             {/* Chat Drawer Backdrop */}
             <div
@@ -2619,6 +2705,23 @@ function DashboardPage(): JSX.Element {
           </Modal>
         ) : null
       }
+      {isTimePanelOpen && activeProject && (
+        <ProjectTimePanel
+          members={activeProjectMembers}
+          onClose={() => setIsTimePanelOpen(false)}
+          projectId={activeProject.id}
+          projectName={activeProject.name}
+          tasks={tasks.filter((t) => t.projectId === activeProject.id).map((t) => ({ id: t.id, title: t.title }))}
+        />
+      )}
+      {isPromptsPanelOpen && activeProject && (
+        <ProjectPromptsPanel
+          members={activeProjectMembers}
+          onClose={() => setIsPromptsPanelOpen(false)}
+          projectId={activeProject.id}
+          projectName={activeProject.name}
+        />
+      )}
       {
         isActivityHistoryOpen && activeProject ? (
           <Modal

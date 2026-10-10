@@ -82,6 +82,46 @@ export const sendMessage = async (
   return response.data.data.message;
 };
 
+export interface SendWorkspaceMessageInput {
+  content: string;
+  recipientId?: string;
+  replyToId?: string;
+  type?: MessageType;
+  metadata?: MessageMetadata;
+  mentions?: string[];
+}
+
+export interface WorkspacePaginationParams extends PaginationParams {
+  recipientId?: string;
+}
+
+/**
+ * Get messages for a workspace (common lounge or direct messages)
+ */
+export const getWorkspaceMessages = async (
+  workspaceId: string,
+  params?: WorkspacePaginationParams
+): Promise<MessageListResult> => {
+  const response = await api.get<MessagesResponse>(`/workspaces/${workspaceId}/chat/messages`, {
+    params,
+  });
+  return response.data.data;
+};
+
+/**
+ * Send a message at the workspace level (common lounge or direct message)
+ */
+export const sendWorkspaceMessage = async (
+  workspaceId: string,
+  payload: SendWorkspaceMessageInput
+): Promise<ChatMessage> => {
+  const response = await api.post<{ message: string; data: ChatMessage }>(
+    `/workspaces/${workspaceId}/chat/messages`,
+    payload
+  );
+  return response.data.data;
+};
+
 /**
  * Edit a message
  */

@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -25,6 +25,16 @@ function RegisterPage(): JSX.Element {
     () => (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace(/\/$/, ''),
     []
   );
+
+  useEffect(() => {
+    if (user) {
+      if (tokenParam) {
+        navigate(`/accept-invitation?token=${encodeURIComponent(tokenParam)}`, { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [user, tokenParam, navigate]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -53,7 +63,7 @@ function RegisterPage(): JSX.Element {
         <div>
           <h1 className="display-serif text-[40px] text-olive-950 m-0">Create your account</h1>
           <p className="text-olive-500 text-sm mt-2 mb-0">
-            {tokenParam ? 'Sign up to accept your project invitation.' : 'Get your team organized in a couple of minutes.'}
+            {tokenParam ? 'Sign up to accept your invitation and join the team.' : 'Get your team organized in a couple of minutes.'}
           </p>
         </div>
 
@@ -136,7 +146,17 @@ function RegisterPage(): JSX.Element {
 
           {user != null ? <p className="text-olive-500 text-xs m-0 text-center">You're already signed in. Redirecting…</p> : null}
           {error ? (
-            <p role="alert" className="m-0 px-3 py-2.5 rounded-lg border border-red-200 bg-red-50 text-[13px] text-red-800">{error}</p>
+            <div role="alert" className="m-0 px-3 py-2.5 rounded-lg border border-red-200 bg-red-50 text-[13px] text-red-800 flex items-center justify-between gap-2">
+              <span>{error}</span>
+              {error.toLowerCase().includes('already in use') && (
+                <Link
+                  className="font-semibold text-brand-700 hover:text-brand-900 underline shrink-0"
+                  to={tokenParam ? `/login?token=${tokenParam}&email=${encodeURIComponent(email)}` : `/login?email=${encodeURIComponent(email)}`}
+                >
+                  Sign in instead &rarr;
+                </Link>
+              )}
+            </div>
           ) : null}
 
           <button className="btn btn-primary btn-lg w-full mt-1" disabled={loading} type="submit">

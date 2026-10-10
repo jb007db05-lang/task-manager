@@ -1,12 +1,17 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { createPortal } from 'react-dom';
 import { type Task, type TaskWorkflowStatus, TASK_WORKFLOW_STATUS_OPTIONS } from '@/types/task';
+import type { Epic } from '@/types/epic';
+import type { Project } from '@/types/project';
 import TaskCard from './TaskCard';
 import Skeleton from './Skeleton';
 import { statusMeta } from '@/utils/taskMeta';
+import { flattenProjectLabels } from '@/utils/projectTree';
 
 interface KanbanBoardProps {
   tasks: Task[];
+  epics?: Epic[];
+  projects?: Project[];
   onUpdateStatus: (taskId: string, status: TaskWorkflowStatus) => Promise<void>;
   onSelectTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
@@ -20,6 +25,8 @@ const COLUMNS: TaskWorkflowStatus[] = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REV
 
 function KanbanBoard({
   tasks,
+  epics = [],
+  projects = [],
   onUpdateStatus,
   onSelectTask,
   onDeleteTask,
@@ -28,6 +35,8 @@ function KanbanBoard({
   onToggleBlocked,
   loading = false
 }: KanbanBoardProps): JSX.Element {
+  const projectNames = new Map(flattenProjectLabels(projects).map((project) => [project.id, project.label]));
+  const epicById = new Map(epics.map((epic) => [epic.id, epic]));
 
   const getTasksByStatus = (status: TaskWorkflowStatus) => {
     return tasks.filter((task) => task.status === status)
@@ -53,19 +62,21 @@ function KanbanBoard({
   };
 
   return (
-    <div className="h-full overflow-x-auto px-6 pb-6 custom-scrollbar">
+    <div className="h-full w-full min-h-0 flex flex-col overflow-x-auto px-6 pb-6 custom-scrollbar">
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-3 h-full min-h-[480px]">
+        <div className="flex gap-3.5 flex-1 min-h-0 h-full">
           {COLUMNS.map((status) => {
             const columnTasks = getTasksByStatus(status);
             const label = TASK_WORKFLOW_STATUS_OPTIONS.find(opt => opt.value === status)?.label || status;
 
             return (
-              <div key={status} className="flex-shrink-0 w-[280px] flex flex-col rounded-xl bg-olive-100/60">
-                <div className="flex items-center gap-2 px-3 h-10 shrink-0">
-                  <span className={`w-2 h-2 rounded-full ${statusMeta(status).dot}`} />
-                  <h3 className="text-[13px] font-medium text-olive-800 m-0">{label}</h3>
-                  <span className="text-xs text-olive-400 tabular-nums">{columnTasks.length}</span>
+              <div key={status} className="shrink-0 w-[320px] flex flex-col h-full min-h-0 rounded-xl bg-olive-100/50 border border-olive-200/70 shadow-xs overflow-hidden">
+                <div className="flex items-center gap-2 px-3.5 h-11 shrink-0 border-b border-olive-200/60 bg-white/70 backdrop-blur-xs">
+                  <span className={`w-2.5 h-2.5 rounded-full ${statusMeta(status).dot}`} />
+                  <h3 className="text-[13px] font-semibold text-olive-900 m-0 tracking-tight">{label}</h3>
+                  <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-olive-200/80 text-olive-800 tabular-nums">
+                    {columnTasks.length}
+                  </span>
                 </div>
 
                 <Droppable droppableId={status}>
@@ -73,7 +84,7 @@ function KanbanBoard({
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className={`flex-1 px-2 pb-2 flex flex-col gap-2 overflow-y-auto rounded-b-xl transition-colors duration-150 ${snapshot.isDraggingOver ? 'bg-brand-50/70' : ''}`}
+                      className={`flex-1 min-h-0 p-2.5 flex flex-col gap-2.5 overflow-y-auto transition-colors duration-150 custom-scrollbar ${snapshot.isDraggingOver ? 'bg-brand-50/60 ring-2 ring-inset ring-brand-200' : ''}`}
                     >
                       {loading ? (
                         Array.from({ length: 2 }).map((_, i) => (
@@ -91,7 +102,7 @@ function KanbanBoard({
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={`rounded-lg border border-olive-200 bg-white overflow-hidden ${snapshot.isDragging ? 'shadow-xl ring-1 ring-brand-200 rotate-[1deg]' : 'shadow-xs hover:border-olive-300'}`}
+                                  className={`shrink-0 rounded-lg border border-olive-200/80 bg-white ${snapshot.isDragging ? 'shadow-xl ring-2 ring-brand-400 rotate-[1deg] z-50' : 'shadow-xs hover:border-olive-300 hover:shadow-sm'}`}
                                   style={{
                                     ...provided.draggableProps.style,
                                     cursor: snapshot.isDragging ? 'grabbing' : 'grab',
@@ -99,6 +110,8 @@ function KanbanBoard({
                                 >
                                   <TaskCard
                                     task={task}
+                                    epicName={task.epicId ? epicById.get(task.epicId)?.name : undefined}
+                                    projectName={task.projectId ? projectNames.get(task.projectId) : undefined}
                                     onDelete={onDeleteTask}
                                     onEditTask={onEditTask}
                                     onSelect={onSelectTask}
@@ -117,7 +130,7 @@ function KanbanBoard({
                       {provided.placeholder}
 
                       {!loading && columnTasks.length === 0 && !snapshot.isDraggingOver && (
-                        <div className="flex-1 min-h-[72px] rounded-lg border border-dashed border-olive-300/70 flex items-center justify-center text-xs text-olive-400">
+                        <div className="shrink-0 min-h-[80px] rounded-lg border border-dashed border-olive-300/70 flex items-center justify-center text-xs text-olive-400">
                           Drop tasks here
                         </div>
                       )}

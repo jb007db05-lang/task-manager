@@ -97,7 +97,11 @@ export const exportEventsCsv = async (
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  return Number(res.headers['x-row-count'] ?? 0);
+  const header = Number(res.headers['x-row-count']);
+  if (Number.isFinite(header) && res.headers['x-row-count'] !== undefined) return header;
+  // Header not exposed (e.g. by a proxy): count CSV records minus the header row.
+  const text = await res.data.text();
+  return Math.max(0, text.split('\r\n').filter(Boolean).length - 1);
 };
 
 export interface EventPropertyKeys {

@@ -22,6 +22,31 @@ interface RuntimeEventDetail {
 }
 
 const SESSION_STARTED_AT = Date.now();
+/** Mouse-leave fires repeatedly; ask the server at most this often. */
+const EXIT_INTENT_THROTTLE_MS = 30_000;
+const IDLE_TIMEOUT_MS = 15_000;
+
+const integrationOf = (guide: Guide): string | undefined => {
+  const fromGuide = guide.sdkIntegrationId || guide.metadata?.sdkIntegrationId;
+  if (typeof fromGuide === 'string' && fromGuide) return fromGuide;
+  try {
+    return localStorage.getItem('active_sdk_integration_id') || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const newRunKey = (): string =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const isEmptyAnswer = (value: unknown): boolean =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'string' && value.trim() === '') ||
+  (Array.isArray(value) && value.length === 0) ||
+  (typeof value === 'object' && !Array.isArray(value) && value !== null && !('consented' in value) && Object.keys(value).length === 0);
 
 export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): JSX.Element {
   const location = useLocation();
@@ -30,21 +55,42 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
   const [activeIndex, setActiveIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const evaluatingRef = useRef(false);
+  /** An evaluation requested while one was in flight; null = plain refresh. */
+  const pendingRef = useRef<RuntimeEventDetail | null | undefined>(undefined);
+  const activeGuideRef = useRef<Guide | null>(null);
+  /** Experiences finished (completed or dismissed) on this page load. */
+  const handledRef = useRef<Set<string>>(new Set());
+  const shownRef = useRef<string | null>(null);
+  const startedRef = useRef<Set<string>>(new Set());
 
   const activeGuide = experiences[activeIndex] ?? null;
+  activeGuideRef.current = activeGuide;
 
   const evaluate = useCallback(
     async (event?: RuntimeEventDetail) => {
-      if (!user || evaluatingRef.current) {
+      if (!user) {
+        return;
+      }
+      if (evaluatingRef.current) {
+        // Keep the request that carries an event; a plain refresh is implied.
+        if (event || pendingRef.current === undefined) {
+          pendingRef.current = event ?? null;
+        }
         return;
       }
 
       evaluatingRef.current = true;
       try {
+        let activeIntegration: string | undefined;
+        try {
+          activeIntegration = localStorage.getItem('active_sdk_integration_id') || undefined;
+        } catch {
+          activeIntegration = undefined;
+        }
         const result = await evaluateRuntime({
           userId: user.id,
           sessionId: session?.sessionId,
-          sdkIntegrationId: localStorage.getItem('active_sdk_integration_id') || undefined,
+          sdkIntegrationId: activeIntegration,
           url: window.location.href,
           referrer: document.referrer,
           role: 'ADMIN',
@@ -61,13 +107,29 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
           eventName: event?.eventName,
           eventProperties: event?.properties
         });
-        setExperiences(result);
-        setActiveIndex(0);
-        setStepIndex(0);
+
+        const active = activeGuideRef.current;
+        const isManual = event?.eventName === 'manual_tour' && result.length > 0;
+        const fresh = result.filter((e) => !handledRef.current.has(e.id) && e.id !== active?.id);
+        if (active && !isManual) {
+          // Re-evaluation (navigation, idle, exit intent) must not interrupt
+          // what the user is looking at; new experiences queue behind it.
+          setExperiences([active, ...fresh]);
+          setActiveIndex(0);
+        } else {
+          setExperiences(isManual ? result : fresh);
+          setActiveIndex(0);
+          setStepIndex(0);
+        }
       } catch {
-        setExperiences([]);
+        // Keep whatever is on screen; the next evaluation will retry.
       } finally {
         evaluatingRef.current = false;
+        const pending = pendingRef.current;
+        pendingRef.current = undefined;
+        if (pending !== undefined) {
+          void evaluate(pending ?? undefined);
+        }
       }
     },
     [session?.sessionId, user]
@@ -106,8 +168,10 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
 
   // Exit Intent trigger
   useEffect(() => {
+    let lastFired = 0;
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY < 50) {
+      if (e.clientY < 50 && Date.now() - lastFired > EXIT_INTENT_THROTTLE_MS) {
+        lastFired = Date.now();
         void evaluate({ eventName: 'exit_intent' });
       }
     };
@@ -123,17 +187,13 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
       window.clearTimeout(idleTimer);
       idleTimer = window.setTimeout(() => {
         void evaluate({ eventName: 'idle_timeout' });
-      }, 15000); // 15 seconds idle threshold
+      }, IDLE_TIMEOUT_MS);
     };
 
     const activityEvents = ['mousemove', 'keydown', 'click', 'scroll'];
-    const setupListeners = () => {
-      activityEvents.forEach((evt) => {
-        window.addEventListener(evt, resetTimer, { passive: true });
-      });
-    };
-
-    setupListeners();
+    activityEvents.forEach((evt) => {
+      window.addEventListener(evt, resetTimer, { passive: true });
+    });
     resetTimer();
 
     return () => {
@@ -148,19 +208,35 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
     async (eventName: EngagementEventName, guide: Guide, step?: GuideStep, properties?: Record<string, unknown>) => {
       const surveyId = typeof guide.metadata?.surveyId === 'string' ? guide.metadata.surveyId : undefined;
       const checklistId = typeof guide.metadata?.checklistId === 'string' ? guide.metadata.checklistId : undefined;
-      await trackEngagementEvent({
-        eventName,
-        guideId: surveyId ? undefined : guide.id,
-        surveyId,
-        checklistId,
-        stepId: step?.id,
-        userId: user?.id,
-        sessionId: session?.sessionId,
-        properties
-      });
+      try {
+        await trackEngagementEvent({
+          eventName,
+          sdkIntegrationId: integrationOf(guide),
+          guideId: surveyId || checklistId ? undefined : guide.id,
+          surveyId,
+          checklistId,
+          stepId: step?.id,
+          userId: user?.id,
+          sessionId: session?.sessionId,
+          properties
+        });
+      } catch {
+        // Tracking is best effort; it must never break the experience.
+      }
     },
     [session?.sessionId, user?.id]
   );
+
+  // One impression per display: drives frequency caps and the cooldown.
+  useEffect(() => {
+    if (activeGuide && shownRef.current !== activeGuide.id) {
+      shownRef.current = activeGuide.id;
+      void track('guide_shown', activeGuide);
+    }
+    if (!activeGuide) {
+      shownRef.current = null;
+    }
+  }, [activeGuide, track]);
 
   const closeActive = useCallback(
     (completed: boolean) => {
@@ -176,6 +252,7 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
           ? 'survey_abandoned'
           : 'guide_dismissed';
 
+      handledRef.current.add(activeGuide.id);
       void track(eventName, activeGuide);
       setActiveIndex((current) => current + 1);
       setStepIndex(0);
@@ -190,33 +267,38 @@ export function GuideRuntimeProvider({ children }: GuideRuntimeProviderProps): J
 
     return (
       <GuideOverlay
+        key={activeGuide.id}
         guide={activeGuide}
         stepIndex={stepIndex}
         onDismiss={() => closeActive(false)}
         onComplete={() => closeActive(true)}
         onNext={() => {
           const step = activeGuide.steps[stepIndex];
+          if (!startedRef.current.has(activeGuide.id)) {
+            startedRef.current.add(activeGuide.id);
+            void track('guide_started', activeGuide, step);
+          }
           void track('step_completed', activeGuide, step);
           setStepIndex((current) => Math.min(current + 1, activeGuide.steps.length - 1));
         }}
         onPrevious={() => setStepIndex((current) => Math.max(current - 1, 0))}
         onStepViewed={(step) => void track('step_viewed', activeGuide, step)}
-        onSurveySubmit={async (answers, metadata) => {
+        onSurveySubmit={async (answers, metadata, idempotencyKey) => {
           const surveyId = typeof activeGuide.metadata?.surveyId === 'string' ? activeGuide.metadata.surveyId : undefined;
-          if (surveyId) {
-            await submitSurveyResponse(
-              activeGuide.sdkIntegrationId || (activeGuide.metadata?.sdkIntegrationId as string) || '',
-              surveyId,
-              {
-                userId: user?.id,
-                sessionId: session?.sessionId,
-                answers,
-                metadata
-              }
-            );
+          const integrationId = integrationOf(activeGuide);
+          if (surveyId && integrationId) {
+            // Throws on failure so the survey stays open and can be retried.
+            await submitSurveyResponse(integrationId, surveyId, {
+              userId: user?.id,
+              sessionId: session?.sessionId,
+              answers,
+              metadata,
+              idempotencyKey
+            });
           } else {
-            await track('survey_completed', activeGuide, undefined, { answers, ...metadata });
+            await track('survey_completed', activeGuide, undefined, { answers, idempotencyKey, ...metadata });
           }
+          handledRef.current.add(activeGuide.id);
           setActiveIndex((current) => current + 1);
           setStepIndex(0);
         }}
@@ -241,7 +323,7 @@ interface GuideOverlayProps {
   onNext: () => void;
   onPrevious: () => void;
   onStepViewed: (step: GuideStep) => void;
-  onSurveySubmit: (answers: Record<string, unknown>, metadata?: Record<string, unknown>) => Promise<void>;
+  onSurveySubmit: (answers: Record<string, unknown>, metadata: Record<string, unknown> | undefined, idempotencyKey: string) => Promise<void>;
   onTrack: (eventName: EngagementEventName, step?: GuideStep, properties?: Record<string, unknown>) => void;
 }
 
@@ -263,7 +345,21 @@ function GuideOverlay({
   const [history, setHistory] = useState<number[]>([0]);
   const [surveyAnswers, setSurveyAnswers] = useState<Record<string, unknown>>({});
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const startedAtRef = useRef<number>(Date.now());
+  // One key per display, reused on retries so a resubmit cannot duplicate.
+  const runKeyRef = useRef<string>(newRunKey());
+  const onStepViewedRef = useRef(onStepViewed);
+  onStepViewedRef.current = onStepViewed;
+  const [completedItems, setCompletedItems] = useState<Set<string>>(
+    () =>
+      new Set(
+        Array.isArray(guide.metadata?.completedItemIds)
+          ? (guide.metadata.completedItemIds as unknown[]).filter((id): id is string => typeof id === 'string')
+          : []
+      )
+  );
+  const [hotspotOpen, setHotspotOpen] = useState(false);
 
   // Track survey start once
   const startTracked = useRef(false);
@@ -281,12 +377,13 @@ function GuideOverlay({
 
   const anchor = useAnchorRect(step?.selector);
 
-  // Trigger step viewed
+  // One step_viewed per step change (not per re-render).
+  const stepId = step?.id;
   useEffect(() => {
     if (step) {
-      onStepViewed(step);
+      onStepViewedRef.current(step);
     }
-  }, [onStepViewed, step]);
+  }, [stepId]);
 
   if (guide.type === 'BANNER') {
     return (
@@ -317,18 +414,39 @@ function GuideOverlay({
       ? { left: anchor.left + anchor.width - 8, top: anchor.top - 8 }
       : { left: window.innerWidth / 2, top: window.innerHeight / 2 };
     return (
-      <button
-        className="fixed z-[10000] flex h-7 w-7 items-center justify-center rounded-full bg-accent-amber text-white shadow-xl ring-8 ring-amber-300/30 cursor-pointer"
-        onClick={() => {
-          onTrack('hotspot_opened', step);
-          onComplete();
-        }}
-        style={style}
-        title={guide.title}
-        type="button"
-      >
-        <Sparkles size={15} />
-      </button>
+      <>
+        <button
+          aria-expanded={hotspotOpen}
+          className="fixed z-[10000] flex h-7 w-7 items-center justify-center rounded-full bg-accent-amber text-white shadow-xl ring-8 ring-amber-300/30 cursor-pointer"
+          onClick={() => {
+            if (!hotspotOpen) onTrack('hotspot_opened', step);
+            setHotspotOpen((open) => !open);
+          }}
+          style={style}
+          title={guide.title}
+          type="button"
+        >
+          <Sparkles size={15} />
+        </button>
+        {hotspotOpen && (
+          <div className="fixed z-[10000] w-[280px] rounded-lg border border-olive-200 bg-white p-4 shadow-2xl" style={buildPopoverStyle(anchor, step?.placement ?? 'BOTTOM')}>
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <p className="m-0 text-sm font-bold text-olive-950">{step?.title ?? guide.title}</p>
+                {(step?.description || guide.description) && (
+                  <p className="m-0 mt-1 text-xs text-olive-500">{step?.description || guide.description}</p>
+                )}
+              </div>
+              <button className="rounded-md p-1 text-olive-400 hover:bg-olive-100 cursor-pointer" onClick={onDismiss} title="Dismiss" type="button">
+                <X size={14} />
+              </button>
+            </div>
+            <button className="w-full rounded-md bg-olive-700 px-3 py-1.5 text-xs font-bold text-white cursor-pointer hover:bg-olive-800 transition" onClick={onComplete} type="button">
+              Got it
+            </button>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -365,14 +483,21 @@ function GuideOverlay({
           </button>
         </div>
         <div className="grid gap-2">
-          {guide.steps.map((item) => (
+          {guide.steps.map((item) => {
+            const done = completedItems.has(item.id);
+            return (
             <button
-              className="flex items-center gap-3 rounded-md border border-olive-100 px-3 py-2 text-left text-sm hover:bg-olive-50 cursor-pointer"
+              aria-pressed={done}
+              className={`flex items-center gap-3 rounded-md border px-3 py-2 text-left text-sm cursor-pointer ${done ? 'border-olive-200 bg-olive-50' : 'border-olive-100 hover:bg-olive-50'}`}
+              disabled={done}
               key={item.id}
-              onClick={() => onTrack('step_completed', item, { checklistItemId: item.id })}
+              onClick={() => {
+                setCompletedItems((current) => new Set(current).add(item.id));
+                onTrack('step_completed', item, { checklistItemId: item.id });
+              }}
               type="button"
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-olive-300">
+              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${done ? 'border-olive-700 bg-olive-700 text-white' : 'border-olive-300 text-transparent'}`}>
                 <Check size={13} />
               </span>
               <span>
@@ -380,8 +505,14 @@ function GuideOverlay({
                 {item.description && <span className="block text-xs text-olive-500">{item.description}</span>}
               </span>
             </button>
-          ))}
+            );
+          })}
         </div>
+        {guide.steps.length > 0 && (
+          <p className="m-0 mt-3 text-xs font-semibold text-olive-500">
+            {completedItems.size} of {guide.steps.length} done
+          </p>
+        )}
         <button className="mt-4 w-full rounded-md bg-olive-700 px-3 py-2 text-sm font-bold text-white cursor-pointer hover:bg-olive-800 transition" onClick={onComplete} type="button">
           Done
         </button>
@@ -400,7 +531,8 @@ function GuideOverlay({
     // Branching and navigation helper
     const handleSurveyNext = () => {
       // 1. Validation
-      if (step.required && (answer === undefined || answer === null || answer === '')) {
+      if (submitting) return;
+      if (step.required && isEmptyAnswer(answer)) {
         setValidationError('This question is required.');
         return;
       }
@@ -446,7 +578,15 @@ function GuideOverlay({
           startedAt: new Date(startedAtRef.current).toISOString(),
           completionTimeSeconds: Math.floor((Date.now() - startedAtRef.current) / 1000)
         };
-        void onSurveySubmit(surveyAnswers, metadata);
+        setSubmitting(true);
+        onSurveySubmit(surveyAnswers, metadata, runKeyRef.current)
+          .catch((error: unknown) => {
+            const message =
+              (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+              'Your answers could not be sent. Please try again.';
+            setValidationError(message);
+          })
+          .finally(() => setSubmitting(false));
       } else {
         setHistory((prev) => [...prev, nextIdx]);
         setCurrentSurveyIdx(nextIdx);
@@ -562,10 +702,11 @@ function GuideOverlay({
           <button
             className="rounded-md px-5 py-2 text-sm font-bold text-white flex items-center gap-1 cursor-pointer hover:opacity-90 transition"
             style={{ backgroundColor: primaryColor }}
+            disabled={submitting}
             onClick={handleSurveyNext}
             type="button"
           >
-            {isLast ? 'Submit' : 'Next'} <ChevronRight size={16} />
+            {submitting ? 'Sending…' : isLast ? 'Submit' : 'Next'} <ChevronRight size={16} />
           </button>
         </div>
       </div>
@@ -784,15 +925,16 @@ function SurveyQuestionField({
 
   // CES (1-7 Scale) or Opinion Scale
   if (question.type === 'CES' || question.type === 'OPINION_SCALE') {
-    const maxVal = question.max ?? (question.type === 'CES' ? 7 : 5);
+    const minVal = question.min ?? 1;
+    const maxVal = Math.max(minVal, question.max ?? (question.type === 'CES' ? 7 : 5));
     const activeVal = typeof value === 'number' ? value : null;
     return (
       <div className="grid gap-3">
         <span className="text-sm font-semibold text-olive-950">{question.title}</span>
         {question.description && <p className="text-xs text-olive-500 m-0">{question.description}</p>}
         <div className="flex justify-between gap-1.5 mt-2">
-          {Array.from({ length: maxVal }).map((_, i) => {
-            const num = i + 1;
+          {Array.from({ length: maxVal - minVal + 1 }).map((_, i) => {
+            const num = minVal + i;
             const isSelected = activeVal === num;
             return (
               <button

@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
-import { Subtask } from '@/types/task';
+import { Subtask, TASK_WORKFLOW_STATUS_OPTIONS, type TaskWorkflowStatus } from '@/types/task';
 import type { ProjectMember } from '@/types/project';
 import UserAvatar from './UserAvatar';
 
 interface SubtaskInlineEditProps {
   subtask: Subtask;
-  onSave: (patch: { title: string; description?: string; note?: string; assignedToUserId?: string | null }) => void;
+  onSave: (patch: {
+    title: string;
+    description?: string;
+    note?: string;
+    status: TaskWorkflowStatus;
+    assignedToUserId?: string | null;
+  }) => void;
   onCancel: () => void;
   isSaving?: boolean;
   members: ProjectMember[];
@@ -18,7 +24,21 @@ export default function SubtaskInlineEdit({ subtask, onSave, onCancel, isSaving,
   const [title, setTitle] = useState(subtask.title);
   const [description, setDescription] = useState(subtask.description ?? '');
   const [note, setNote] = useState(subtask.note ?? '');
-  const [assignedToUserId, setAssignedToUserId] = useState<string | null>(subtask.assignedToUserId);
+  const [status, setStatus] = useState<TaskWorkflowStatus>(subtask.status || (subtask.completed ? 'DONE' : 'TODO'));
+
+  const initialAssignedId = (() => {
+    const raw = subtask.assignedToUserId;
+    if (raw && typeof raw === 'object') {
+      return (raw as any)._id || (raw as any).id || null;
+    }
+    if (typeof raw === 'string') {
+      const match = raw.match(/[a-f0-9]{24}/i);
+      return match ? match[0] : null;
+    }
+    return null;
+  })();
+
+  const [assignedToUserId, setAssignedToUserId] = useState<string | null>(initialAssignedId);
 
   const handleSave = () => {
     if (!title.trim()) return;
@@ -26,6 +46,7 @@ export default function SubtaskInlineEdit({ subtask, onSave, onCancel, isSaving,
       title: title.trim(), 
       description: description.trim() || undefined,
       note: note.trim() || undefined,
+      status,
       assignedToUserId
     });
   };
@@ -67,29 +88,46 @@ export default function SubtaskInlineEdit({ subtask, onSave, onCancel, isSaving,
         />
       </div>
 
-      <div className="grid gap-1.5">
-        <span className="text-xs font-medium text-olive-600">Assignee</span>
-        <div className="flex items-center gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid gap-1.5">
+          <span className="text-xs font-medium text-olive-600">Status</span>
           <select
             className={inputCls}
-            onChange={(e) => setAssignedToUserId(e.target.value || null)}
-            value={assignedToUserId || ''}
+            onChange={(e) => setStatus(e.target.value as TaskWorkflowStatus)}
+            value={status}
           >
-            <option value="">Unassigned</option>
-            {members.map((member) => (
-              <option key={member.id} value={member.userId}>
-                {member.user.name || member.user.email}
+            {TASK_WORKFLOW_STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
-          {assignedToUserId && (
-            <UserAvatar 
-              name={members.find(m => m.userId === assignedToUserId)?.user.name || null}
-              email={members.find(m => m.userId === assignedToUserId)?.user.email || ''}
-              size="md"
-              showTooltip={false}
-            />
-          )}
+        </div>
+
+        <div className="grid gap-1.5">
+          <span className="text-xs font-medium text-olive-600">Assignee</span>
+          <div className="flex items-center gap-3">
+            <select
+              className={inputCls}
+              onChange={(e) => setAssignedToUserId(e.target.value || null)}
+              value={assignedToUserId || ''}
+            >
+              <option value="">Unassigned</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.userId}>
+                  {member.user.name || member.user.email}
+                </option>
+              ))}
+            </select>
+            {assignedToUserId && (
+              <UserAvatar 
+                name={members.find(m => m.userId === assignedToUserId)?.user.name || null}
+                email={members.find(m => m.userId === assignedToUserId)?.user.email || ''}
+                size="md"
+                showTooltip={false}
+              />
+            )}
+          </div>
         </div>
       </div>
 

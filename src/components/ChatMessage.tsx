@@ -17,6 +17,7 @@ interface ChatMessageProps {
   message: ChatMessage;
   currentUserId: string;
   currentUserEmail?: string;
+  currentUserName?: string | null;
   isAdmin: boolean;
   onEdit: (messageId: string, content: string) => void;
   onDelete: (messageId: string) => void;
@@ -33,6 +34,40 @@ const QUICK_REACTIONS = ['👍', '👎', '❤️', '😄', '😮', '🎉', '👀
 
 // Format date for display
 const formatTime = (dateString: string): string => formatDate(dateString, 'time');
+
+// Render mentions highlighted inside message content
+const renderFormattedContent = (
+  content: string,
+  currentUserName?: string | null,
+  currentUserEmail?: string
+) => {
+  if (!content) return null;
+  const mentionRegex = /(@[\w.-]+)/g;
+  const parts = content.split(mentionRegex);
+
+  return parts.map((part, index) => {
+    if (part.startsWith('@')) {
+      const handle = part.slice(1).toLowerCase();
+      const isMe =
+        (currentUserName && currentUserName.toLowerCase().includes(handle)) ||
+        (currentUserEmail && currentUserEmail.toLowerCase().includes(handle));
+      return (
+        <span
+          key={index}
+          className={[
+            'inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded font-semibold text-[12.5px] align-baseline transition-all',
+            isMe
+              ? 'bg-brand-100 text-brand-900 border border-brand-300 ring-1 ring-brand-400/20 shadow-2xs font-bold'
+              : 'bg-olive-100 text-olive-800 border border-olive-200/80',
+          ].join(' ')}
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+};
 
 // Get user initials for avatar
 const getInitials = (user: MessageSender | null): string => {
@@ -81,6 +116,7 @@ function ChatMessageComponent({
   message,
   currentUserId,
   currentUserEmail,
+  currentUserName,
   isAdmin,
   onEdit,
   onDelete,
@@ -223,6 +259,29 @@ function ChatMessageComponent({
             </span>
             <span className="text-[11px] text-olive-400 shrink-0">{formatTime(message.createdAt)}</span>
             {message.isEdited && <span className="text-[11px] text-olive-400">· edited</span>}
+            {isOwnMessage && (
+              <span className="ml-1 inline-flex items-center">
+                {message.status === 'sending' ? (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-xs animate-pulse">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    Sending…
+                  </span>
+                ) : message.status === 'failed' ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-red-600 font-medium" title="Failed to deliver">
+                    <X className="w-3.5 h-3.5" />
+                    Failed
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-olive-400" title="Sent">
+                    <Check className="w-3.5 h-3.5 text-brand-600" />
+                    Sent
+                  </span>
+                )}
+              </span>
+            )}
           </div>
 
           {isEditing ? (
@@ -269,7 +328,7 @@ function ChatMessageComponent({
                 </button>
               )}
               <div className="text-[13.5px] leading-relaxed text-olive-800 whitespace-pre-wrap" style={{ wordBreak: 'break-word' }}>
-                {message.content}
+                {renderFormattedContent(message.content, currentUserName, currentUserEmail)}
               </div>
             </>
           )}

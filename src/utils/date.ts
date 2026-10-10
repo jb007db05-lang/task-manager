@@ -59,7 +59,8 @@ function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
   
-  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 5) return 'just now';
+  if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
   
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
@@ -69,6 +70,6 @@ function formatRelativeTime(date: Date): string {
   
   const diffInDays = Math.floor(diffInHours / 24);
   if (diffInDays < 7) return `${diffInDays}d ago`;
-  
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }

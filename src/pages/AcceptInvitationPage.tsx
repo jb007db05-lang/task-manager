@@ -12,6 +12,7 @@ interface InvitationDetails {
   role: 'ADMIN' | 'MEMBER';
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
   isRegistered: boolean;
+  workspaceId?: string;
 }
 
 function AcceptInvitationPage(): JSX.Element {
@@ -145,7 +146,7 @@ function AcceptInvitationPage(): JSX.Element {
             user.email.toLowerCase() === details?.email.toLowerCase() ? (
               <button onClick={handleAccept} disabled={accepting} className="btn btn-primary btn-lg w-full" type="button">
                 {accepting ? <Loader2 size={16} className="animate-spin" /> : null}
-                {accepting ? 'Joining…' : 'Accept and join project'}
+                {accepting ? 'Joining…' : details?.workspaceId ? 'Accept and join workspace' : 'Accept and join project'}
                 {!accepting && <ArrowRight size={16} />}
               </button>
             ) : (
@@ -174,7 +175,9 @@ function AcceptInvitationPage(): JSX.Element {
               <button onClick={() => navigate(registerHref)} className="btn btn-primary btn-lg w-full" type="button">
                 Create an account to join <ArrowRight size={16} />
               </button>
-              <p className="text-center text-xs text-olive-500 m-0">You'll be added to the project as soon as you sign up.</p>
+              <p className="text-center text-xs text-olive-500 m-0">
+                You'll be added to the {details?.workspaceId ? 'workspace' : 'project'} as soon as you sign up.
+              </p>
             </div>
           )}
         </div>

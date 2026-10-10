@@ -17,6 +17,10 @@ export enum SocketEvents {
   JOIN_PROJECT = 'project:join',
   LEAVE_PROJECT = 'project:leave',
 
+  // Workspace rooms
+  JOIN_WORKSPACE = 'workspace:join',
+  LEAVE_WORKSPACE = 'workspace:leave',
+
   // Messages
   MESSAGE_SEND = 'message:send',
   MESSAGE_RECEIVE = 'message:receive',
@@ -59,15 +63,20 @@ export enum SocketEvents {
 export interface SocketResponse {
   success: boolean;
   message?: string;
+  workspaceId?: string;
 }
 
 /**
  * Socket.IO message payload
  */
 export interface MessagePayload {
-  projectId: string;
+  projectId?: string;
+  workspaceId?: string;
+  recipientId?: string;
   content: string;
   replyToId?: string;
+  mentions?: string[];
+  clientMessageId?: string;
 }
 
 /**
@@ -159,6 +168,7 @@ export interface JoinProjectResponse {
 class SocketService {
   private socket: Socket | null = null;
   private currentProjectId: string | null = null;
+  private currentWorkspaceId: string | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private eventListeners: Map<string, Set<(...args: unknown[]) => void>> = new Map();
@@ -193,6 +203,7 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.currentProjectId = null;
+      this.currentWorkspaceId = null;
     }
   }
 
@@ -234,6 +245,42 @@ class SocketService {
     if (this.socket?.connected && this.currentProjectId) {
       this.socket.emit(SocketEvents.LEAVE_PROJECT);
       this.currentProjectId = null;
+    }
+  }
+
+  /**
+   * Join a workspace room (for common lounge / team broadcast)
+   */
+  public async joinWorkspace(workspaceId: string): Promise<SocketResponse> {
+    return new Promise((resolve) => {
+      if (!this.socket?.connected) {
+        resolve({ success: false, message: 'Socket not connected' });
+        return;
+      }
+
+      if (this.currentWorkspaceId && this.currentWorkspaceId !== workspaceId) {
+        this.leaveWorkspace(this.currentWorkspaceId);
+      }
+
+      this.socket.emit(SocketEvents.JOIN_WORKSPACE, { workspaceId }, (response: SocketResponse) => {
+        if (response?.success) {
+          this.currentWorkspaceId = workspaceId;
+        }
+        resolve(response || { success: true, workspaceId });
+      });
+    });
+  }
+
+  /**
+   * Leave current workspace room
+   */
+  public leaveWorkspace(workspaceId?: string): void {
+    const target = workspaceId || this.currentWorkspaceId;
+    if (this.socket?.connected && target) {
+      this.socket.emit(SocketEvents.LEAVE_WORKSPACE, { workspaceId: target });
+      if (this.currentWorkspaceId === target) {
+        this.currentWorkspaceId = null;
+      }
     }
   }
 

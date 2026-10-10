@@ -4,7 +4,7 @@ import {
   Plus,
   Settings,
   Activity,
-  BrainCircuit,
+  BarChart3,
   LogOut,
   BookOpen,
   Target,
@@ -16,7 +16,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import logoImg from '@/assets/logo.png';
-import { Workspace } from '../services/workspaces';
+import { useWorkspace } from '@/context/WorkspaceContext';
+import WorkspaceMenu from '@/components/workspace/WorkspaceMenu';
 
 export type SidebarView =
   | 'dashboard'
@@ -34,8 +35,6 @@ interface SidebarProps {
   activeView: SidebarView;
   selectedProjectView: string;
   allProjectsValue: string;
-  currentWorkspaceId?: string;
-  onSelectWorkspace?: (workspace: Workspace) => void;
   onProjectSelect: (projectId: string) => void;
   onViewChange: (view: SidebarView, tab?: string) => void;
   onNewProject: () => void;
@@ -109,6 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   activeIntegrationSandbox = false,
   activeTab,
 }) => {
+  const { can } = useWorkspace();
   const projectsActive = selectedProjectView === allProjectsValue && activeView === 'dashboard';
   const inProject = activeView === 'dashboard' && selectedProjectView !== allProjectsValue;
 
@@ -121,6 +121,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <span className="text-[15px] font-semibold tracking-tight text-white">Pristine</span>
       </div>
+
+      {!activeIntegrationId && <WorkspaceMenu onOpenSettings={() => onViewChange('settings', 'workspace')} />}
 
       <nav className="flex flex-col flex-1 overflow-y-auto px-3 pb-3 hide-scrollbar">
         {activeIntegrationId ? (
@@ -161,6 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </>
         ) : (
           <>
+            {can('project.create') && (
             <button
               type="button"
               onClick={onNewProject}
@@ -169,18 +172,25 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Plus size={15} strokeWidth={2} />
               New project
             </button>
+            )}
 
             <GroupLabel>Work</GroupLabel>
             <div className="flex flex-col gap-0.5">
               <NavItem icon={FolderKanban} label="Projects" isActive={projectsActive || inProject} onClick={() => onProjectSelect(allProjectsValue)} />
-              <NavItem icon={BrainCircuit} label="Intelligence" isActive={activeView === 'semantic-intelligence'} onClick={() => onViewChange('semantic-intelligence')} />
+              {can('intelligence.view') && (
+                <NavItem icon={BarChart3} label="Insights" isActive={activeView === 'semantic-intelligence'} onClick={() => onViewChange('semantic-intelligence')} />
+              )}
             </div>
 
-            <GroupLabel>Prompts</GroupLabel>
-            <div className="flex flex-col gap-0.5">
-              <NavItem icon={Library} label="Library" isActive={activeView === 'prompts'} onClick={() => onViewChange('prompts')} />
-              <NavItem icon={FlaskConical} label="Playground" isActive={activeView === 'playground'} onClick={() => onViewChange('playground')} />
-            </div>
+            {can('library.access') && (
+              <>
+                <GroupLabel>Prompts</GroupLabel>
+                <div className="flex flex-col gap-0.5">
+                  <NavItem icon={Library} label="Library" isActive={activeView === 'prompts'} onClick={() => onViewChange('prompts')} />
+                  <NavItem icon={FlaskConical} label="Playground" isActive={activeView === 'playground'} onClick={() => onViewChange('playground')} />
+                </div>
+              </>
+            )}
 
             <GroupLabel>Developers</GroupLabel>
             <div className="flex flex-col gap-0.5">

@@ -38,11 +38,28 @@ const CREDENTIAL_ENDPOINTS = [
 const isCredentialEndpoint = (url?: string): boolean =>
   !!url && CREDENTIAL_ENDPOINTS.some((path) => url === path || url.endsWith(path));
 
+/** Storage key for the workspace the user is working in (set by WorkspaceContext). */
+export const ACTIVE_WORKSPACE_KEY = 'active_workspace_id';
+
+const activeWorkspaceId = (): string | null => {
+  try {
+    return localStorage.getItem(ACTIVE_WORKSPACE_KEY);
+  } catch {
+    return null;
+  }
+};
+
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
 
   if (token && config.headers && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // Every request is scoped to the active workspace; the server checks it.
+  const workspaceId = activeWorkspaceId();
+  if (workspaceId && config.headers && !config.headers['X-Workspace-Id']) {
+    config.headers['X-Workspace-Id'] = workspaceId;
   }
 
   return config;

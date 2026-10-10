@@ -60,7 +60,10 @@ export interface ReplyToMessage {
  */
 export interface ChatMessage {
   id: string;
-  projectId: string;
+  projectId?: string | null;
+  workspaceId?: string | null;
+  recipientId?: string | null;
+  recipient?: MessageSender | null;
   senderId: string | null;
   sender: MessageSender | null;
   type: MessageType;
@@ -69,12 +72,14 @@ export interface ChatMessage {
   replyTo: ReplyToMessage | null;
   readBy: string[];
   reactions: MessageReaction[];
+  mentions?: { userId: string; mentionedBy: string }[];
   isEdited: boolean;
   isDeleted: boolean;
   metadata: MessageMetadata;
   replyCount: number;
   createdAt: string;
   updatedAt: string;
+  status?: 'sending' | 'sent' | 'failed';
 }
 
 /**

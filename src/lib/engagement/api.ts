@@ -109,20 +109,33 @@ export const listSurveys = async (sdkIntegrationId: string): Promise<Guide[]> =>
   return response.data.data.surveys.map((survey) => normalizeGuide({ ...survey, type: 'SURVEY', steps: survey.steps ?? (survey as Guide & { questions?: GuideStep[] }).questions ?? [] }));
 };
 
+// The saved document is the source of truth: a partial update (e.g. a status
+// change) must not blank the questions or items shown in the editor.
+type WithQuestions = Guide & { questions?: GuideStep[]; items?: GuideStep[] };
+
 export const createSurvey = async (sdkIntegrationId: string, payload: SurveyPayload): Promise<Guide> => {
-  const response = await api.post<ApiEnvelope<{ survey: Guide }>>(`/sdk-integrations/${sdkIntegrationId}/surveys`, payload);
-  return normalizeGuide({ ...response.data.data.survey, type: 'SURVEY', steps: payload.questions });
+  const response = await api.post<ApiEnvelope<{ survey: WithQuestions }>>(`/sdk-integrations/${sdkIntegrationId}/surveys`, payload);
+  const survey = response.data.data.survey;
+  return normalizeGuide({ ...survey, type: 'SURVEY', steps: survey.questions ?? payload.questions });
 };
 
 export const updateSurvey = async (sdkIntegrationId: string, surveyId: string, payload: Partial<SurveyPayload>): Promise<Guide> => {
-  const response = await api.patch<ApiEnvelope<{ survey: Guide }>>(`/sdk-integrations/${sdkIntegrationId}/surveys/${surveyId}`, payload);
-  return normalizeGuide({ ...response.data.data.survey, type: 'SURVEY', steps: payload.questions ?? [] });
+  const response = await api.patch<ApiEnvelope<{ survey: WithQuestions }>>(`/sdk-integrations/${sdkIntegrationId}/surveys/${surveyId}`, payload);
+  const survey = response.data.data.survey;
+  return normalizeGuide({ ...survey, type: 'SURVEY', steps: survey.questions ?? payload.questions ?? [] });
 };
 
 export const submitSurveyResponse = async (
   sdkIntegrationId: string,
   surveyId: string,
-  payload: { userId?: string; sessionId?: string | null; answers: Record<string, unknown>; metadata?: Record<string, unknown> }
+  payload: {
+    userId?: string;
+    sessionId?: string | null;
+    answers: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+    /** Same key on a retry returns the first response instead of a duplicate. */
+    idempotencyKey?: string;
+  }
 ): Promise<void> => {
   await api.post(`/sdk-integrations/${sdkIntegrationId}/surveys/${surveyId}/responses`, payload);
 };
@@ -168,13 +181,15 @@ export const listChecklists = async (): Promise<Guide[]> => {
 };
 
 export const createChecklist = async (payload: ChecklistPayload): Promise<Guide> => {
-  const response = await api.post<ApiEnvelope<{ checklist: Guide }>>('/checklists', payload);
-  return normalizeGuide({ ...response.data.data.checklist, type: 'CHECKLIST', steps: payload.items });
+  const response = await api.post<ApiEnvelope<{ checklist: WithQuestions }>>('/checklists', payload);
+  const checklist = response.data.data.checklist;
+  return normalizeGuide({ ...checklist, type: 'CHECKLIST', steps: checklist.items ?? payload.items });
 };
 
 export const updateChecklist = async (checklistId: string, payload: Partial<ChecklistPayload>): Promise<Guide> => {
-  const response = await api.patch<ApiEnvelope<{ checklist: Guide }>>(`/checklists/${checklistId}`, payload);
-  return normalizeGuide({ ...response.data.data.checklist, type: 'CHECKLIST', steps: payload.items ?? [] });
+  const response = await api.patch<ApiEnvelope<{ checklist: WithQuestions }>>(`/checklists/${checklistId}`, payload);
+  const checklist = response.data.data.checklist;
+  return normalizeGuide({ ...checklist, type: 'CHECKLIST', steps: checklist.items ?? payload.items ?? [] });
 };
 
 export const evaluateRuntime = async (context: EngagementRuntimeContext): Promise<Guide[]> => {
@@ -184,6 +199,8 @@ export const evaluateRuntime = async (context: EngagementRuntimeContext): Promis
 
 export const trackEngagementEvent = async (payload: {
   eventName: EngagementEventName;
+  /** Integration the runtime served this experience from. */
+  sdkIntegrationId?: string;
   guideId?: string;
   surveyId?: string;
   checklistId?: string;

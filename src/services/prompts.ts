@@ -78,6 +78,15 @@ export interface PromptFeature {
   } | null;
 }
 
+export interface PromptAccessGrant {
+  id: string;
+  userId: string;
+  name: string | null;
+  email: string;
+  grantedBy: string | null;
+  grantedAt: string;
+}
+
 export interface PromptItem {
   _id: string;
   workspaceId: string;
@@ -106,6 +115,7 @@ export interface PromptItem {
   isArchived: boolean;
   isTemplate: boolean;
   usageCount: number;
+  lastUsedAt?: string | null;
   deployment?: PromptDeploymentSummary | null;
   createdAt: string;
   updatedAt: string;
@@ -143,6 +153,7 @@ export interface CreatePromptPayload {
   folderId?: string | null;
   visibility?: "private" | "project" | "organization";
   isTemplate?: boolean;
+  projectId?: string | null;
 }
 
 export interface UpdatePromptPayload {
@@ -155,6 +166,7 @@ export interface UpdatePromptPayload {
   variables?: IPromptVariable[];
   folderId?: string | null;
   visibility?: "private" | "project" | "organization";
+  projectId?: string | null;
   changeNote?: string;
 }
 
@@ -197,6 +209,8 @@ export const promptService = {
       search?: string;
       isTemplate?: boolean;
       isFavorite?: boolean;
+      /** Only prompts attached to this project. */
+      projectId?: string;
     },
   ): Promise<PromptItem[]> {
     const res = await api.get<{ status: string; data: PromptItem[] }>(
@@ -235,6 +249,29 @@ export const promptService = {
     const res = await api.patch<{ status: string; data: PromptItem }>(
       `/workspaces/${workspaceId}/prompts/${promptId}`,
       payload,
+    );
+    return res.data.data;
+  },
+
+  // Individual sharing (needs the "Share prompts with teammates" permission)
+  async listPromptAccess(workspaceId: string, promptId: string): Promise<PromptAccessGrant[]> {
+    const res = await api.get<{ data: PromptAccessGrant[] }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/access`,
+    );
+    return res.data.data;
+  },
+
+  async sharePrompt(workspaceId: string, promptId: string, userId: string): Promise<PromptAccessGrant[]> {
+    const res = await api.post<{ data: PromptAccessGrant[] }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/access`,
+      { userId },
+    );
+    return res.data.data;
+  },
+
+  async unsharePrompt(workspaceId: string, promptId: string, userId: string): Promise<PromptAccessGrant[]> {
+    const res = await api.delete<{ data: PromptAccessGrant[] }>(
+      `/workspaces/${workspaceId}/prompts/${promptId}/access/${userId}`,
     );
     return res.data.data;
   },
@@ -403,7 +440,7 @@ export interface PlaygroundRunPayload {
   versionNumber?: number;
   body?: string;
   messages?: IPromptMessage[];
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   provider?: string;
   modelName?: string;
   parameters?: {

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import EmptyState from '@/components/EmptyState';
+import { formatDate } from '@/utils/date';
 import Modal from '@/components/Modal';
 import Menu from '@/components/Menu';
 import { useToast } from '@/context/ToastContext';
@@ -41,15 +42,7 @@ import {
 const LIVE_INTERVAL_MS = 5000;
 const PAGE_SIZE = 50;
 
-const relativeTime = (iso: string): string => {
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 5) return 'just now';
-  if (diff < 60) return `${Math.floor(diff)}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-};
+const relativeTime = (iso: string): string => formatDate(iso, 'relative');
 
 const fullTime = (iso: string): string =>
   new Date(iso).toLocaleString(undefined, {
